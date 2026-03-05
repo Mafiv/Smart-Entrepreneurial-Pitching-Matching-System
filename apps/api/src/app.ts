@@ -7,6 +7,9 @@ import express, {
 import mongoSanitize from "express-mongo-sanitize";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
+import swaggerUi from "swagger-ui-express";
+
+import { RegisterRoutes } from "./routes";
 
 const app = express();
 
@@ -22,9 +25,13 @@ app.use(mongoSanitize());
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/health", (_req: Request, res: Response) => {
-	res.status(200).json({ status: "ok" });
+// Swagger UI
+app.use("/docs", swaggerUi.serve, async (_req: Request, res: Response) => {
+	return res.send(swaggerUi.generateHTML(await import("./swagger.json")));
 });
+
+// Register tsoa routes
+RegisterRoutes(app);
 
 app.use((_req: Request, res: Response) => {
 	res.status(404).json({ message: "Not found" });

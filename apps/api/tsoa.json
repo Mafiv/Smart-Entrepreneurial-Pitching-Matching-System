@@ -1,0 +1,29 @@
+{
+	"entryFile": "src/app.ts",
+	"noImplicitAdditionalProperties": "throw-on-extras",
+	"controllerPathGlobs": ["src/**/*controller.ts"],
+	"spec": {
+		"outputDirectory": "src",
+		"specVersion": 3,
+		"displayName": "SPEMS API",
+		"description": "Smart Entrepreneurial Pitching Matching System API Documentation",
+		"host": "localhost:4000",
+		"schemes": ["http", "https"],
+		"securityDefinitions": {
+			"api_key": {
+				"type": "apiKey",
+				"name": "access_token",
+				"in": "query"
+			},
+			"jwt": {
+				"type": "apiKey",
+				"name": "Authorization",
+				"in": "header"
+			}
+		}
+	},
+	"routes": {
+		"routesDir": "src",
+		"authenticationModule": "src/middleware/auth.ts"
+	}
+}

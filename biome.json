@@ -1,15 +1,37 @@
 {
 	"$schema": "https://biomejs.dev/schemas/2.4.4/schema.json",
+
+	"files": {
+		"includes": [
+			"apps/**/src/**/*.{ts,tsx,js,jsx}",
+			"packages/**/src/**/*.{ts,tsx,js,jsx}"
+		]
+	},
+
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true
+			"recommended": true,
+			"correctness": {
+				"noUnusedVariables": "warn"
+			}
 		}
 	},
+
+	"overrides": [
+		{
+			"includes": ["apps/api/src/routes.ts"],
+			"linter": {
+				"enabled": false
+			}
+		}
+	],
+
 	"formatter": {
 		"enabled": true,
 		"indentStyle": "tab"
 	},
+
 	"javascript": {
 		"formatter": {
 			"quoteStyle": "double"
