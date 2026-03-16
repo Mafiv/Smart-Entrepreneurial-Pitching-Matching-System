@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, FileText, Handshake, MessageSquare, PenLine, Rocket, Send, User } from "lucide-react";
+import { BarChart3, FileText, Handshake, Lock, MessageSquare, PenLine, Rocket, Send, User } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/context/AuthContext";
 import { SECTORS } from "@/lib/validations/submission";
+import { toast } from "sonner";
 
 interface Submission {
 	_id: string;
@@ -46,7 +47,7 @@ function statusVariant(
 }
 
 function EntrepreneurDashboardInner() {
-	const { user } = useAuth();
+	const { user, userProfile } = useAuth();
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const justSubmitted = searchParams.get("submitted");
@@ -106,7 +107,22 @@ function EntrepreneurDashboardInner() {
 							Manage your pitches and track investor interest
 						</p>
 					</div>
-					<Button onClick={() => router.push("/entrepreneur/pitch/new")}>
+					<Button
+						onClick={() => {
+							if (userProfile?.status !== "verified") {
+								toast.error("Complete your verification first to create pitches.", {
+									action: {
+										label: "Go to Profile",
+										onClick: () => router.push("/entrepreneur/profile"),
+									},
+								});
+								return;
+							}
+							router.push("/entrepreneur/pitch/new");
+						}}
+						className={userProfile?.status !== "verified" ? "opacity-70" : ""}
+					>
+						{userProfile?.status !== "verified" && <Lock className="h-3.5 w-3.5 mr-1.5" />}
 						+ New Pitch
 					</Button>
 				</div>
@@ -157,11 +173,18 @@ function EntrepreneurDashboardInner() {
 								Submit Your First Pitch
 							</h3>
 							<p className="text-muted-foreground text-center max-w-md mb-6 text-sm">
-								Create a compelling pitch and let our AI match you with the
-								right investors.
+								{userProfile?.status === "verified"
+									? "Create a compelling pitch and let our AI match you with the right investors."
+									: "Complete your verification to start creating pitches and connecting with investors."}
 							</p>
-							<Button onClick={() => router.push("/entrepreneur/pitch/new")}>
-								Create New Pitch
+							<Button onClick={() => {
+								if (userProfile?.status !== "verified") {
+									router.push("/entrepreneur/profile");
+								} else {
+									router.push("/entrepreneur/pitch/new");
+								}
+							}}>
+								{userProfile?.status === "verified" ? "Create New Pitch" : "Complete Verification"}
 							</Button>
 						</CardContent>
 					</Card>

@@ -5,6 +5,7 @@ import { BarChart3, ClipboardList, DollarSign, Lightbulb, Search } from "lucide-
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,10 +50,18 @@ const STEPS = [
 ];
 
 function NewPitchPageInner() {
-	const { user } = useAuth();
+	const { user, userProfile } = useAuth();
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const editId = searchParams.get("id");
+
+	// Block unverified users from creating pitches
+	useEffect(() => {
+		if (userProfile && userProfile.status !== "verified" && userProfile.role !== "admin") {
+			toast.error("You must complete KYC verification before creating pitches.");
+			router.push("/entrepreneur/dashboard");
+		}
+	}, [userProfile, router]);
 
 	const [currentStep, setCurrentStep] = useState(1);
 	const [submissionId, setSubmissionId] = useState<string | null>(editId);
@@ -362,7 +371,7 @@ function NewPitchPageInner() {
 
 								<div className="space-y-2">
 									<Label htmlFor="targetAmount">
-										Target Funding Amount (USD) *
+										Target Funding Amount (ETB) *
 									</Label>
 									<Input
 										id="targetAmount"

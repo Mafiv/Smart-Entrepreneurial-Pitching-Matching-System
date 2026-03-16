@@ -7,10 +7,11 @@ import express, {
 import mongoSanitize from "express-mongo-sanitize";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
-
+import adminRoutes from "./routes/admin.routes";
 import authRoutes from "./routes/auth.routes";
 import submissionRoutes from "./routes/submission.routes";
 import uploadRoutes from "./routes/upload.routes";
+import userRoutes from "./routes/user.routes";
 
 const app = express();
 
@@ -43,7 +44,7 @@ app.use(
 app.use(
 	rateLimit({
 		windowMs: 15 * 60 * 1000,
-		max: 100,
+		max: 500,
 	}),
 );
 app.use(mongoSanitize());
@@ -58,6 +59,8 @@ app.get("/health", (_req: Request, res: Response) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/submissions", submissionRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.use((_req: Request, res: Response) => {
 	res.status(404).json({ message: "Not found" });

@@ -96,12 +96,12 @@ function SignUpForm() {
 
 					<div className="space-y-4">
 						<h1 className="text-4xl font-bold tracking-tight sm:text-5xl xl:text-6xl leading-[1.1]">
-							Join the future of <br /> start-up funding.
+							Join Ethiopia's future <br /> of start-up funding.
 						</h1>
 						<p className="text-lg text-muted-foreground max-w-md leading-relaxed">
 							Create your account to start pitching your ideas or discovering
-							high-potential investment opportunities through our AI-matching
-							engine.
+							high-potential investment opportunities in the Ethiopian startup
+							ecosystem through our AI-matching engine.
 						</p>
 					</div>
 				</div>
@@ -195,7 +195,7 @@ function SignUpForm() {
 										id="fullName"
 										type="text"
 										className="h-11 border-border/50 bg-background"
-										placeholder="John Doe"
+										placeholder="Abebe Kebede"
 										value={fullName}
 										onChange={(e) => setFullName(e.target.value)}
 										required
@@ -216,7 +216,7 @@ function SignUpForm() {
 											id="companyName"
 											type="text"
 											className="h-11 border-border/50 bg-background"
-											placeholder="Acme Corp"
+											placeholder="Ethio Tech PLC"
 											value={companyName}
 											onChange={(e) => setCompanyName(e.target.value)}
 											disabled={loading}
@@ -236,7 +236,7 @@ function SignUpForm() {
 											id="fundName"
 											type="text"
 											className="h-11 border-border/50 bg-background"
-											placeholder="Capital LLC"
+											placeholder="Addis Capital Group"
 											value={fundName}
 											onChange={(e) => setFundName(e.target.value)}
 											disabled={loading}

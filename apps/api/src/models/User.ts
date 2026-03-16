@@ -8,7 +8,9 @@ export interface IUser extends Document {
 	fullName: string;
 	photoURL?: string;
 	role: UserRole;
+	adminLevel?: "super_admin" | "admin" | null;
 	status: "unverified" | "pending" | "verified" | "suspended";
+	kycRejectionReason?: string;
 	isActive: boolean;
 	emailVerified: boolean;
 	lastLoginAt?: Date;
@@ -45,10 +47,19 @@ const UserSchema = new Schema<IUser>(
 			enum: ["entrepreneur", "investor", "admin"] satisfies UserRole[],
 			required: true,
 		},
+		adminLevel: {
+			type: String,
+			enum: ["super_admin", "admin", null],
+			default: null,
+		},
 		status: {
 			type: String,
 			enum: ["unverified", "pending", "verified", "suspended"],
 			default: "unverified",
+		},
+		kycRejectionReason: {
+			type: String,
+			default: null,
 		},
 		isActive: {
 			type: Boolean,

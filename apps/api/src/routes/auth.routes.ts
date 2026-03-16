@@ -1,6 +1,9 @@
-import { Router, Request, Response } from "express";
+import { type Request, type Response, Router } from "express";
+import { authenticate, authorize, authorizeSuperAdmin } from "../middleware/auth";
+import { AdminInvite } from "../models/AdminInvite";
 import { User } from "../models/User";
-import { authenticate, authorize } from "../middleware/auth";
+
+const SUPER_ADMIN_EMAIL = "abdisileshi123@gmail.com";
 
 const router = Router();
 
@@ -25,6 +28,7 @@ router.post("/register", authenticate, async (req: Request, res: Response): Prom
                     email: existingByUid.email,
                     displayName: existingByUid.fullName,
                     role: existingByUid.role,
+                    adminLevel: existingByUid.adminLevel || null,
                     status: existingByUid.status,
                     photoURL: existingByUid.photoURL,
                     emailVerified: existingByUid.emailVerified,
@@ -59,6 +63,7 @@ router.post("/register", authenticate, async (req: Request, res: Response): Prom
                         email: existingByEmail.email,
                         displayName: existingByEmail.fullName,
                         role: existingByEmail.role,
+                        adminLevel: existingByEmail.adminLevel || null,
                         status: existingByEmail.status,
                         photoURL: existingByEmail.photoURL,
                         emailVerified: existingByEmail.emailVerified,
@@ -71,36 +76,38 @@ router.post("/register", authenticate, async (req: Request, res: Response): Prom
         // 3. Brand-new user — create with the requested role
         const requestedRole = req.body.role as "entrepreneur" | "investor" | undefined;
         const assignedRole = (requestedRole && ["entrepreneur", "investor"].includes(requestedRole)) ? requestedRole : "entrepreneur";
-        const initialStatus = requestedRole ? "pending" : "unverified";
+        const initialStatus = "unverified";
 
-        const newUser = await User.create({
-            firebaseUid: req.firebaseUser!.uid,
-            fullName: req.body.fullName || req.firebaseUser!.name || "New User",
-            email: req.firebaseUser!.email,
-            role: assignedRole,
-            status: initialStatus,
-            photoURL: req.firebaseUser!.picture || null,
-            emailVerified: false,
-        });
+			const newUser = await User.create({
+				firebaseUid: req.firebaseUser!.uid,
+				fullName: req.body.fullName || req.firebaseUser!.name || "New User",
+				email: req.firebaseUser!.email,
+				role: assignedRole,
+				status: initialStatus,
+				photoURL: req.firebaseUser!.picture || null,
+				emailVerified: false,
+			});
 
-        res.status(201).json({
-            status: "success",
-            message: "User registered successfully",
-            user: {
-                uid: newUser.firebaseUid,
-                email: newUser.email,
-                displayName: newUser.fullName,
-                role: newUser.role,
-                status: newUser.status,
-                photoURL: newUser.photoURL,
-                emailVerified: newUser.emailVerified,
-            },
-        });
-    } catch (error) {
-        console.error("Registration error:", error);
-        res.status(500).json({ status: "error", message: "Registration failed" });
-    }
-});
+			res.status(201).json({
+				status: "success",
+				message: "User registered successfully",
+				user: {
+					uid: newUser.firebaseUid,
+					email: newUser.email,
+					displayName: newUser.fullName,
+					role: newUser.role,
+					adminLevel: newUser.adminLevel || null,
+					status: newUser.status,
+					photoURL: newUser.photoURL,
+					emailVerified: newUser.emailVerified,
+				},
+			});
+		} catch (error) {
+			console.error("Registration error:", error);
+			res.status(500).json({ status: "error", message: "Registration failed" });
+		}
+	},
+);
 
 /**
  * GET /api/auth/me
@@ -124,155 +131,431 @@ router.get("/me", authenticate, async (req: Request, res: Response): Promise<voi
             return;
         }
 
-        res.status(200).json({
-            status: "success",
-            user: {
-                uid: req.user.firebaseUid,
-                email: req.user.email,
-                displayName: req.user.fullName,
-                role: req.user.role,
-                status: req.user.status,
-                photoURL: req.user.photoURL,
-                emailVerified: req.user.emailVerified,
-            },
-        });
-    } catch (error) {
-        console.error("Profile fetch error:", error);
-        res.status(500).json({ status: "error", message: "Failed to fetch profile" });
-    }
-});
+			res.status(200).json({
+				status: "success",
+				user: {
+					uid: req.user.firebaseUid,
+					email: req.user.email,
+					displayName: req.user.fullName,
+					role: req.user.role,
+					adminLevel: req.user.adminLevel || null,
+					status: req.user.status,
+					photoURL: req.user.photoURL,
+					emailVerified: req.user.emailVerified,
+					kycRejectionReason: req.user.kycRejectionReason || null,
+				},
+			});
+		} catch (error) {
+			console.error("Profile fetch error:", error);
+			res
+				.status(500)
+				.json({ status: "error", message: "Failed to fetch profile" });
+		}
+	},
+);
 
 /**
  * PATCH /api/auth/role
  */
-router.patch("/role", authenticate, async (req: Request, res: Response): Promise<void> => {
-    try {
-        const { role } = req.body;
-        const validRoles = ["admin", "entrepreneur", "investor"];
+router.patch(
+	"/role",
+	authenticate,
+	async (req: Request, res: Response): Promise<void> => {
+		try {
+			const { role } = req.body;
+			const validRoles = ["admin", "entrepreneur", "investor"];
 
-        if (!validRoles.includes(role)) {
-            res.status(400).json({
-                status: "error",
-                message: `Invalid role. Must be one of: ${validRoles.join(", ")}`,
-            });
-            return;
-        }
+			if (!validRoles.includes(role)) {
+				res.status(400).json({
+					status: "error",
+					message: `Invalid role. Must be one of: ${validRoles.join(", ")}`,
+				});
+				return;
+			}
 
-        const updatedUser = await User.findOneAndUpdate(
-            { firebaseUid: req.firebaseUser!.uid },
-            { role, status: "pending" },
-            { new: true }
-        );
+			const updatedUser = await User.findOneAndUpdate(
+				{ firebaseUid: req.firebaseUser!.uid },
+				{ role, status: "pending" },
+				{ new: true },
+			);
 
-        if (!updatedUser) {
-            res.status(404).json({ status: "error", message: "User not found" });
-            return;
-        }
+			if (!updatedUser) {
+				res.status(404).json({ status: "error", message: "User not found" });
+				return;
+			}
 
-        res.status(200).json({
-            status: "success",
-            message: "Role updated successfully",
-            user: {
-                uid: updatedUser.firebaseUid,
-                email: updatedUser.email,
-                displayName: updatedUser.fullName,
-                role: updatedUser.role,
-                status: updatedUser.status,
-                photoURL: updatedUser.photoURL,
-                emailVerified: updatedUser.emailVerified,
-            },
-        });
-    } catch (error) {
-        console.error("Role update error:", error);
-        res.status(500).json({ status: "error", message: "Failed to update role" });
-    }
-});
+			res.status(200).json({
+				status: "success",
+				message: "Role updated successfully",
+				user: {
+					uid: updatedUser.firebaseUid,
+					email: updatedUser.email,
+					displayName: updatedUser.fullName,
+					role: updatedUser.role,
+					adminLevel: updatedUser.adminLevel || null,
+					status: updatedUser.status,
+					photoURL: updatedUser.photoURL,
+					emailVerified: updatedUser.emailVerified,
+				},
+			});
+		} catch (error) {
+			console.error("Role update error:", error);
+			res
+				.status(500)
+				.json({ status: "error", message: "Failed to update role" });
+		}
+	},
+);
 
 /**
  * GET /api/auth/admin/users — Admin: List all users with stats
  */
-router.get("/admin/users", authenticate, authorize("admin"), async (req: Request, res: Response): Promise<void> => {
-    try {
-        const { role, status: statusFilter, page = "1", limit = "20" } = req.query;
+router.get(
+	"/admin/users",
+	authenticate,
+	authorize("admin"),
+	async (req: Request, res: Response): Promise<void> => {
+		try {
+			const {
+				role,
+				status: statusFilter,
+				page = "1",
+				limit = "20",
+			} = req.query;
 
-        const filter: Record<string, unknown> = {};
-        if (role && role !== "all") filter.role = role;
-        if (statusFilter && statusFilter !== "all") filter.status = statusFilter;
+			const filter: Record<string, unknown> = {};
+			if (role && role !== "all") filter.role = role;
+			if (statusFilter && statusFilter !== "all") filter.status = statusFilter;
 
-        const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
-        const total = await User.countDocuments(filter);
-        const users = await User.find(filter)
-            .select("fullName email role status photoURL emailVerified createdAt")
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(parseInt(limit as string));
+			const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
+			const total = await User.countDocuments(filter);
+			const users = await User.find(filter)
+				.select("fullName email role adminLevel status photoURL emailVerified createdAt")
+				.sort({ createdAt: -1 })
+				.skip(skip)
+				.limit(parseInt(limit as string));
 
-        const stats = {
-            total: await User.countDocuments(),
-            entrepreneurs: await User.countDocuments({ role: "entrepreneur" }),
-            investors: await User.countDocuments({ role: "investor" }),
-            admins: await User.countDocuments({ role: "admin" }),
-            verified: await User.countDocuments({ status: "verified" }),
-            unverified: await User.countDocuments({ status: "unverified" }),
-        };
+			const stats = {
+				total: await User.countDocuments(),
+				entrepreneurs: await User.countDocuments({ role: "entrepreneur" }),
+				investors: await User.countDocuments({ role: "investor" }),
+				admins: await User.countDocuments({ role: "admin" }),
+				verified: await User.countDocuments({ status: "verified" }),
+				pending: await User.countDocuments({ status: "pending" }),
+				unverified: await User.countDocuments({ status: "unverified" }),
+			};
 
-        res.status(200).json({
-            status: "success",
-            count: users.length,
-            total,
-            page: parseInt(page as string),
-            totalPages: Math.ceil(total / parseInt(limit as string)),
-            users,
-            stats,
-        });
-    } catch (error) {
-        console.error("Admin users error:", error);
-        res.status(500).json({ status: "error", message: "Failed to fetch users" });
-    }
-});
+			res.status(200).json({
+				status: "success",
+				count: users.length,
+				total,
+				page: parseInt(page as string),
+				totalPages: Math.ceil(total / parseInt(limit as string)),
+				users,
+				stats,
+			});
+		} catch (error) {
+			console.error("Admin users error:", error);
+			res
+				.status(500)
+				.json({ status: "error", message: "Failed to fetch users" });
+		}
+	},
+);
 
 /**
  * PATCH /api/auth/admin/users/:id/status — Admin: Update user status
  */
-router.patch("/admin/users/:id/status", authenticate, authorize("admin"), async (req: Request, res: Response): Promise<void> => {
-    try {
-        const { status } = req.body;
-        const validStatuses = ["unverified", "pending", "verified", "suspended"];
+router.patch(
+	"/admin/users/:id/status",
+	authenticate,
+	authorize("admin"),
+	async (req: Request, res: Response): Promise<void> => {
+		try {
+			const { status, reason } = req.body;
+			const validStatuses = ["unverified", "pending", "verified", "suspended"];
 
-        if (!validStatuses.includes(status)) {
-            res.status(400).json({
-                status: "error",
-                message: `Invalid status. Must be one of: ${validStatuses.join(", ")}`,
-            });
-            return;
-        }
+			if (!validStatuses.includes(status)) {
+				res.status(400).json({
+					status: "error",
+					message: `Invalid status. Must be one of: ${validStatuses.join(", ")}`,
+				});
+				return;
+			}
 
-        const updatedUser = await User.findByIdAndUpdate(
-            req.params.id,
-            { status },
-            { new: true }
-        );
+			// Prevent regular admins from modifying super admin accounts
+			const targetUser = await User.findById(req.params.id);
+			if (!targetUser) {
+				res.status(404).json({ status: "error", message: "User not found" });
+				return;
+			}
+			if (targetUser.adminLevel === "super_admin" && req.user?.adminLevel !== "super_admin") {
+				res.status(403).json({ status: "error", message: "Only super admins can modify super admin accounts" });
+				return;
+			}
 
-        if (!updatedUser) {
-            res.status(404).json({ status: "error", message: "User not found" });
-            return;
-        }
+			// Build update object
+			const updateData: Record<string, unknown> = { status };
 
-        res.status(200).json({
-            status: "success",
-            message: "User status updated",
-            user: {
-                id: updatedUser._id,
-                fullName: updatedUser.fullName,
-                email: updatedUser.email,
-                role: updatedUser.role,
-                status: updatedUser.status,
-            },
-        });
-    } catch (error) {
-        console.error("Admin status update error:", error);
-        res.status(500).json({ status: "error", message: "Failed to update user status" });
-    }
-});
+			// If rejecting (setting back to unverified), save the reason
+			if (status === "unverified" && reason) {
+				updateData.kycRejectionReason = reason;
+			}
+			// If approving or moving to pending, clear any previous rejection reason
+			if (status === "verified" || status === "pending") {
+				updateData.kycRejectionReason = null;
+			}
+
+			const updatedUser = await User.findByIdAndUpdate(
+				req.params.id,
+				updateData,
+				{ new: true },
+			);
+
+			if (!updatedUser) {
+				res.status(404).json({ status: "error", message: "User not found" });
+				return;
+			}
+
+			res.status(200).json({
+				status: "success",
+				message: "User status updated",
+				user: {
+					id: updatedUser._id,
+					fullName: updatedUser.fullName,
+					email: updatedUser.email,
+					role: updatedUser.role,
+					status: updatedUser.status,
+					kycRejectionReason: updatedUser.kycRejectionReason,
+				},
+			});
+		} catch (error) {
+			console.error("Admin status update error:", error);
+			res
+				.status(500)
+				.json({ status: "error", message: "Failed to update user status" });
+		}
+	},
+);
+
+/**
+ * GET /api/auth/admin/admins — Super Admin: List all admin users
+ */
+router.get(
+	"/admin/admins",
+	authenticate,
+	authorizeSuperAdmin,
+	async (req: Request, res: Response): Promise<void> => {
+		try {
+			const admins = await User.find({ role: "admin" })
+				.select("fullName email adminLevel status photoURL createdAt")
+				.sort({ adminLevel: -1, createdAt: -1 });
+
+			res.status(200).json({
+				status: "success",
+				admins,
+			});
+		} catch (error) {
+			console.error("Fetch admins error:", error);
+			res.status(500).json({ status: "error", message: "Failed to fetch admins" });
+		}
+	},
+);
+
+/**
+ * POST /api/auth/admin/admins/invite — Super Admin: Generate an invite link
+ * Body: { email?, fullName? }
+ */
+router.post(
+	"/admin/admins/invite",
+	authenticate,
+	authorizeSuperAdmin,
+	async (req: Request, res: Response): Promise<void> => {
+		try {
+			const { email, fullName } = req.body;
+
+			const crypto = await import("crypto");
+			const token = crypto.randomBytes(24).toString("hex");
+
+			const expiresAt = new Date();
+			expiresAt.setDate(expiresAt.getDate() + 7);
+
+			await AdminInvite.create({
+				token,
+				email: email || null,
+				fullName: fullName || null,
+				createdBy: req.user?.fullName || "Super Admin",
+				expiresAt,
+			});
+
+			const clientUrl = process.env.CLIENT_URL || "http://localhost:3000";
+			const inviteLink = `${clientUrl}/admin-invite/${token}`;
+
+			res.status(201).json({
+				status: "success",
+				message: "Invite link generated",
+				inviteLink,
+				expiresAt,
+			});
+		} catch (error) {
+			console.error("Generate invite error:", error);
+			res.status(500).json({ status: "error", message: "Failed to generate invite" });
+		}
+	},
+);
+
+/**
+ * GET /api/auth/admin/invite/:token — Public: Validate an invite token
+ */
+router.get(
+	"/admin/invite/:token",
+	async (req: Request, res: Response): Promise<void> => {
+		try {
+			const invite = await AdminInvite.findOne({
+				token: req.params.token,
+				used: false,
+				expiresAt: { $gt: new Date() },
+			});
+
+			if (!invite) {
+				res.status(404).json({
+					status: "error",
+					message: "This invite link is invalid or has expired.",
+				});
+				return;
+			}
+
+			res.status(200).json({
+				status: "success",
+				invite: {
+					email: invite.email,
+					fullName: invite.fullName,
+					createdBy: invite.createdBy,
+					expiresAt: invite.expiresAt,
+				},
+			});
+		} catch (error) {
+			console.error("Validate invite error:", error);
+			res.status(500).json({ status: "error", message: "Failed to validate invite" });
+		}
+	},
+);
+
+/**
+ * POST /api/auth/admin/invite/:token/accept — Authenticated: Accept invite
+ */
+router.post(
+	"/admin/invite/:token/accept",
+	authenticate,
+	async (req: Request, res: Response): Promise<void> => {
+		try {
+			const invite = await AdminInvite.findOne({
+				token: req.params.token,
+				used: false,
+				expiresAt: { $gt: new Date() },
+			});
+
+			if (!invite) {
+				res.status(404).json({
+					status: "error",
+					message: "This invite link is invalid or has expired.",
+				});
+				return;
+			}
+
+			let user = req.user;
+
+			if (!user) {
+				user = await User.create({
+					firebaseUid: req.firebaseUser!.uid,
+					email: req.firebaseUser!.email || invite.email || "",
+					fullName: req.firebaseUser!.name || invite.fullName || "Admin",
+					photoURL: req.firebaseUser!.picture || null,
+					role: "admin",
+					adminLevel: "admin",
+					status: "verified",
+					emailVerified: req.firebaseUser!.email_verified || false,
+				});
+			} else {
+				if (user.role === "admin" && user.adminLevel === "super_admin") {
+					res.status(400).json({ status: "error", message: "You are already a super admin" });
+					return;
+				}
+				user.role = "admin";
+				user.adminLevel = "admin";
+				user.status = "verified";
+				user.kycRejectionReason = undefined;
+				await user.save();
+			}
+
+			invite.used = true;
+			invite.usedBy = user.email;
+			await invite.save();
+
+			res.status(200).json({
+				status: "success",
+				message: "You are now an admin!",
+				user: {
+					uid: user.firebaseUid,
+					email: user.email,
+					displayName: user.fullName,
+					role: user.role,
+					adminLevel: user.adminLevel || null,
+					status: user.status,
+					photoURL: user.photoURL,
+					emailVerified: user.emailVerified,
+				},
+			});
+		} catch (error) {
+			console.error("Accept invite error:", error);
+			res.status(500).json({ status: "error", message: "Failed to accept invite" });
+		}
+	},
+);
+
+/**
+ * DELETE /api/auth/admin/admins/:id — Super Admin: Remove admin privileges
+ * Demotes admin back to entrepreneur role.
+ */
+router.delete(
+	"/admin/admins/:id",
+	authenticate,
+	authorizeSuperAdmin,
+	async (req: Request, res: Response): Promise<void> => {
+		try {
+			const targetUser = await User.findById(req.params.id);
+
+			if (!targetUser) {
+				res.status(404).json({ status: "error", message: "User not found" });
+				return;
+			}
+
+			if (targetUser.role !== "admin") {
+				res.status(400).json({ status: "error", message: "User is not an admin" });
+				return;
+			}
+
+			// Prevent removing super admin
+			if (targetUser.adminLevel === "super_admin") {
+				res.status(403).json({ status: "error", message: "Cannot remove super admin privileges" });
+				return;
+			}
+
+			// Demote to entrepreneur
+			targetUser.role = "entrepreneur";
+			targetUser.adminLevel = null;
+			targetUser.status = "unverified";
+			await targetUser.save();
+
+			res.status(200).json({
+				status: "success",
+				message: `${targetUser.fullName} has been removed as admin`,
+			});
+		} catch (error) {
+			console.error("Remove admin error:", error);
+			res.status(500).json({ status: "error", message: "Failed to remove admin" });
+		}
+	},
+);
 
 export default router;

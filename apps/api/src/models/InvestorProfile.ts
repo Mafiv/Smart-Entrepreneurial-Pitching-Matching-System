@@ -13,6 +13,8 @@ export interface IInvestorProfile extends Document {
 	location?: string;
 	linkedinUrl?: string;
 	portfolioUrl?: string;
+	nationalIdUrl?: string;
+	accreditationDocumentUrl?: string;
 	isPublic: boolean;
 	createdAt: Date;
 	updatedAt: Date;
@@ -58,7 +60,7 @@ const InvestorProfileSchema = new Schema<IInvestorProfile>(
 		},
 		currency: {
 			type: String,
-			default: "USD",
+			default: "ETB",
 			uppercase: true,
 			trim: true,
 		},
@@ -71,6 +73,14 @@ const InvestorProfileSchema = new Schema<IInvestorProfile>(
 			default: null,
 		},
 		portfolioUrl: {
+			type: String,
+			default: null,
+		},
+		nationalIdUrl: {
+			type: String,
+			default: null,
+		},
+		accreditationDocumentUrl: {
 			type: String,
 			default: null,
 		},
