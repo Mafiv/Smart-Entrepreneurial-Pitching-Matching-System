@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronsUpDown, Layers, LogOut, Settings, User } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 import { usePathname, useRouter } from "next/navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import VerificationGate from "@/components/VerificationGate";
 import { useAuth } from "@/context/AuthContext";
 import {
 	Sidebar,
@@ -181,14 +183,15 @@ export default function DashboardLayout({
 			</Sidebar>
 
 			<SidebarInset>
-				<header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between gap-2 border-b bg-background px-4">
+				<header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between gap-2 border-b bg-background px-4 sm:px-6 lg:px-8">
 					<div className="flex items-center gap-2">
-						<SidebarTrigger className="-ml-1" />
+						<SidebarTrigger className="-ml-2" />
 						<Separator orientation="vertical" className="mr-2 h-4" />
 						<h1 className="text-sm font-semibold">{title}</h1>
 					</div>
 
 					<div className="flex items-center gap-2">
+						<ThemeToggle />
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<Button
@@ -223,7 +226,7 @@ export default function DashboardLayout({
 				</header>
 
 				<main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
-					{children}
+					<VerificationGate>{children}</VerificationGate>
 				</main>
 			</SidebarInset>
 		</SidebarProvider>

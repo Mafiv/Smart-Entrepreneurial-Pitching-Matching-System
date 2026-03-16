@@ -8,17 +8,30 @@ export default function ThemeToggle() {
 
 	useEffect(() => {
 		const root = document.documentElement;
-		// eslint-disable-next-line react-hooks/set-state-in-effect
-		setIsDark(root.classList.contains("dark"));
+		const stored = localStorage.getItem("theme");
+		if (stored === "light") {
+			root.classList.remove("dark");
+			// eslint-disable-next-line react-hooks/set-state-in-effect
+			setIsDark(false);
+		} else if (stored === "dark") {
+			root.classList.add("dark");
+			// eslint-disable-next-line react-hooks/set-state-in-effect
+			setIsDark(true);
+		} else {
+			// eslint-disable-next-line react-hooks/set-state-in-effect
+			setIsDark(root.classList.contains("dark"));
+		}
 	}, []);
 
 	const toggle = () => {
 		const root = document.documentElement;
 		if (isDark) {
 			root.classList.remove("dark");
+			localStorage.setItem("theme", "light");
 			setIsDark(false);
 		} else {
 			root.classList.add("dark");
+			localStorage.setItem("theme", "dark");
 			setIsDark(true);
 		}
 	};

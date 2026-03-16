@@ -30,7 +30,9 @@ export interface UserProfile {
 	email: string | null;
 	displayName: string | null;
 	role: UserRole;
-	status: "unverified" | "pending" | "verified";
+	adminLevel?: "super_admin" | "admin" | null;
+	status: "unverified" | "pending" | "verified" | "suspended";
+	kycRejectionReason?: string | null;
 	photoURL: string | null;
 	emailVerified: boolean;
 }

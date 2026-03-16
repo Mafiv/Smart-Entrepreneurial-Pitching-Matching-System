@@ -20,10 +20,10 @@ export default function Navbar() {
 				entrepreneur: "/entrepreneur/dashboard",
 				investor: "/investor/feed",
 			};
-			return redirects[userProfile.role] || "/entrepreneur/dashboard";
+			return redirects[userProfile.role] || "/";
 		}
-		// User is logged in but profile hasn't loaded yet — go to a safe default
-		return "/entrepreneur/dashboard";
+		// Profile not loaded yet — return null to indicate loading
+		return null;
 	};
 
 	useEffect(() => {
@@ -88,11 +88,11 @@ export default function Navbar() {
 
 					<div className="flex items-center gap-1">
 						<ThemeToggle />
-						{user ? (
+						{user && getDashboardRoute() ? (
 							<Button
 								size="sm"
 								className="h-8 text-xs ml-2"
-								onClick={() => router.push(getDashboardRoute())}
+								onClick={() => router.push(getDashboardRoute()!)}
 							>
 								Go to Dashboard
 							</Button>

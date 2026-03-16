@@ -13,7 +13,13 @@ export type SubmissionStatus =
 export interface ISubmissionDocument {
 	name: string;
 	url: string;
-	type: "pitch_deck" | "business_plan" | "financial_statement" | "legal_doc" | "video" | "other";
+	type:
+		| "pitch_deck"
+		| "business_plan"
+		| "financial_statement"
+		| "legal_doc"
+		| "video"
+		| "other";
 	cloudinaryId?: string;
 	size?: number;
 	uploadedAt: Date;
@@ -65,7 +71,14 @@ const documentSchema = new Schema<ISubmissionDocument>({
 	url: { type: String, required: true },
 	type: {
 		type: String,
-		enum: ["pitch_deck", "business_plan", "financial_statement", "legal_doc", "video", "other"],
+		enum: [
+			"pitch_deck",
+			"business_plan",
+			"financial_statement",
+			"legal_doc",
+			"video",
+			"other",
+		],
 		default: "other",
 	},
 	cloudinaryId: { type: String },
@@ -94,8 +107,16 @@ const SubmissionSchema = new Schema<ISubmission>(
 		sector: {
 			type: String,
 			enum: [
-				"technology", "healthcare", "fintech", "education", "agriculture",
-				"energy", "real_estate", "manufacturing", "retail", "other",
+				"technology",
+				"healthcare",
+				"fintech",
+				"education",
+				"agriculture",
+				"energy",
+				"real_estate",
+				"manufacturing",
+				"retail",
+				"other",
 			],
 			default: "other",
 		},

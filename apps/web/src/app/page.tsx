@@ -208,10 +208,9 @@ export default function Home() {
 				entrepreneur: "/entrepreneur/dashboard",
 				investor: "/investor/feed",
 			};
-			return redirects[userProfile.role] || "/entrepreneur/dashboard";
+			return redirects[userProfile.role] || "/";
 		}
-		// User is logged in but profile hasn't loaded yet — go to a safe default
-		return "/entrepreneur/dashboard";
+		return null;
 	};
 
 	return (
@@ -401,11 +400,11 @@ export default function Home() {
 								},
 							}}
 						>
-							{user ? (
+							{user && getDashboardRoute() ? (
 								<Button
 									size="lg"
 									className="h-12 px-8 text-sm font-semibold rounded-full group relative overflow-hidden"
-									onClick={() => router.push(getDashboardRoute())}
+									onClick={() => router.push(getDashboardRoute()!)}
 								>
 									<span className="relative z-10 transition-transform duration-300 group-hover:scale-105 inline-block">
 										Go to my Dashboard
@@ -773,11 +772,11 @@ export default function Home() {
 										with the right investors through AI-powered matching.
 									</p>
 									<div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-										{user ? (
+										{user && getDashboardRoute() ? (
 											<Button
 												size="lg"
 												className="h-12 px-8 font-semibold hover:scale-105 transition-transform duration-300"
-												onClick={() => router.push(getDashboardRoute())}
+												onClick={() => router.push(getDashboardRoute()!)}
 											>
 												Go to Dashboard
 											</Button>

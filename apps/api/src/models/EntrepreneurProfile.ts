@@ -13,7 +13,10 @@ export interface IEntrepreneurProfile extends Document {
 	location?: string;
 	website?: string;
 	linkedinUrl?: string;
+	nationalIdUrl?: string;
 	pitchDeckUrl?: string;
+	businessLicenseUrl?: string;
+	tinNumber?: string;
 	isPublic: boolean;
 	createdAt: Date;
 	updatedAt: Date;
@@ -55,7 +58,7 @@ const EntrepreneurProfileSchema = new Schema<IEntrepreneurProfile>(
 		},
 		currency: {
 			type: String,
-			default: "USD",
+			default: "ETB",
 			uppercase: true,
 			trim: true,
 		},
@@ -71,8 +74,21 @@ const EntrepreneurProfileSchema = new Schema<IEntrepreneurProfile>(
 			type: String,
 			default: null,
 		},
+		nationalIdUrl: {
+			type: String,
+			default: null,
+		},
 		pitchDeckUrl: {
 			type: String,
+			default: null,
+		},
+		businessLicenseUrl: {
+			type: String,
+			default: null,
+		},
+		tinNumber: {
+			type: String,
+			trim: true,
 			default: null,
 		},
 		isPublic: {
