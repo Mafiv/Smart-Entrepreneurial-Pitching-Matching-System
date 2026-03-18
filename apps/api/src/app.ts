@@ -7,8 +7,10 @@ import express, {
 import mongoSanitize from "express-mongo-sanitize";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
+import swaggerUi from "swagger-ui-express";
 import { connectDB } from "./config/database";
 import { initFirebase } from "./config/firebase";
+import { openApiSpec } from "./config/openapi";
 import adminRoutes from "./routes/admin.routes";
 import authRoutes from "./routes/auth.routes";
 import documentRoutes from "./routes/document.routes";
@@ -93,6 +95,10 @@ const healthHandler = (_req: Request, res: Response) => {
 };
 
 app.get("/health", healthHandler);
+app.get("/api/docs.json", (_req: Request, res: Response) => {
+	res.status(200).json(openApiSpec);
+});
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(openApiSpec));
 
 // Mount route modules
 app.use("/api/auth", authRoutes);
