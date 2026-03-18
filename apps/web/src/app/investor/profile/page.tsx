@@ -23,9 +23,10 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
+import ProfilePictureUpload from "@/components/ProfilePictureUpload";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -371,6 +372,13 @@ export default function InvestorProfilePage() {
 				<div className="mb-8">
 					<div className="flex items-center gap-4">
 						<Avatar className="h-16 w-16 border-2 border-primary/10">
+							{userProfile?.photoURL && (
+								<AvatarImage
+									src={userProfile.photoURL}
+									alt={userProfile.displayName || ""}
+									className="object-cover"
+								/>
+							)}
 							<AvatarFallback className="bg-primary/10 text-primary text-lg font-bold">
 								{initials}
 							</AvatarFallback>
@@ -521,52 +529,65 @@ export default function InvestorProfilePage() {
 											Update your account details below.
 										</CardDescription>
 									</CardHeader>
-									<CardContent className="space-y-4">
-										<div className="grid gap-4 sm:grid-cols-2">
-											<div className="space-y-2">
-												<Label htmlFor="inv-edit-name" className="text-sm">
-													Full Name
+									<CardContent className="space-y-6">
+										<div className="flex flex-col sm:flex-row items-start gap-6 pb-2">
+											<div className="shrink-0">
+												<Label className="text-sm text-muted-foreground block mb-3">
+													Profile Picture
 												</Label>
-												<Input
-													id="inv-edit-name"
-													value={editName}
-													onChange={(e) => setEditName(e.target.value)}
-													placeholder="Your full name"
-												/>
+												<ProfilePictureUpload size="h-20 w-20" />
 											</div>
-											<div className="space-y-2">
-												<Label className="text-sm text-muted-foreground">
-													Email Address
-												</Label>
-												<p className="text-sm font-medium flex items-center gap-1.5 pt-2">
-													{userProfile?.email}
-													{userProfile?.emailVerified && (
-														<CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-													)}
-												</p>
-												<p className="text-xs text-muted-foreground">
-													Email cannot be changed
-												</p>
-											</div>
-											<div className="space-y-2">
-												<Label className="text-sm text-muted-foreground">
-													Role
-												</Label>
-												<p className="text-sm font-medium capitalize pt-2">
-													{userProfile?.role}
-												</p>
-											</div>
-											<div className="space-y-2">
-												<Label className="text-sm text-muted-foreground">
-													Account Status
-												</Label>
-												<div className="pt-2">
-													<Badge
-														variant="outline"
-														className={`capitalize text-xs ${userProfile?.status === "verified" ? "bg-green-500/10 text-green-600 border-green-500/20" : userProfile?.status === "pending" ? "bg-blue-500/10 text-blue-600 border-blue-500/20" : ""}`}
-													>
-														{userProfile?.status}
-													</Badge>
+											<Separator
+												orientation="vertical"
+												className="hidden sm:block h-28"
+											/>
+											<Separator className="sm:hidden" />
+											<div className="flex-1 grid gap-4 sm:grid-cols-2 w-full">
+												<div className="space-y-2">
+													<Label htmlFor="inv-edit-name" className="text-sm">
+														Full Name
+													</Label>
+													<Input
+														id="inv-edit-name"
+														value={editName}
+														onChange={(e) => setEditName(e.target.value)}
+														placeholder="Your full name"
+													/>
+												</div>
+												<div className="space-y-2">
+													<Label className="text-sm text-muted-foreground">
+														Email Address
+													</Label>
+													<p className="text-sm font-medium flex items-center gap-1.5 pt-2">
+														{userProfile?.email}
+														{userProfile?.emailVerified && (
+															<CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+														)}
+													</p>
+													<p className="text-xs text-muted-foreground">
+														Email cannot be changed
+													</p>
+												</div>
+												<div className="space-y-2">
+													<Label className="text-sm text-muted-foreground">
+														Role
+													</Label>
+													<p className="text-sm font-medium capitalize pt-2">
+														{userProfile?.role}
+													</p>
+												</div>
+												<div className="space-y-2">
+													<Label className="text-sm text-muted-foreground">
+														Account Status
+													</Label>
+													<div className="pt-2">
+														<Badge
+															variant="outline"
+															className={`capitalize text-xs ${userProfile?.status === "verified" ? "bg-green-500/10 text-green-600 border-green-500/20" : userProfile?.status === "pending" ? "bg-blue-500/10 text-blue-600 border-blue-500/20" : ""}`}
+														>
+															{userProfile?.status}
+														</Badge>
+													</div>
 												</div>
 											</div>
 										</div>

@@ -7,9 +7,6 @@ import express, {
 import mongoSanitize from "express-mongo-sanitize";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
-import swaggerUi from "swagger-ui-express";
-
-import { openApiSpec } from "./config/openapi";
 import adminRoutes from "./routes/admin.routes";
 import authRoutes from "./routes/auth.routes";
 import documentRoutes from "./routes/document.routes";
@@ -25,15 +22,27 @@ import submissionRoutes from "./routes/submission.routes";
 import uploadRoutes from "./routes/upload.routes";
 import userRoutes from "./routes/user.routes";
 
+// Initialize Firebase and Database right away for Vercel
+// (because Vercel Serverless Functions execute app.ts directly and skip server.ts)
+initFirebase();
+connectDB().catch(console.error);
+
 const app = express();
 
-app.use(helmet());
+app.use(
+	helmet({
+		crossOriginOpenerPolicy: false, // Set this completely to false
+		crossOriginResourcePolicy: { policy: "cross-origin" },
+	}),
+);
 
 const allowedOrigins = [
 	process.env.CLIENT_URL,
 	"https://sepms.vercel.app",
 	"https://smart-entrepreneurial-pitching-matc-alpha.vercel.app",
+	"https://smart-entrepreneurial-pitching-matc-tau.vercel.app",
 	"http://localhost:3000",
+	"http://localhost:3001",
 ].filter(Boolean) as string[];
 
 const normalizedAllowedOrigins = new Set(
@@ -80,41 +89,7 @@ app.use(express.urlencoded({ extended: true }));
 
 const healthHandler = (_req: Request, res: Response) => {
 	res.status(200).json({ status: "ok" });
-};
-
-const statsHandler = (_req: Request, res: Response) => {
-	const memory = process.memoryUsage();
-
-	res.status(200).json({
-		status: "ok",
-		timestamp: new Date().toISOString(),
-		uptimeSeconds: process.uptime(),
-		nodeVersion: process.version,
-		memory: {
-			rss: memory.rss,
-			heapTotal: memory.heapTotal,
-			heapUsed: memory.heapUsed,
-			external: memory.external,
-			arrayBuffers: memory.arrayBuffers,
-		},
-	});
-};
-
-app.get("/health", healthHandler);
-app.get("/api/health", healthHandler);
-app.get("/stats", statsHandler);
-app.get("/api/stats", statsHandler);
-
-app.get("/docs-json", (_req: Request, res: Response) => {
-	res.status(200).json(openApiSpec);
 });
-
-app.get("/api/docs-json", (_req: Request, res: Response) => {
-	res.status(200).json(openApiSpec);
-});
-
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(openApiSpec));
-app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(openApiSpec));
 
 // Mount route modules
 app.use("/api/auth", authRoutes);

@@ -19,7 +19,9 @@ import {
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
+import ProfilePictureUpload from "@/components/ProfilePictureUpload";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -256,17 +258,34 @@ export default function AdminSettingsPage() {
 	const displayName = userProfile?.displayName || "Admin";
 	const email = userProfile?.email || "";
 	const adminLevel = userProfile?.adminLevel || "admin";
+	
+	const initials = displayName
+		.split(" ")
+		.map((n) => n[0])
+		.join("")
+		.toUpperCase()
+		.slice(0, 2);
 
 	return (
 		<ProtectedRoute allowedRoles={["admin"]}>
 			<DashboardLayout navItems={ADMIN_NAV} title="SEPMS Admin">
-				<div className="mb-8">
-					<h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-						Settings
-					</h1>
-					<p className="mt-1 text-muted-foreground">
-						Manage your account and platform configuration
-					</p>
+				<div className="mb-8 flex items-center gap-4">
+					<Avatar className="h-16 w-16 border-2 border-primary/10">
+						{userProfile?.photoURL && (
+							<AvatarImage src={userProfile.photoURL} alt={displayName} className="object-cover" />
+						)}
+						<AvatarFallback className="bg-primary/10 text-primary text-lg font-bold">
+							{initials}
+						</AvatarFallback>
+					</Avatar>
+					<div>
+						<h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+							Settings
+						</h1>
+						<p className="mt-1 text-muted-foreground">
+							Manage your account and platform configuration
+						</p>
+					</div>
 				</div>
 
 				<Tabs defaultValue="account" className="space-y-6">
@@ -298,57 +317,72 @@ export default function AdminSettingsPage() {
 									Update your personal information.
 								</CardDescription>
 							</CardHeader>
-							<CardContent className="space-y-4">
-								<div className="grid gap-4 sm:grid-cols-2">
-									<div className="space-y-2">
-										<Label htmlFor="admin-edit-name" className="text-sm">
-											Full Name
+							<CardContent className="space-y-6">
+								<div className="flex flex-col sm:flex-row items-start gap-6 pb-2">
+									<div className="shrink-0">
+										<Label className="text-sm text-muted-foreground block mb-3">
+											Profile Picture
 										</Label>
-										<Input
-											id="admin-edit-name"
-											value={editName}
-											onChange={(e) => setEditName(e.target.value)}
-											placeholder="Your full name"
-										/>
+										<ProfilePictureUpload size="h-20 w-20" />
 									</div>
-									<div className="space-y-2">
-										<Label className="text-sm text-muted-foreground">
-											Email Address
-										</Label>
-										<div className="flex items-center gap-1.5 pt-2">
-											<p className="text-sm font-medium">{email}</p>
-											{userProfile?.emailVerified && (
-												<CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-											)}
+									<Separator
+										orientation="vertical"
+										className="hidden sm:block h-28"
+									/>
+									<Separator className="sm:hidden" />
+									<div className="flex-1 grid gap-4 sm:grid-cols-2 w-full">
+										<div className="space-y-2">
+											<Label htmlFor="admin-edit-name" className="text-sm">
+												Full Name
+											</Label>
+											<Input
+												id="admin-edit-name"
+												value={editName}
+												onChange={(e) => setEditName(e.target.value)}
+												placeholder="Your full name"
+											/>
 										</div>
-										<p className="text-xs text-muted-foreground">
-											Email is managed by Google
-										</p>
-									</div>
-									<div className="space-y-2">
-										<Label className="text-sm text-muted-foreground">
-											Role
-										</Label>
-										<div className="flex items-center gap-2 pt-2">
-											<Badge
-												variant="destructive"
-												className="text-xs capitalize"
-											>
-												{adminLevel === "super_admin" ? "Super Admin" : "Admin"}
-											</Badge>
+										<div className="space-y-2">
+											<Label className="text-sm text-muted-foreground">
+												Email Address
+											</Label>
+											<div className="flex items-center gap-1.5 pt-2">
+												<p className="text-sm font-medium">{email}</p>
+												{userProfile?.emailVerified && (
+													<CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+												)}
+											</div>
+											<p className="text-xs text-muted-foreground">
+												Email is managed by Google
+											</p>
 										</div>
-									</div>
-									<div className="space-y-2">
-										<Label className="text-sm text-muted-foreground">
-											Account Status
-										</Label>
-										<div className="pt-2">
-											<Badge
-												variant="default"
-												className="text-xs capitalize bg-green-500/10 text-green-600 border-green-500/20"
-											>
-												{userProfile?.status}
-											</Badge>
+										<div className="space-y-2">
+											<Label className="text-sm text-muted-foreground">
+												Role
+											</Label>
+											<div className="flex items-center gap-2 pt-2">
+												<Badge
+													variant="destructive"
+													className="text-xs capitalize"
+												>
+													{adminLevel === "super_admin"
+														? "Super Admin"
+														: "Admin"}
+												</Badge>
+											</div>
+										</div>
+										<div className="space-y-2">
+											<Label className="text-sm text-muted-foreground">
+												Account Status
+											</Label>
+											<div className="pt-2">
+												<Badge
+													variant="default"
+													className="text-xs capitalize bg-green-500/10 text-green-600 border-green-500/20"
+												>
+													{userProfile?.status}
+												</Badge>
+											</div>
 										</div>
 									</div>
 								</div>

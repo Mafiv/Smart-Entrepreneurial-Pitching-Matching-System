@@ -3,7 +3,7 @@
 import { ChevronsUpDown, Layers, LogOut, Settings, User } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import ThemeToggle from "@/components/ThemeToggle";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -127,6 +127,13 @@ export default function DashboardLayout({
 										className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer group-data-[collapsible=icon]:!justify-center group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:!size-10 group-data-[collapsible=icon]:rounded-xl transition-all"
 									>
 										<Avatar className="h-8 w-8 rounded-lg group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:rounded-xl transition-all">
+											{userProfile?.photoURL && (
+												<AvatarImage
+													src={userProfile.photoURL}
+													alt={userProfile.displayName || ""}
+													className="object-cover rounded-lg"
+												/>
+											)}
 											<AvatarFallback className="rounded-lg bg-primary/10 text-xs font-semibold text-primary">
 												{initials}
 											</AvatarFallback>
@@ -151,6 +158,13 @@ export default function DashboardLayout({
 									<DropdownMenuLabel className="p-0 font-normal">
 										<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
 											<Avatar className="h-8 w-8 rounded-lg">
+												{userProfile?.photoURL && (
+													<AvatarImage
+														src={userProfile.photoURL}
+														alt={userProfile.displayName || ""}
+														className="object-cover rounded-lg"
+													/>
+												)}
 												<AvatarFallback className="rounded-lg bg-primary/10 text-primary">
 													{initials}
 												</AvatarFallback>
@@ -204,6 +218,13 @@ export default function DashboardLayout({
 									className="relative h-8 w-8 rounded-full"
 								>
 									<Avatar className="h-8 w-8">
+										{userProfile?.photoURL && (
+											<AvatarImage
+												src={userProfile.photoURL}
+												alt={userProfile.displayName || ""}
+												className="object-cover"
+											/>
+										)}
 										<AvatarFallback className="bg-primary/10 text-primary text-xs">
 											{initials}
 										</AvatarFallback>
