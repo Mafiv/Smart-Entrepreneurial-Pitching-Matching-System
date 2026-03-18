@@ -7,6 +7,8 @@ import express, {
 import mongoSanitize from "express-mongo-sanitize";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
+import { connectDB } from "./config/database";
+import { initFirebase } from "./config/firebase";
 import adminRoutes from "./routes/admin.routes";
 import authRoutes from "./routes/auth.routes";
 import documentRoutes from "./routes/document.routes";
@@ -22,8 +24,7 @@ import submissionRoutes from "./routes/submission.routes";
 import uploadRoutes from "./routes/upload.routes";
 import userRoutes from "./routes/user.routes";
 
-// Initialize Firebase and Database right away for Vercel
-// (because Vercel Serverless Functions execute app.ts directly and skip server.ts)
+// Initialize Firebase and DB for serverless environments that execute app.ts directly.
 initFirebase();
 connectDB().catch(console.error);
 
@@ -89,7 +90,9 @@ app.use(express.urlencoded({ extended: true }));
 
 const healthHandler = (_req: Request, res: Response) => {
 	res.status(200).json({ status: "ok" });
-});
+};
+
+app.get("/health", healthHandler);
 
 // Mount route modules
 app.use("/api/auth", authRoutes);
