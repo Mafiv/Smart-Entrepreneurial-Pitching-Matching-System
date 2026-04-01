@@ -32,7 +32,7 @@ export interface ChecklistItem {
 	required: boolean;
 	uploaded: boolean;
 	count: number;
-	status: "verified" | "processing" | "failed" | "missing";
+	status: "verified" | "processing" | "failed" | "flagged" | "missing";
 }
 
 /**
@@ -166,9 +166,13 @@ export class DocumentValidationService {
 
 			let status: ChecklistItem["status"] = "missing";
 			if (uploaded) {
+				const hasFlagged = catDocs.some((d) => d.status === "flagged");
 				const hasFailed = catDocs.some((d) => d.status === "failed");
 				const hasProcessing = catDocs.some((d) => d.status === "processing");
-				if (hasFailed) {
+
+				if (hasFlagged) {
+					status = "flagged";
+				} else if (hasFailed) {
 					status = "failed";
 				} else if (hasProcessing) {
 					status = "processing";
@@ -188,7 +192,7 @@ export class DocumentValidationService {
 
 			if (cat.required) {
 				requiredCount++;
-				if (uploaded && status !== "failed") {
+				if (uploaded && status !== "failed" && status !== "flagged") {
 					uploadedRequiredCount++;
 				} else {
 					missingRequired.push(cat.label);

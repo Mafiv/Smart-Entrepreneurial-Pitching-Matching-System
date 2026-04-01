@@ -77,7 +77,7 @@ interface ChecklistItem {
 	required: boolean;
 	uploaded: boolean;
 	count: number;
-	status: "verified" | "processing" | "failed" | "missing";
+	status: "verified" | "processing" | "failed" | "flagged" | "missing";
 }
 
 interface CompletenessResult {
@@ -452,6 +452,9 @@ function ReviewPitchPageInner() {
 													{item.status === "failed" && (
 														<XCircle className="h-4 w-4 text-destructive" />
 													)}
+													{item.status === "flagged" && (
+														<XCircle className="h-4 w-4 text-amber-600" />
+													)}
 													{item.status === "missing" && item.required && (
 														<span className="text-xs text-destructive font-medium">
 															Missing
@@ -525,6 +528,14 @@ function ReviewPitchPageInner() {
 																<XCircle className="h-3 w-3" /> Failed
 															</Badge>
 														)}
+														{docStatus?.status === "flagged" && (
+															<Badge
+																variant="destructive"
+																className="gap-1 bg-amber-600 hover:bg-amber-700"
+															>
+																<XCircle className="h-3 w-3" /> Suspicious
+															</Badge>
+														)}
 														{(!docStatus ||
 															docStatus?.status === "uploaded") && (
 															<Badge variant="outline">Uploaded</Badge>
@@ -569,6 +580,12 @@ function ReviewPitchPageInner() {
 									<li>
 										Some documents failed validation — please go back and
 										re-upload them.
+									</li>
+								)}
+								{docStatuses.some((d) => d.status === "flagged") && (
+									<li className="text-amber-700 font-semibold">
+										Some documents were flagged as suspicious and require admin
+										review.
 									</li>
 								)}
 							</ul>

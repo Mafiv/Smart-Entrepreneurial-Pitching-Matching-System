@@ -44,6 +44,17 @@ export const processDocument = async (documentId: string): Promise<void> => {
 				mimeType: document.mimeType,
 			});
 
+			if (analysis.validation && !analysis.validation.passed) {
+				document.status =
+					analysis.validation.issueType === "suspect_fraud"
+						? "flagged"
+						: "failed";
+				document.processingError =
+					analysis.validation.reason || "Content validation failed.";
+				await document.save();
+				return;
+			}
+
 			document.status = "processed";
 			document.extractedText = analysis.extractedText ?? document.extractedText;
 			document.aiSummary = analysis.summary ?? document.aiSummary;

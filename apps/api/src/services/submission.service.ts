@@ -210,12 +210,15 @@ export class SubmissionService {
 			});
 		}
 
-		// Check for documents still processing or failed
+		// Check for documents still processing, failed, or flagged
 		const processingDocs = completeness.checklist.filter(
 			(c) => c.status === "processing",
 		);
 		const failedDocs = completeness.checklist.filter(
 			(c) => c.status === "failed",
+		);
+		const flaggedDocs = completeness.checklist.filter(
+			(c) => c.status === "flagged",
 		);
 
 		if (processingDocs.length > 0) {
@@ -226,6 +229,11 @@ export class SubmissionService {
 		if (failedDocs.length > 0) {
 			errors.push(
 				`Documents failed validation: ${failedDocs.map((d) => d.label).join(", ")}`,
+			);
+		}
+		if (flaggedDocs.length > 0) {
+			errors.push(
+				`Documents marked as suspicious: ${flaggedDocs.map((d) => d.label).join(", ")}. Administrator review required.`,
 			);
 		}
 

@@ -402,6 +402,15 @@ function NewPitchPageInner() {
 						<XCircle className="h-3 w-3" /> Failed
 					</Badge>
 				);
+			case "flagged":
+				return (
+					<Badge
+						variant="destructive"
+						className="gap-1 bg-amber-600 hover:bg-amber-700"
+					>
+						<XCircle className="h-3 w-3" /> Suspicious
+					</Badge>
+				);
 			default:
 				return <Badge variant="outline">Uploaded</Badge>;
 		}
