@@ -1,6 +1,7 @@
 import { DocumentModel } from "../models/Document";
 import { type ISubmission, Submission } from "../models/Submission";
 import type { IUser } from "../models/User";
+import { DocumentValidationService } from "./document-validation.service";
 
 class SubmissionServiceError extends Error {
 	statusCode: number;
@@ -198,25 +199,34 @@ export class SubmissionService {
 			errors.push("Projected revenue is required");
 		}
 
-		// Document validation: check for docs still processing or failed
-		if (submission.documents && submission.documents.length > 0) {
-			const dbDocs = await DocumentModel.find({
-				submissionId: submission._id,
-			}).select("status filename processingError");
+		// ── Document completeness check (UC-05 step 8) ──
+		const completeness = await DocumentValidationService.checkCompleteness(
+			submission._id.toString(),
+		);
 
-			const failedDocs = dbDocs.filter((d) => d.status === "failed");
-			const processingDocs = dbDocs.filter((d) => d.status === "processing");
+		if (!completeness.complete) {
+			errors.push(
+				`Missing required documents: ${completeness.missingRequired.join(", ")}`,
+			);
+		}
 
-			if (processingDocs.length > 0) {
-				errors.push(
-					`${processingDocs.length} document(s) still processing — please wait`,
-				);
-			}
-			if (failedDocs.length > 0) {
-				errors.push(
-					`${failedDocs.length} document(s) failed validation — please remove or re-upload them`,
-				);
-			}
+		// Check for documents still processing or failed
+		const processingDocs = completeness.checklist.filter(
+			(c) => c.status === "processing",
+		);
+		const failedDocs = completeness.checklist.filter(
+			(c) => c.status === "failed",
+		);
+
+		if (processingDocs.length > 0) {
+			errors.push(
+				`Documents still processing: ${processingDocs.map((d) => d.label).join(", ")}`,
+			);
+		}
+		if (failedDocs.length > 0) {
+			errors.push(
+				`Documents failed validation: ${failedDocs.map((d) => d.label).join(", ")}`,
+			);
 		}
 
 		if (errors.length > 0) {

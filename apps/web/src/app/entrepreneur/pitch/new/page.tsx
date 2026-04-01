@@ -42,6 +42,7 @@ import { useAuth } from "@/context/AuthContext";
 import {
 	type BusinessModelData,
 	businessModelSchema,
+	DOC_CATEGORIES,
 	type FinancialsData,
 	financialsSchema,
 	type MetadataData,
@@ -50,8 +51,8 @@ import {
 	problemSchema,
 	SECTORS,
 	type SolutionData,
-	solutionSchema,
 	STAGES,
+	solutionSchema,
 } from "@/lib/validations/submission";
 
 interface UploadedDoc {
@@ -70,13 +71,6 @@ const STEPS = [
 	{ id: 4, title: "Business Model", icon: <BarChart3 className="h-5 w-5" /> },
 	{ id: 5, title: "Financials", icon: <DollarSign className="h-5 w-5" /> },
 	{ id: 6, title: "Documents", icon: <FileUp className="h-5 w-5" /> },
-];
-
-const DOC_TYPES = [
-	{ value: "pitch_deck", label: "Pitch Deck" },
-	{ value: "financial_model", label: "Financial Model" },
-	{ value: "legal", label: "Legal Document" },
-	{ value: "other", label: "Other" },
 ];
 
 function NewPitchPageInner() {
@@ -184,16 +178,18 @@ function NewPitchPageInner() {
 			}
 
 			// Load associated documents
-			const docRes = await fetch(`${API_URL}/documents?submissionId=${editId}`, {
-				headers: { Authorization: `Bearer ${await user.getIdToken()}` },
-			});
+			const docRes = await fetch(
+				`${API_URL}/documents?submissionId=${editId}`,
+				{
+					headers: { Authorization: `Bearer ${await user.getIdToken()}` },
+				},
+			);
 			if (docRes.ok) {
 				const { documents } = await docRes.json();
 				if (Array.isArray(documents)) {
 					setUploadedDocs(
 						documents.filter(
-							(d: UploadedDoc) =>
-								d._id && (d.filename || d.url),
+							(d: UploadedDoc) => d._id && (d.filename || d.url),
 						),
 					);
 				}
@@ -866,9 +862,9 @@ function NewPitchPageInner() {
 														<SelectValue />
 													</SelectTrigger>
 													<SelectContent>
-														{DOC_TYPES.map((dt) => (
+														{DOC_CATEGORIES.map((dt) => (
 															<SelectItem key={dt.value} value={dt.value}>
-																{dt.label}
+																{dt.label} {dt.required && "*"}
 															</SelectItem>
 														))}
 													</SelectContent>
@@ -904,8 +900,8 @@ function NewPitchPageInner() {
 										</div>
 
 										<p className="text-xs text-muted-foreground">
-											Accepted: PDF, PPTX, DOCX, XLSX, JPG, PNG, WEBP — Max
-											25MB per file
+											Accepted: PDF, PPTX, DOCX, XLSX, JPG, PNG, WEBP — Max 25MB
+											per file
 										</p>
 
 										{/* Uploaded documents list */}
@@ -926,10 +922,9 @@ function NewPitchPageInner() {
 																	{doc.filename}
 																</p>
 																<p className="text-xs text-muted-foreground">
-																	{
-																		DOC_TYPES.find((dt) => dt.value === doc.type)
-																			?.label || doc.type
-																	}
+																	{DOC_CATEGORIES.find(
+																		(dt) => dt.value === doc.type,
+																	)?.label || doc.type}
 																</p>
 																{doc.processingError && (
 																	<p className="text-xs text-destructive mt-1">

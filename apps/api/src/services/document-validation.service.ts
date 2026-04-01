@@ -1,11 +1,11 @@
 import type { IDocument } from "../models/Document";
+import { DocumentModel } from "../models/Document";
 
 /**
  * Pre-submission document validation pipeline.
  *
- * Runs a series of synchronous checks on uploaded document metadata
- * before handing off to the async AI processing pipeline. These are
- * quick, deterministic validations that catch obvious issues early.
+ * Runs synchronous checks on uploaded document metadata and provides
+ * a completeness checker for the required document checklist (UC-05).
  */
 
 export interface ValidationResult {
@@ -19,12 +19,79 @@ export interface ValidationCheck {
 	message: string;
 }
 
+export interface CompletenessResult {
+	score: number; // 0-100
+	complete: boolean;
+	checklist: ChecklistItem[];
+	missingRequired: string[];
+}
+
+export interface ChecklistItem {
+	category: string;
+	label: string;
+	required: boolean;
+	uploaded: boolean;
+	count: number;
+	status: "verified" | "processing" | "failed" | "missing";
+}
+
+/**
+ * Required document categories for a complete pitch submission.
+ * These map to UC-05 step 4: "System displays the required checklist".
+ */
+export const REQUIRED_DOC_CATEGORIES = [
+	{
+		category: "business_license",
+		label: "Business License",
+		required: true,
+	},
+	{
+		category: "tin_certificate",
+		label: "TIN Certificate",
+		required: true,
+	},
+	{
+		category: "pitch_deck",
+		label: "Pitch Deck",
+		required: true,
+	},
+	{
+		category: "financial_statement",
+		label: "Financial Statements",
+		required: true,
+	},
+	{
+		category: "memorandum_of_association",
+		label: "Memorandum of Association",
+		required: false,
+	},
+	{
+		category: "financial_model",
+		label: "Financial Model",
+		required: false,
+	},
+	{
+		category: "legal",
+		label: "Legal Documents",
+		required: false,
+	},
+	{
+		category: "other",
+		label: "Other Supporting Documents",
+		required: false,
+	},
+] as const;
+
 // Maximum file sizes per document type (in bytes)
 const MAX_FILE_SIZES: Record<string, number> = {
-	pitch_deck: 25 * 1024 * 1024, // 25 MB
-	financial_model: 15 * 1024 * 1024, // 15 MB
-	legal: 10 * 1024 * 1024, // 10 MB
-	other: 25 * 1024 * 1024, // 25 MB
+	pitch_deck: 25 * 1024 * 1024,
+	financial_model: 15 * 1024 * 1024,
+	financial_statement: 15 * 1024 * 1024,
+	legal: 10 * 1024 * 1024,
+	business_license: 10 * 1024 * 1024,
+	tin_certificate: 10 * 1024 * 1024,
+	memorandum_of_association: 10 * 1024 * 1024,
+	other: 25 * 1024 * 1024,
 };
 
 // Allowed MIME types per document type
@@ -43,12 +110,31 @@ const ALLOWED_MIMES: Record<string, string[]> = {
 		"application/vnd.ms-excel",
 		"text/plain",
 	],
+	financial_statement: [
+		"application/pdf",
+		"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+		"application/vnd.ms-excel",
+		"image/jpeg",
+		"image/png",
+	],
 	legal: [
 		"application/pdf",
 		"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 		"application/msword",
 		"image/jpeg",
 		"image/png",
+	],
+	business_license: [
+		"application/pdf",
+		"image/jpeg",
+		"image/png",
+		"image/webp",
+	],
+	tin_certificate: ["application/pdf", "image/jpeg", "image/png", "image/webp"],
+	memorandum_of_association: [
+		"application/pdf",
+		"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+		"application/msword",
 	],
 	other: [
 		"application/pdf",
@@ -67,23 +153,89 @@ const ALLOWED_MIMES: Record<string, string[]> = {
 
 export class DocumentValidationService {
 	/**
-	 * Run all pre-processing validation checks on a document.
-	 * Returns a ValidationResult with individual check results.
+	 * Run all pre-processing validation checks on a single document.
 	 */
 	static validate(document: IDocument): ValidationResult {
 		const checks: ValidationCheck[] = [];
 
-		// 1. File size check
 		checks.push(DocumentValidationService.checkFileSize(document));
-
-		// 2. MIME type check
 		checks.push(DocumentValidationService.checkMimeType(document));
-
-		// 3. Filename check
 		checks.push(DocumentValidationService.checkFilename(document));
 
 		const passed = checks.every((c) => c.passed);
 		return { passed, checks };
+	}
+
+	/**
+	 * Check completeness of the document checklist for a submission.
+	 * Returns a score and list of missing required documents (UC-05 step 8).
+	 */
+	static async checkCompleteness(
+		submissionId: string,
+	): Promise<CompletenessResult> {
+		const docs = await DocumentModel.find({ submissionId }).select(
+			"type status",
+		);
+
+		const docsByCategory = new Map<string, IDocument[]>();
+		for (const doc of docs) {
+			const existing = docsByCategory.get(doc.type) || [];
+			existing.push(doc);
+			docsByCategory.set(doc.type, existing);
+		}
+
+		const checklist: ChecklistItem[] = [];
+		const missingRequired: string[] = [];
+		let requiredCount = 0;
+		let uploadedRequiredCount = 0;
+
+		for (const cat of REQUIRED_DOC_CATEGORIES) {
+			const catDocs = docsByCategory.get(cat.category) || [];
+			const uploaded = catDocs.length > 0;
+
+			let status: ChecklistItem["status"] = "missing";
+			if (uploaded) {
+				const hasFailed = catDocs.some((d) => d.status === "failed");
+				const hasProcessing = catDocs.some((d) => d.status === "processing");
+				if (hasFailed) {
+					status = "failed";
+				} else if (hasProcessing) {
+					status = "processing";
+				} else {
+					status = "verified";
+				}
+			}
+
+			checklist.push({
+				category: cat.category,
+				label: cat.label,
+				required: cat.required,
+				uploaded,
+				count: catDocs.length,
+				status,
+			});
+
+			if (cat.required) {
+				requiredCount++;
+				if (uploaded && status !== "failed") {
+					uploadedRequiredCount++;
+				} else {
+					missingRequired.push(cat.label);
+				}
+			}
+		}
+
+		const score =
+			requiredCount > 0
+				? Math.round((uploadedRequiredCount / requiredCount) * 100)
+				: 100;
+
+		return {
+			score,
+			complete: missingRequired.length === 0,
+			checklist,
+			missingRequired,
+		};
 	}
 
 	private static checkFileSize(document: IDocument): ValidationCheck {
@@ -143,7 +295,6 @@ export class DocumentValidationService {
 			};
 		}
 
-		// Check for suspicious patterns
 		const suspiciousPatterns = /\.(exe|bat|cmd|sh|ps1|vbs|js|mjs)$/i;
 		if (suspiciousPatterns.test(filename)) {
 			return {

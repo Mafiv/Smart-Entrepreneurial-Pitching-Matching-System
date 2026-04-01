@@ -121,3 +121,21 @@ export const STAGES = [
 	{ value: "scaling", label: "Scaling / Growth" },
 ] as const;
 
+export const DOC_CATEGORIES = [
+	{ value: "business_license", label: "Business License", required: true },
+	{ value: "tin_certificate", label: "TIN Certificate", required: true },
+	{ value: "pitch_deck", label: "Pitch Deck", required: true },
+	{
+		value: "financial_statement",
+		label: "Financial Statements",
+		required: true,
+	},
+	{
+		value: "memorandum_of_association",
+		label: "Memorandum of Association",
+		required: false,
+	},
+	{ value: "financial_model", label: "Financial Model", required: false },
+	{ value: "legal", label: "Other Legal Documents", required: false },
+	{ value: "other", label: "Other Supporting Docs", required: false },
+] as const;

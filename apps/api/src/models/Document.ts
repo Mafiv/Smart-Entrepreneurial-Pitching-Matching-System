@@ -5,7 +5,15 @@ import {
 	type Types,
 } from "mongoose";
 
-export type DocumentType = "pitch_deck" | "financial_model" | "legal" | "other";
+export type DocumentType =
+	| "pitch_deck"
+	| "financial_model"
+	| "legal"
+	| "business_license"
+	| "tin_certificate"
+	| "financial_statement"
+	| "memorandum_of_association"
+	| "other";
 export type DocumentProcessingStatus =
 	| "uploaded"
 	| "processing"
@@ -52,6 +60,10 @@ const DocumentSchema = new Schema<IDocument>(
 				"pitch_deck",
 				"financial_model",
 				"legal",
+				"business_license",
+				"tin_certificate",
+				"financial_statement",
+				"memorandum_of_association",
 				"other",
 			] satisfies DocumentType[],
 			required: true,

@@ -239,6 +239,31 @@ router.post(
 
 /**
  * @openapi
+ * /api/submissions/{id}/completeness:
+ *   get:
+ *     tags: [Submissions]
+ *     summary: Get document completeness score and required checklist
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Completeness result
+ */
+router.get(
+	"/:id/completeness",
+	authenticate,
+	authorize("entrepreneur"),
+	SubmissionController.getCompleteness,
+);
+
+/**
+ * @openapi
  * /api/submissions/{id}:
  *   delete:
  *     tags: [Submissions]

@@ -18,10 +18,10 @@ export interface ISubmissionDocument {
 		| "pitch_deck"
 		| "financial_model"
 		| "legal"
-		| "business_plan"
+		| "business_license"
+		| "tin_certificate"
 		| "financial_statement"
-		| "legal_doc"
-		| "video"
+		| "memorandum_of_association"
 		| "other";
 	cloudinaryId?: string;
 	size?: number;

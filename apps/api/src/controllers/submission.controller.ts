@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { DocumentValidationService } from "../services/document-validation.service";
 import { SubmissionService } from "../services/submission.service";
 import { enqueueSubmissionAnalysis } from "../workers/ai.processor";
 
@@ -134,6 +135,38 @@ export class SubmissionController {
 			}
 
 			handleSubmissionError(res, error, "Failed to submit pitch");
+		}
+	}
+
+	/**
+	 * UC-05 Step 8: AI Completeness Checker endpoint.
+	 * Returns the document completeness score, full checklist,
+	 * and list of missing required documents.
+	 */
+	static async getCompleteness(req: Request, res: Response): Promise<void> {
+		try {
+			if (!req.user) {
+				res.status(401).json({ status: "error", message: "Unauthorized" });
+				return;
+			}
+
+			// Verify the user owns this submission
+			await SubmissionService.getOneForUser(req.params.id, req.user);
+
+			const completeness = await DocumentValidationService.checkCompleteness(
+				req.params.id,
+			);
+
+			res.status(200).json({
+				status: "success",
+				completeness,
+			});
+		} catch (error) {
+			handleSubmissionError(
+				res,
+				error,
+				"Failed to check document completeness",
+			);
 		}
 	}
 
