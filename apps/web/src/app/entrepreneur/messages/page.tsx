@@ -31,6 +31,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthContext";
+import { ENTREPRENEUR_NAV } from "@/constants/navigation";
 
 /* ── Types ── */
 interface Participant {
@@ -58,15 +59,10 @@ interface Message {
 }
 
 /* ── Nav ── */
-const ENTREPRENEUR_NAV = [
-	{ label: "Dashboard", href: "/entrepreneur/dashboard", icon: <MessageSquare className="h-4 w-4" /> },
-	{ label: "New Pitch", href: "/entrepreneur/pitch/new", icon: <Send className="h-4 w-4" /> },
-	{ label: "Messages", href: "/entrepreneur/messages", icon: <MessageSquare className="h-4 w-4" /> },
-	{ label: "Profile", href: "/entrepreneur/profile", icon: <User className="h-4 w-4" /> },
-];
+
 
 export default function EntrepreneurMessages() {
-	const { user } = useAuth();
+	const { user, userProfile } = useAuth();
 	const [conversations, setConversations] = useState<Conversation[]>([]);
 	const [activeConvo, setActiveConvo] = useState<Conversation | null>(null);
 	const [messages, setMessages] = useState<Message[]>([]);
@@ -113,11 +109,35 @@ export default function EntrepreneurMessages() {
 		loadConversations();
 	}, [loadConversations]);
 
+	/* ── Auto-mark message notifications as read when chat page opens ── */
+	useEffect(() => {
+		if (!user) return;
+		(async () => {
+			try {
+				const token = await user.getIdToken();
+				const res = await fetch(`${api}/messages/notifications`, {
+					headers: { Authorization: `Bearer ${token}` },
+				});
+				if (!res.ok) return;
+				const { notifications } = await res.json();
+				const unreadMsgNotifs = (notifications || []).filter(
+					(n: any) => !n.isRead && n.type === "message_received",
+				);
+				for (const n of unreadMsgNotifs) {
+					fetch(`${api}/messages/notifications/${n._id}/read`, {
+						method: "PATCH",
+						headers: { Authorization: `Bearer ${token}` },
+					}).catch(() => {});
+				}
+			} catch {}
+		})();
+	}, [user, api]);
+
 	/* ── Load messages for active conversation ── */
 	const loadMessages = useCallback(
-		async (conversationId: string) => {
+		async (conversationId: string, backgroundMode = false) => {
 			if (!user) return;
-			setLoadingMessages(true);
+			if (!backgroundMode) setLoadingMessages(true);
 			try {
 				const token = await getToken();
 				const res = await fetch(
@@ -140,7 +160,7 @@ export default function EntrepreneurMessages() {
 			} catch (err) {
 				console.error("Failed to load messages", err);
 			} finally {
-				setLoadingMessages(false);
+				if (!backgroundMode) setLoadingMessages(false);
 			}
 		},
 		[user, api, getToken],
@@ -160,15 +180,29 @@ export default function EntrepreneurMessages() {
 	useEffect(() => {
 		if (!activeConvo) return;
 		const interval = setInterval(() => {
-			loadMessages(activeConvo._id);
+			loadMessages(activeConvo._id, true);
 		}, 5000);
 		return () => clearInterval(interval);
 	}, [activeConvo, loadMessages]);
 
 	/* ── Send message ── */
 	const handleSend = async () => {
-		if (!messageBody.trim() || !activeConvo || !user) return;
+		if (!messageBody.trim() || !activeConvo || !user || !userProfile) return;
+		const body = messageBody.trim();
 		setSending(true);
+		setMessageBody("");
+
+		// Optimistically add the message to the UI immediately
+		const optimisticMsg: Message = {
+			_id: `temp-${Date.now()}`,
+			conversationId: activeConvo._id,
+			senderId: (userProfile as any)._id || "",
+			body,
+			type: "text",
+			createdAt: new Date().toISOString(),
+		};
+		setMessages((prev) => [...prev, optimisticMsg]);
+
 		try {
 			const token = await getToken();
 			const res = await fetch(
@@ -179,17 +213,25 @@ export default function EntrepreneurMessages() {
 						Authorization: `Bearer ${token}`,
 						"Content-Type": "application/json",
 					},
-					body: JSON.stringify({ body: messageBody.trim(), type: "text" }),
+					body: JSON.stringify({ body, type: "text" }),
 				},
 			);
 			if (res.ok) {
-				setMessageBody("");
-				loadMessages(activeConvo._id);
+				const { data: savedMsg } = await res.json();
+				// Replace the optimistic message with the real one from the server
+				if (savedMsg) {
+					setMessages((prev) =>
+						prev.map((m) => (m._id === optimisticMsg._id ? savedMsg : m)),
+					);
+				}
 			} else {
+				// Remove the optimistic message on failure
+				setMessages((prev) => prev.filter((m) => m._id !== optimisticMsg._id));
 				const err = await res.json();
 				toast.error(err.message || "Failed to send message");
 			}
 		} catch (err) {
+			setMessages((prev) => prev.filter((m) => m._id !== optimisticMsg._id));
 			toast.error("Failed to send message");
 		} finally {
 			setSending(false);
@@ -238,9 +280,9 @@ export default function EntrepreneurMessages() {
 
 	/* ── Helpers ── */
 	const getOtherParticipant = (convo: Conversation) => {
-		if (!user) return null;
+		if (!userProfile) return null;
 		return convo.participants.find(
-			(p) => p._id !== (user as any).dbUser?._id && p._id !== (user as any).uid,
+			(p) => p._id !== userProfile._id
 		) || convo.participants[0];
 	};
 
@@ -322,8 +364,8 @@ export default function EntrepreneurMessages() {
 													</p>
 												</div>
 												{convo.isArchived && (
-													<Badge variant="secondary" className="text-[10px] shrink-0">
-														Frozen
+													<Badge variant="destructive" className="text-[10px] shrink-0">
+														⚠ Reported
 													</Badge>
 												)}
 											</div>
@@ -373,15 +415,17 @@ export default function EntrepreneurMessages() {
 												</p>
 											</div>
 										</div>
-										<Button
-											variant="ghost"
-											size="sm"
-											className="text-destructive hover:text-destructive hover:bg-destructive/10"
-											onClick={() => setShowReportDialog(true)}
-										>
-											<ShieldAlert className="h-4 w-4 mr-1.5" />
-											Report
-										</Button>
+										{!activeConvo.isArchived && (
+											<Button
+												variant="ghost"
+												size="sm"
+												className="text-destructive hover:text-destructive hover:bg-destructive/10"
+												onClick={() => setShowReportDialog(true)}
+											>
+												<ShieldAlert className="h-4 w-4 mr-1.5" />
+												Report
+											</Button>
+										)}
 									</div>
 
 									{/* Messages */}
@@ -398,8 +442,7 @@ export default function EntrepreneurMessages() {
 										) : (
 											messages.map((msg) => {
 												const senderId = getSenderId(msg);
-												const otherP = getOtherParticipant(activeConvo);
-												const isMine = senderId !== otherP?._id;
+												const isMine = senderId === userProfile?._id;
 
 												return (
 													<div
@@ -444,11 +487,17 @@ export default function EntrepreneurMessages() {
 
 									{/* Message Input */}
 									{activeConvo.isArchived ? (
-										<div className="p-3 border-t bg-destructive/5 text-center">
-											<p className="text-sm text-destructive flex items-center justify-center gap-2">
-												<AlertTriangle className="h-4 w-4" />
-												This conversation has been frozen due to a misconduct report.
-											</p>
+										<div className="p-4 border-t bg-destructive/5">
+											<div className="flex items-start gap-3">
+												<ShieldAlert className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+												<div>
+													<p className="text-sm font-semibold text-destructive">Conversation Frozen</p>
+													<p className="text-xs text-muted-foreground mt-1">
+														This conversation has been reported for misconduct and is under admin review.
+														All messages are preserved but messaging is disabled until the review is complete.
+													</p>
+												</div>
+											</div>
 										</div>
 									) : (
 										<div className="p-3 border-t bg-background">

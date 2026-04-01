@@ -337,25 +337,87 @@ export default function InvestorPitchViewPage() {
 									</p>
 								) : (
 									<div className="space-y-3">
-										{pitch.documents.map((doc, i) => (
-											<a
-												key={i}
-												href={doc.url}
-												target="_blank"
-												rel="noopener noreferrer"
-												className="flex items-start justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors group"
+										{pitch.documents.map((doc, i) => {
+											const isPdf = doc.name.toLowerCase().endsWith(".pdf") || doc.url.toLowerCase().endsWith(".pdf") || doc.url.includes("/raw/upload/") || ["pitch_deck", "financial_model", "business_plan", "legal", "legal_doc"].includes(doc.type);
+											return (
+												<div
+													key={i}
+													className="flex flex-col rounded-lg border overflow-hidden group"
+												>
+													<div className="flex items-center justify-between p-3 bg-card hover:bg-muted/50 transition-colors">
+														<div className="min-w-0 flex-1">
+															<p className="text-sm font-medium truncate">
+																{doc.name}
+															</p>
+															<Badge variant="secondary" className="mt-1 text-[10px] capitalize">
+																{doc.type.replace("_", " ")}
+															</Badge>
+														</div>
+														<div className="flex items-center gap-2">
+															<a
+																href={doc.url.includes("/upload/") ? doc.url.replace("/upload/", "/upload/fl_attachment/") : doc.url}
+																target="_blank"
+																rel="noopener noreferrer"
+																title="Download Document"
+															>
+																<Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-primary">
+																	<FileUp className="h-4 w-4 rotate-180" />
+																</Button>
+															</a>
+															<a
+																href={doc.url}
+																target="_blank"
+																rel="noopener noreferrer"
+																title="View Document"
+															>
+																<Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-primary">
+																	<ExternalLink className="h-4 w-4" />
+																</Button>
+															</a>
+														</div>
+													</div>
+													{/* Inline Document Preview */}
+													{isPdf && (() => {
+									const previewUrl = doc.url.includes("/upload/")
+										? doc.url.replace("/upload/", "/upload/pg_1,w_800/").replace(/\.pdf$/i, ".jpg")
+										: null;
+									return previewUrl ? (
+										<div className="relative border-t bg-muted/20 group/preview">
+											<a 
+												href={doc.url.includes("/upload/") ? doc.url.replace("/upload/", "/upload/fl_attachment/").concat(".pdf") : doc.url} 
+												target="_blank" 
+												rel="noopener noreferrer" 
+												className="block"
 											>
-												<div className="min-w-0 flex-1">
-													<p className="text-sm font-medium truncate group-hover:underline">
-														{doc.name}
-													</p>
-													<Badge variant="secondary" className="mt-1 text-[10px] capitalize">
-														{doc.type.replace("_", " ")}
-													</Badge>
+												<img
+													src={previewUrl}
+													alt={`Preview of ${doc.name}`}
+													className="w-full max-h-[500px] object-contain bg-white"
+													loading="lazy"
+												/>
+												<div className="absolute inset-0 bg-black/0 group-hover/preview:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover/preview:opacity-100">
+													<Button size="sm" variant="secondary" className="gap-1.5 shadow-lg">
+														<FileUp className="h-3.5 w-3.5 rotate-180" /> Download Full PDF
+													</Button>
 												</div>
-												<ExternalLink className="h-4 w-4 text-muted-foreground shrink-0 ml-2 mt-1" />
 											</a>
-										))}
+										</div>
+									) : (
+										<div className="flex flex-col items-center justify-center h-32 border-t bg-muted/20 gap-3 p-6">
+											<p className="text-sm text-muted-foreground">Preview unavailable</p>
+											<a 
+												href={doc.url.includes("/upload/") ? doc.url.replace("/upload/", "/upload/fl_attachment/") : doc.url} 
+												target="_blank" 
+												rel="noopener noreferrer"
+											>
+												<Button size="sm" variant="outline">Download PDF</Button>
+											</a>
+										</div>
+									);
+								})()}
+												</div>
+											);
+										})}
 									</div>
 								)}
 							</CardContent>

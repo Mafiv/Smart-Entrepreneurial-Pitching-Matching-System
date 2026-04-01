@@ -71,10 +71,14 @@ export class SubmissionService {
 			throw SubmissionService.createError("Submission not found", 404);
 		}
 
-		if (
-			user.role === "entrepreneur" &&
-			submission.entrepreneurId.toString() !== user._id.toString()
-		) {
+		// After .populate(), entrepreneurId is a hydrated object { _id, fullName, email }.
+		// Extract the raw _id for comparison.
+		const ownerId =
+			typeof submission.entrepreneurId === "object" && submission.entrepreneurId !== null
+				? (submission.entrepreneurId as any)._id?.toString() || (submission.entrepreneurId as any).toString()
+				: (submission.entrepreneurId as any)?.toString();
+
+		if (user.role === "entrepreneur" && ownerId !== user._id.toString()) {
 			throw SubmissionService.createError("Access denied", 403);
 		}
 
@@ -311,13 +315,16 @@ export class SubmissionService {
 	}
 
 	static async listAdmin(query: Record<string, unknown>) {
-		const { status: statusFilter, page = "1", limit = "20" } = query;
+		const { status: statusFilter, sector: sectorFilter, page = "1", limit = "20" } = query;
 		const safePage = Math.max(parseIntOrDefault(page, 1), 1);
 		const safeLimit = Math.min(Math.max(parseIntOrDefault(limit, 20), 1), 100);
 
 		const filter: Record<string, unknown> = {};
 		if (statusFilter && statusFilter !== "all") {
 			filter.status = statusFilter;
+		}
+		if (sectorFilter && sectorFilter !== "all") {
+			filter.sector = sectorFilter;
 		}
 
 		const skip = (safePage - 1) * safeLimit;
