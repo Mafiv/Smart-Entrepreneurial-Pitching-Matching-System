@@ -237,6 +237,12 @@ export default function AdminOversight() {
 	const [addByEmail, setAddByEmail] = useState("");
 	const [addByEmailLoading, setAddByEmailLoading] = useState(false);
 
+	// Submissions Review
+	const [selectedSubmission, setSelectedSubmission] =
+		useState<SubmissionRecord | null>(null);
+	const [submissionDocs, setSubmissionDocs] = useState<any[]>([]);
+	const [loadingDocs, setLoadingDocs] = useState(false);
+
 	const api = (
 		process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
 	).replace(/\/+$/, "");
@@ -354,6 +360,52 @@ export default function AdminOversight() {
 	};
 
 	const pendingCount = pendingUsers.length;
+
+	const fetchSubmissionDocs = async (sub: SubmissionRecord) => {
+		if (!user) return;
+		setSelectedSubmission(sub);
+		setLoadingDocs(true);
+		try {
+			const token = await user.getIdToken();
+			const res = await fetch(`${api}/documents?submissionId=${sub._id}`, {
+				headers: { Authorization: `Bearer ${token}` },
+			});
+			const data = await res.json();
+			if (data.status === "success") {
+				setSubmissionDocs(data.documents);
+			} else {
+				setSubmissionDocs([]);
+			}
+		} catch (err) {
+			console.error("Failed to load generic docs", err);
+			setSubmissionDocs([]);
+		} finally {
+			setLoadingDocs(false);
+		}
+	};
+
+	const handleOverrideFlag = async (docId: string) => {
+		if (!user) return;
+		try {
+			const token = await user.getIdToken();
+			const res = await fetch(`${api}/documents/${docId}/override`, {
+				method: "POST",
+				headers: { Authorization: `Bearer ${token}` },
+			});
+			const data = await res.json();
+			if (data.status === "success") {
+				toast.success("AI determination overridden successfully!");
+				if (selectedSubmission) {
+					fetchSubmissionDocs(selectedSubmission);
+				}
+				fetchData(); // refresh overview stats if relevant
+			} else {
+				toast.error(data.message || "Failed to override document");
+			}
+		} catch (err) {
+			toast.error("An error occurred during Admin override");
+		}
+	};
 
 	const handleInviteAdmin = async () => {
 		if (!user) return;
@@ -735,6 +787,7 @@ export default function AdminOversight() {
 										<TableHead>Amount</TableHead>
 										<TableHead>Status</TableHead>
 										<TableHead>Updated</TableHead>
+										<TableHead className="text-right">Actions</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
@@ -750,7 +803,7 @@ export default function AdminOversight() {
 									) : submissions.length === 0 ? (
 										<TableRow>
 											<TableCell
-												colSpan={6}
+												colSpan={7}
 												className="text-center py-8 text-muted-foreground"
 											>
 												No submissions found
@@ -787,6 +840,15 @@ export default function AdminOversight() {
 												</TableCell>
 												<TableCell className="text-sm text-muted-foreground">
 													{new Date(s.updatedAt).toLocaleDateString()}
+												</TableCell>
+												<TableCell className="text-right">
+													<Button
+														size="sm"
+														variant="outline"
+														onClick={() => fetchSubmissionDocs(s)}
+													>
+														Review AI Flags
+													</Button>
 												</TableCell>
 											</TableRow>
 										))
@@ -1301,6 +1363,91 @@ export default function AdminOversight() {
 					</DialogContent>
 				</Dialog>
 			</DashboardLayout>
+
+			<Dialog
+				open={!!selectedSubmission}
+				onOpenChange={(op) => !op && setSelectedSubmission(null)}
+			>
+				<DialogContent className="sm:max-w-2xl bg-card border-border">
+					<DialogHeader>
+						<DialogTitle>
+							AI Flag Override: {selectedSubmission?.title}
+						</DialogTitle>
+						<DialogDescription>
+							Manually unblock documents that were flagged by AI as 'Suspicious'
+							or 'Fraudulent'.
+						</DialogDescription>
+					</DialogHeader>
+
+					<div className="py-4 space-y-4">
+						{loadingDocs ? (
+							<p className="text-sm text-muted-foreground flex items-center gap-2">
+								<Loader2 className="h-4 w-4 animate-spin" /> Loading
+								documents...
+							</p>
+						) : submissionDocs.length === 0 ? (
+							<p className="text-sm text-muted-foreground">
+								No documents found for this submission.
+							</p>
+						) : (
+							<div className="space-y-3">
+								{submissionDocs.map((doc) => (
+									<div
+										key={doc._id}
+										className="border p-3 rounded-lg flex items-center justify-between"
+									>
+										<div className="flex flex-col gap-1 min-w-0 pr-4">
+											<div className="flex items-center gap-2">
+												<span className="font-medium text-sm truncate">
+													{doc.filename}
+												</span>
+												<Badge
+													variant={
+														doc.status === "flagged"
+															? "destructive"
+															: doc.status === "failed"
+																? "destructive"
+																: "secondary"
+													}
+												>
+													{doc.status}
+												</Badge>
+											</div>
+											{doc.processingError && (
+												<span className="text-xs text-destructive mt-1">
+													<b>AI Reason:</b> {doc.processingError}
+												</span>
+											)}
+										</div>
+										<div className="flex gap-2">
+											<a
+												href={doc.url}
+												target="_blank"
+												rel="noopener noreferrer"
+											>
+												<Button size="sm" variant="ghost">
+													View
+												</Button>
+											</a>
+											{(doc.status === "flagged" ||
+												doc.status === "failed") && (
+												<Button
+													size="sm"
+													variant="outline"
+													className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700"
+													onClick={() => handleOverrideFlag(doc._id)}
+												>
+													Override Flag
+												</Button>
+											)}
+										</div>
+									</div>
+								))}
+							</div>
+						)}
+					</div>
+				</DialogContent>
+			</Dialog>
 		</ProtectedRoute>
 	);
 }

@@ -15,7 +15,8 @@ export type DocumentProcessingStatus =
 	| "uploaded"
 	| "processing"
 	| "processed"
-	| "failed";
+	| "failed"
+	| "flagged";
 
 export interface IDocument extends MongooseDocument {
 	ownerId: Types.ObjectId;
