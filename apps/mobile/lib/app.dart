@@ -8,6 +8,11 @@ import 'features/auth/presentation/bloc/auth_event.dart';
 import 'features/auth/presentation/bloc/auth_state.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/auth/presentation/pages/verify_email_page.dart';
+import 'features/shell/presentation/pages/admin_shell.dart';
+import 'features/shell/presentation/pages/entrepreneur_shell.dart';
+import 'features/shell/presentation/pages/investor_shell.dart';
+import 'features/user_profile/presentation/bloc/user_profile_bloc.dart';
+import 'features/user_profile/presentation/pages/account_gate_page.dart';
 
 class SepmsApp extends StatelessWidget {
   const SepmsApp({super.key});
@@ -20,6 +25,9 @@ class SepmsApp extends StatelessWidget {
       providers: [
         BlocProvider<AuthBloc>(
           create: (context) => sl<AuthBloc>()..add(const AuthCheckRequested()),
+        ),
+        BlocProvider<UserProfileBloc>(
+          create: (context) => sl<UserProfileBloc>(),
         ),
       ],
       child: MaterialApp(
@@ -70,45 +78,18 @@ class AuthWrapper extends StatelessWidget {
       return const LoginPage();
     }
 
-    /// Renders the authenticated user's placeholder dashboard.
-    /// TODO: Replace with role-specific dashboards (entrepreneur/investor/admin).
-    // For now, show a placeholder home screen
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('SEPMS'),
-        actions: [
-          Builder(
-            builder: (context) => IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: () {
-                context.read<AuthBloc>().add(const SignOutRequested());
-              },
-            ),
-          ),
-        ],
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Welcome, ${user.displayName ?? 'User'}!',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Role: ${user.role.name}',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Status: ${user.status.name}',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ],
-        ),
-      ),
-    );
+    if (!user.isVerified) {
+      return AccountGatePage(user: user);
+    }
+
+    switch (user.role) {
+      case UserRole.entrepreneur:
+        return const EntrepreneurShell();
+      case UserRole.investor:
+        return const InvestorShell();
+      case UserRole.admin:
+        return const AdminShell();
+    }
   }
 }
 
