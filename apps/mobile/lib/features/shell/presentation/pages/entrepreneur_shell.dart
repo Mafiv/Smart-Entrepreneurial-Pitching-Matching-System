@@ -7,7 +7,6 @@ import '../../../../core/di/injection_container.dart';
 import '../../../submissions/presentation/bloc/submissions_bloc.dart';
 import '../../../submissions/presentation/pages/my_submissions_page.dart';
 import 'entrepreneur_home_page.dart';
-import '../../../../core/di/injection_container.dart';
 import '../../../messaging/presentation/bloc/messaging_bloc.dart';
 import '../../../messaging/presentation/pages/message_center_page.dart';
 
