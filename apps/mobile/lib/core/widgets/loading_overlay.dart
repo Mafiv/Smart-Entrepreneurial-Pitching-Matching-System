@@ -15,8 +15,6 @@ class LoadingOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    /// Wraps UI content and shows a centered loading card when `isLoading` is true.
-    /// The optional `message` is shown below the progress indicator.
     return Stack(
       children: [
         child,

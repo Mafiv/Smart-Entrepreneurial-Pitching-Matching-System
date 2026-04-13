@@ -40,8 +40,6 @@ class _LogoIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    /// Renders the app logo icon: a rounded square with gradient and a centered letter.
-    /// The size parameter controls both icon dimensions and text scale.
     return Container(
       width: size,
       height: size,

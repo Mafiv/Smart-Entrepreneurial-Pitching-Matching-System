@@ -8,7 +8,6 @@ class SignOutUseCase {
   SignOutUseCase(this.repository);
 
   Future<Either<Failure, Unit>> call() {
-    // Invokes repository signOut to end the current session and clear caches.
     return repository.signOut();
   }
 }

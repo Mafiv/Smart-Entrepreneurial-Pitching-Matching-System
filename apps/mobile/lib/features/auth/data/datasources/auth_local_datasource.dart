@@ -17,7 +17,6 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
 
   @override
   Future<void> cacheUser(UserModel user) async {
-    // Caches the serialized user model in shared preferences.
     await _prefs.setString(_userKey, jsonEncode(user.toJson()));
   }
 
@@ -27,7 +26,6 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
     if (jsonString == null) return null;
 
     try {
-      // Deserialize cached user JSON into a UserModel instance.
       final json = jsonDecode(jsonString) as Map<String, dynamic>;
       return UserModel.fromJson(json);
     } catch (e) {

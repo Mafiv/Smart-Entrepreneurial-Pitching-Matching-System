@@ -9,8 +9,6 @@ class GetCurrentUserUseCase {
   GetCurrentUserUseCase(this.repository);
 
   Future<Either<Failure, UserEntity>> call() {
-    /// Fetches the current authenticated user, preferring fresh data from
-    /// the repository and falling back to cached data if available.
     return repository.getCurrentUser();
   }
 }

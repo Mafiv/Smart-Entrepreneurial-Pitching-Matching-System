@@ -10,7 +10,6 @@ class SignInWithGoogleUseCase {
   SignInWithGoogleUseCase(this.repository);
 
   Future<Either<Failure, UserEntity>> call(SignInWithGoogleParams params) {
-    // Handles Google sign-in flow parameters and maps them to the repository.
     return repository.signInWithGoogle(
       role: params.role,
       companyName: params.companyName,

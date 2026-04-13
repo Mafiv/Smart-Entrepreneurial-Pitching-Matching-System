@@ -16,8 +16,6 @@ class GoogleSignInButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    /// Renders the Google sign-in button. Shows an inline loading indicator
-    /// when `isLoading` is true; otherwise renders the Google logo and label.
     return SizedBox(
       width: double.infinity,
       height: AppSpacing.buttonHeight,

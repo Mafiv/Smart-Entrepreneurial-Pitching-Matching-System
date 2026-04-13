@@ -8,8 +8,6 @@ class ResendVerificationUseCase {
   ResendVerificationUseCase(this.repository);
 
   Future<Either<Failure, Unit>> call() {
-    // Requests the repository to resend the verification email for the
-    // currently authenticated user (if any).
     return repository.resendEmailVerification();
   }
 }

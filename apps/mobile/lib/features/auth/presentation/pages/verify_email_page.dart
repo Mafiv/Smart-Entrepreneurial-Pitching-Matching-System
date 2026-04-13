@@ -41,7 +41,6 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Shows instructions and controls for verifying the user's email address.
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (_isResending && !state.isLoading) {

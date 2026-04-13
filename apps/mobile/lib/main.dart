@@ -30,7 +30,5 @@ void main() async {
   // Initialize dependencies
   await initDependencies();
 
-  // System Trial — annotated initialization flow for backdated commit bookkeeping.
-
   runApp(const SepmsApp());
 }
