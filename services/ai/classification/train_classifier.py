@@ -115,6 +115,7 @@ def main(csv_path: str) -> None:
     # ── 3. Create labels ──────────────────────────────────────────────────────
     df["y"] = df.apply(create_label, axis=1)
 
+
     label_counts = df["y"].value_counts()
     print(f"\nLabel distribution:")
     print(f"  High Quality (1): {label_counts.get(1, 0)}")
@@ -144,6 +145,7 @@ def main(csv_path: str) -> None:
     #   from sklearn.ensemble import RandomForestClassifier
     #   RandomForestClassifier(n_estimators=100, class_weight='balanced', random_state=42)
 
+
     pipeline = Pipeline([
         ("tfidf", TfidfVectorizer(
             stop_words="english",
@@ -156,6 +158,7 @@ def main(csv_path: str) -> None:
             random_state=42,
         )),
     ])
+
 
     # ── 6. Fit ────────────────────────────────────────────────────────────────
     print("\nTraining pipeline...")

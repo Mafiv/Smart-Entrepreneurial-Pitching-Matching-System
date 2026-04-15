@@ -210,8 +210,8 @@ export default function InvestorMatchesPage() {
 						AI Match Queue
 					</h1>
 					<p className="mt-1 text-muted-foreground">
-						Pitches the AI matched to your investment profile. Accept to
-						connect, decline to refine future recommendations.
+						Pitches the AI matched to your investment profile. Accept and
+						decline to refine future recommendations.
 					</p>
 				</div>
 
