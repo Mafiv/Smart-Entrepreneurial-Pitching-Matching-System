@@ -112,7 +112,7 @@ def main(csv_path: str) -> None:
     df = df[df["One_Line_Pitch"].str.strip().str.len() > 0]
     print(f"Rows after dropping empty pitches: {len(df)} (dropped {before - len(df)})")
 
-    # ── 3. Create labels ──────────────────────────────────────────────────────
+    # ── 3. Create labels high and low quality 1/0 ──────────────────────────────────────────────────────
     df["y"] = df.apply(create_label, axis=1)
 
 
@@ -176,6 +176,7 @@ def main(csv_path: str) -> None:
     # ── 8. Save model ─────────────────────────────────────────────────────────
     joblib.dump(pipeline, MODEL_OUT)
     print(f"Model saved to: {MODEL_OUT}")
+
 
 
 if __name__ == "__main__":
