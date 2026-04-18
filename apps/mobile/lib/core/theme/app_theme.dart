@@ -200,7 +200,7 @@ class AppTheme {
           color: AppColors.destructive,
         ),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
         color: AppColors.card,
         shape: RoundedRectangleBorder(
@@ -289,7 +289,7 @@ class AppTheme {
           borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
         color: AppColors.cardDark,
         shape: RoundedRectangleBorder(
