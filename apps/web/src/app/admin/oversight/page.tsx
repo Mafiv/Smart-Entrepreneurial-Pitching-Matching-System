@@ -30,7 +30,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -776,8 +776,18 @@ export default function AdminOversight() {
 									) : (
 										paginatedUsers.map((u) => (
 											<TableRow key={u._id}>
-												<TableCell className="font-medium">
-													{u.fullName}
+												<TableCell>
+													<div className="flex items-center gap-3">
+														<Avatar className="h-8 w-8 border shrink-0">
+															{u.photoURL && (
+																<AvatarImage src={u.photoURL} alt={u.fullName} className="object-cover" />
+															)}
+															<AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
+																{(u.fullName || "U").split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)}
+															</AvatarFallback>
+														</Avatar>
+														<span className="font-medium">{u.fullName}</span>
+													</div>
 												</TableCell>
 												<TableCell className="text-muted-foreground text-sm">
 													{u.email}

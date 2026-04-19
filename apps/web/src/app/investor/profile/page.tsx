@@ -350,12 +350,12 @@ function InvestorProfilePageInner() {
 		<ProtectedRoute allowedRoles={["investor"]}>
 			<DashboardLayout navItems={INVESTOR_NAV} title="SEPMS">
 				{/* Header */}
-				<div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+				<div className="admin-greeting-card bg-card mb-8 p-6 sm:p-8 admin-content-fade">
 					<div>
-						<h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+						<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient">
 							Profile Settings
 						</h1>
-						<p className="mt-1 text-muted-foreground">
+						<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
 							Manage your personal information and verification documents
 						</p>
 					</div>

@@ -137,18 +137,20 @@ export default function SavedPitchesPage() {
 		<ProtectedRoute allowedRoles={["investor"]}>
 			<DashboardLayout navItems={INVESTOR_NAV} title="SEPMS">
 				{/* Page header */}
-				<div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-                            Saved Pitches
-                        </h1>
-                        <p className="mt-1 text-muted-foreground">
-                            Pitches you have bookmarked for later review
-                        </p>
-                    </div>
-                    <Button variant="outline" onClick={() => router.push("/investor/feed")}>
-                        Back to Feed
-                    </Button>
+				<div className="admin-greeting-card bg-card mb-8 p-6 sm:p-8 admin-content-fade">
+					<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+						<div>
+							<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient">
+								Saved Pitches
+							</h1>
+							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
+								Pitches you have bookmarked for later review
+							</p>
+						</div>
+						<Button variant="outline" onClick={() => router.push("/investor/feed")}>
+							Back to Feed
+						</Button>
+					</div>
 				</div>
 
 				<Separator className="mb-6" />
