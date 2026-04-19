@@ -478,11 +478,29 @@ function NewPitchPageInner() {
 					</div>
 				</header>
 
-				<main className="mx-auto max-w-4xl px-4 py-8">
-					{/* Progress Stepper */}
-					<div className="mb-8 relative admin-content-fade">
-						<div className="flex items-center justify-between relative z-10">
-							{STEPS.map((step, index) => {
+				<div className="h-1 w-full bg-muted/40">
+					<div
+						className="h-full bg-gradient-to-r from-primary to-emerald-400 transition-all duration-700 ease-out"
+						style={{ width: `${progress}%` }}
+					/>
+				</div>
+
+				<main className="mx-auto max-w-5xl px-4 py-8 grid md:grid-cols-[240px_1fr] gap-8 items-start">
+					{/* Desktop Sidebar Stepper */}
+					<div className="sticky top-24 hidden md:block admin-greeting-card bg-card p-4 rounded-2xl shadow-sm border border-border/40 admin-content-fade">
+						<div className="mb-4 px-2 flex items-center justify-between">
+							<h3 className="font-semibold text-xs uppercase tracking-wider text-muted-foreground">
+								Progress
+							</h3>
+							<span className="text-xs font-medium text-primary">
+								{Math.round(progress)}%
+							</span>
+						</div>
+						<div className="space-y-1 relative">
+							{/* Vertical connecting line */}
+							<div className="absolute left-[19px] top-6 bottom-6 w-px bg-border/50 -z-10" />
+
+							{STEPS.map((step) => {
 								const isActive = step.id === currentStep;
 								const isPast = step.id < currentStep;
 
@@ -490,581 +508,593 @@ function NewPitchPageInner() {
 									<button
 										key={step.id}
 										onClick={() => setCurrentStep(step.id)}
-										className={`group flex flex-col items-center gap-2 transition-all duration-300 w-16 sm:w-24 focus:outline-none`}
+										className={`w-full flex items-center gap-3 px-2 py-2 rounded-lg transition-all text-sm font-medium relative focus:outline-none ${
+											isActive
+												? "text-primary bg-primary/5"
+												: isPast
+													? "text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/10"
+													: "text-muted-foreground hover:bg-muted/50"
+										}`}
 									>
 										<div
-											className={`relative flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-2xl border-2 transition-all duration-500 shadow-sm
-											${
+											className={`flex items-center justify-center h-8 w-8 rounded-full border-2 bg-card transition-all ${
 												isActive
-													? "border-primary bg-primary/10 text-primary shadow-primary/20 scale-110 ring-4 ring-primary/5"
+													? "border-primary text-primary shadow-[0_0_10px_rgba(var(--primary),0.3)] ring-2 ring-primary/20 scale-110"
 													: isPast
-														? "border-emerald-500 bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"
-														: "border-muted-foreground/20 bg-muted/30 text-muted-foreground group-hover:border-muted-foreground/40"
+														? "border-emerald-500 text-emerald-600 dark:text-emerald-400"
+														: "border-muted-foreground/30 text-muted-foreground"
 											}`}
 										>
-											{/* Status indicator icon for past steps */}
 											{isPast ? (
-												<CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6" />
+												<CheckCircle2 className="h-4 w-4" />
 											) : (
-												<div className="transform transition-transform group-hover:scale-110">
+												<span className="h-4 w-4 [&>svg]:h-full [&>svg]:w-full relative z-10">
 													{step.icon}
-												</div>
-											)}
-
-											{/* Glow effect for active step */}
-											{isActive && (
-												<div className="absolute inset-0 rounded-2xl bg-primary/20 blur-md -z-10 animate-pulse" />
+												</span>
 											)}
 										</div>
-										<span
-											className={`text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-center transition-colors ${
-												isActive
-													? "text-primary"
-													: isPast
-														? "text-emerald-600 dark:text-emerald-400"
-														: "text-muted-foreground/70"
-											}`}
-										>
-											{step.title}
-										</span>
+										<span className="text-left">{step.title}</span>
 									</button>
 								);
 							})}
 						</div>
+					</div>
 
-						{/* Background progress track */}
-						<div className="absolute top-5 sm:top-6 left-0 w-full h-1 bg-muted/40 rounded-full -z-0 hidden sm:block">
-							<div
-								className="h-full bg-gradient-to-r from-primary to-emerald-400 rounded-full transition-all duration-700 ease-out"
-								style={{ width: `${progress}%` }}
-							/>
+					{/* Mobile Minimal Stepper */}
+					<div className="md:hidden mb-6 flex items-center justify-between bg-card p-3 rounded-xl border border-border/50 shadow-sm">
+						<div className="flex items-center gap-3">
+							<div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary/10 text-primary border border-primary/20">
+								{STEPS.find((s) => s.id === currentStep)?.icon}
+							</div>
+							<div>
+								<p className="text-xs font-semibold text-primary uppercase tracking-wider">
+									Step {currentStep} of {STEPS.length}
+								</p>
+								<p className="text-sm font-medium">
+									{STEPS.find((s) => s.id === currentStep)?.title}
+								</p>
+							</div>
+						</div>
+						<div className="flex gap-1">
+							{STEPS.map((step) => (
+								<div
+									key={step.id}
+									className={`h-1.5 w-3 rounded-full transition-all ${step.id === currentStep ? "bg-primary w-6" : step.id < currentStep ? "bg-emerald-400" : "bg-muted"}`}
+								/>
+							))}
 						</div>
 					</div>
 
-					{/* Step 1: Overview / Metadata */}
-					{currentStep === 1 && (
-						<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden border-0 shadow-lg">
-							<CardHeader className="bg-primary/5 border-b border-border/40 pb-6">
-								<CardTitle className="flex items-center gap-2">
-									<ClipboardList className="h-5 w-5" /> Pitch Overview
-								</CardTitle>
-								<CardDescription>
-									Start with the basics of your business pitch
-								</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-6">
-								<div className="space-y-2">
-									<Label htmlFor="title">Pitch Title *</Label>
-									<Input
-										id="title"
-										placeholder="e.g., AI-Powered Supply Chain for East Africa"
-										{...metadataForm.register("title")}
-									/>
-									{metadataForm.formState.errors.title && (
-										<p className="text-sm text-destructive">
-											{metadataForm.formState.errors.title.message}
-										</p>
-									)}
-								</div>
-
-								<div className="grid gap-6 sm:grid-cols-2">
+					{/* Form Content Area */}
+					<div className="min-w-0">
+						{/* Step 1: Overview / Metadata */}
+						{currentStep === 1 && (
+							<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden border-0 shadow-lg">
+								<CardHeader className="bg-primary/5 border-b border-border/40 pb-6">
+									<CardTitle className="flex items-center gap-2">
+										<ClipboardList className="h-5 w-5" /> Pitch Overview
+									</CardTitle>
+									<CardDescription>
+										Start with the basics of your business pitch
+									</CardDescription>
+								</CardHeader>
+								<CardContent className="space-y-6">
 									<div className="space-y-2">
-										<Label htmlFor="sector">Industry Sector *</Label>
-										<Controller
-											name="sector"
-											control={metadataForm.control}
-											render={({ field }) => (
-												<Select
-													value={field.value}
-													onValueChange={field.onChange}
-												>
-													<SelectTrigger className="w-full">
-														<SelectValue placeholder="Select a sector" />
-													</SelectTrigger>
-													<SelectContent>
-														{SECTORS.map((s) => (
-															<SelectItem key={s.value} value={s.value}>
-																{s.label}
-															</SelectItem>
-														))}
-													</SelectContent>
-												</Select>
-											)}
+										<Label htmlFor="title">Pitch Title *</Label>
+										<Input
+											id="title"
+											placeholder="e.g., AI-Powered Supply Chain for East Africa"
+											{...metadataForm.register("title")}
 										/>
+										{metadataForm.formState.errors.title && (
+											<p className="text-sm text-destructive">
+												{metadataForm.formState.errors.title.message}
+											</p>
+										)}
 									</div>
 
-									<div className="space-y-2">
-										<Label htmlFor="stage">Startup Stage *</Label>
-										<Controller
-											name="stage"
-											control={metadataForm.control}
-											render={({ field }) => (
-												<Select
-													value={field.value}
-													onValueChange={field.onChange}
-												>
-													<SelectTrigger className="w-full">
-														<SelectValue placeholder="Select a stage" />
-													</SelectTrigger>
-													<SelectContent>
-														{STAGES.map((s) => (
-															<SelectItem key={s.value} value={s.value}>
-																{s.label}
-															</SelectItem>
-														))}
-													</SelectContent>
-												</Select>
-											)}
-										/>
-									</div>
-								</div>
-
-								<div className="space-y-2">
-									<Label htmlFor="targetAmount">
-										Target Funding Amount (ETB) *
-									</Label>
-									<Input
-										id="targetAmount"
-										type="number"
-										placeholder="e.g., 500000"
-										{...metadataForm.register("targetAmount", {
-											valueAsNumber: true,
-										})}
-									/>
-									{metadataForm.formState.errors.targetAmount && (
-										<p className="text-sm text-destructive">
-											{metadataForm.formState.errors.targetAmount.message}
-										</p>
-									)}
-								</div>
-
-								<div className="space-y-2">
-									<Label htmlFor="summary">Executive Summary *</Label>
-									<Textarea
-										id="summary"
-										placeholder="A concise overview of your business and what makes it compelling..."
-										rows={5}
-										{...metadataForm.register("summary")}
-									/>
-									{metadataForm.formState.errors.summary && (
-										<p className="text-sm text-destructive">
-											{metadataForm.formState.errors.summary.message}
-										</p>
-									)}
-								</div>
-							</CardContent>
-						</Card>
-					)}
-
-					{/* Step 2: Problem */}
-					{currentStep === 2 && (
-						<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden border-0 shadow-lg">
-							<CardHeader className="bg-primary/5 border-b border-border/40 pb-6">
-								<CardTitle className="flex items-center gap-2">
-									<Search className="h-5 w-5" /> The Problem
-								</CardTitle>
-								<CardDescription>
-									Describe the problem your business solves
-								</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-6">
-								<div className="space-y-2">
-									<Label htmlFor="statement">Problem Statement *</Label>
-									<Textarea
-										id="statement"
-										placeholder="What specific problem exists in the market today?"
-										rows={5}
-										{...problemForm.register("statement")}
-									/>
-									{problemForm.formState.errors.statement && (
-										<p className="text-sm text-destructive">
-											{problemForm.formState.errors.statement.message}
-										</p>
-									)}
-								</div>
-
-								<div className="space-y-2">
-									<Label htmlFor="targetMarket">Target Market *</Label>
-									<Textarea
-										id="targetMarket"
-										placeholder="Who are your target customers? Describe demographics, segments..."
-										rows={3}
-										{...problemForm.register("targetMarket")}
-									/>
-									{problemForm.formState.errors.targetMarket && (
-										<p className="text-sm text-destructive">
-											{problemForm.formState.errors.targetMarket.message}
-										</p>
-									)}
-								</div>
-
-								<div className="space-y-2">
-									<Label htmlFor="marketSize">Market Size *</Label>
-									<Textarea
-										id="marketSize"
-										placeholder="TAM / SAM / SOM — estimated market size in dollars..."
-										rows={3}
-										{...problemForm.register("marketSize")}
-									/>
-									{problemForm.formState.errors.marketSize && (
-										<p className="text-sm text-destructive">
-											{problemForm.formState.errors.marketSize.message}
-										</p>
-									)}
-								</div>
-							</CardContent>
-						</Card>
-					)}
-
-					{/* Step 3: Solution */}
-					{currentStep === 3 && (
-						<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden border-0 shadow-lg">
-							<CardHeader className="bg-primary/5 border-b border-border/40 pb-6">
-								<CardTitle className="flex items-center gap-2">
-									<Lightbulb className="h-5 w-5" /> Your Solution
-								</CardTitle>
-								<CardDescription>
-									How does your product or service solve the problem?
-								</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-6">
-								<div className="space-y-2">
-									<Label htmlFor="description">Solution Description *</Label>
-									<Textarea
-										id="description"
-										placeholder="Describe your product/service and how it works..."
-										rows={5}
-										{...solutionForm.register("description")}
-									/>
-									{solutionForm.formState.errors.description && (
-										<p className="text-sm text-destructive">
-											{solutionForm.formState.errors.description.message}
-										</p>
-									)}
-								</div>
-
-								<div className="space-y-2">
-									<Label htmlFor="uniqueValue">
-										Unique Value Proposition *
-									</Label>
-									<Textarea
-										id="uniqueValue"
-										placeholder="What makes your solution uniquely better than alternatives?"
-										rows={3}
-										{...solutionForm.register("uniqueValue")}
-									/>
-									{solutionForm.formState.errors.uniqueValue && (
-										<p className="text-sm text-destructive">
-											{solutionForm.formState.errors.uniqueValue.message}
-										</p>
-									)}
-								</div>
-
-								<div className="space-y-2">
-									<Label htmlFor="competitiveAdvantage">
-										Competitive Advantage *
-									</Label>
-									<Textarea
-										id="competitiveAdvantage"
-										placeholder="What moats or barriers to entry do you have?"
-										rows={3}
-										{...solutionForm.register("competitiveAdvantage")}
-									/>
-									{solutionForm.formState.errors.competitiveAdvantage && (
-										<p className="text-sm text-destructive">
-											{
-												solutionForm.formState.errors.competitiveAdvantage
-													.message
-											}
-										</p>
-									)}
-								</div>
-							</CardContent>
-						</Card>
-					)}
-
-					{/* Step 4: Business Model */}
-					{currentStep === 4 && (
-						<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden border-0 shadow-lg">
-							<CardHeader className="bg-primary/5 border-b border-border/40 pb-6">
-								<CardTitle className="flex items-center gap-2">
-									<BarChart3 className="h-5 w-5" /> Business Model
-								</CardTitle>
-								<CardDescription>
-									How does your business make money?
-								</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-6">
-								<div className="space-y-2">
-									<Label htmlFor="revenueStreams">Revenue Streams *</Label>
-									<Textarea
-										id="revenueStreams"
-										placeholder="How does your business generate revenue? (SaaS, marketplace, licensing...)"
-										rows={4}
-										{...businessForm.register("revenueStreams")}
-									/>
-									{businessForm.formState.errors.revenueStreams && (
-										<p className="text-sm text-destructive">
-											{businessForm.formState.errors.revenueStreams.message}
-										</p>
-									)}
-								</div>
-
-								<div className="space-y-2">
-									<Label htmlFor="pricingStrategy">Pricing Strategy *</Label>
-									<Textarea
-										id="pricingStrategy"
-										placeholder="How do you price your product/service? Include tiers if applicable..."
-										rows={3}
-										{...businessForm.register("pricingStrategy")}
-									/>
-									{businessForm.formState.errors.pricingStrategy && (
-										<p className="text-sm text-destructive">
-											{businessForm.formState.errors.pricingStrategy.message}
-										</p>
-									)}
-								</div>
-
-								<div className="space-y-2">
-									<Label htmlFor="customerAcquisition">
-										Customer Acquisition Strategy *
-									</Label>
-									<Textarea
-										id="customerAcquisition"
-										placeholder="How do you plan to acquire and retain customers?"
-										rows={3}
-										{...businessForm.register("customerAcquisition")}
-									/>
-									{businessForm.formState.errors.customerAcquisition && (
-										<p className="text-sm text-destructive">
-											{
-												businessForm.formState.errors.customerAcquisition
-													.message
-											}
-										</p>
-									)}
-								</div>
-							</CardContent>
-						</Card>
-					)}
-
-					{/* Step 5: Financials */}
-					{currentStep === 5 && (
-						<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden border-0 shadow-lg">
-							<CardHeader className="bg-primary/5 border-b border-border/40 pb-6">
-								<CardTitle className="flex items-center gap-2">
-									<DollarSign className="h-5 w-5" /> Financial Details
-								</CardTitle>
-								<CardDescription>
-									Share your financial metrics and projections
-								</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-6">
-								<div className="space-y-2">
-									<Label htmlFor="currentRevenue">Current Revenue</Label>
-									<Input
-										id="currentRevenue"
-										placeholder="e.g., $50,000 MRR or Pre-revenue"
-										{...financialsForm.register("currentRevenue")}
-									/>
-								</div>
-
-								<div className="space-y-2">
-									<Label htmlFor="projectedRevenue">
-										Projected Revenue (12 months) *
-									</Label>
-									<Input
-										id="projectedRevenue"
-										placeholder="e.g., $500,000 ARR by Q4 2027"
-										{...financialsForm.register("projectedRevenue")}
-									/>
-									{financialsForm.formState.errors.projectedRevenue && (
-										<p className="text-sm text-destructive">
-											{financialsForm.formState.errors.projectedRevenue.message}
-										</p>
-									)}
-								</div>
-
-								<div className="space-y-2">
-									<Label htmlFor="burnRate">Monthly Burn Rate</Label>
-									<Input
-										id="burnRate"
-										placeholder="e.g., $15,000/month"
-										{...financialsForm.register("burnRate")}
-									/>
-								</div>
-
-								<div className="space-y-2">
-									<Label htmlFor="runway">Remaining Runway</Label>
-									<Input
-										id="runway"
-										placeholder="e.g., 8 months at current burn rate"
-										{...financialsForm.register("runway")}
-									/>
-								</div>
-							</CardContent>
-						</Card>
-					)}
-
-					{/* Step 6: Documents */}
-					{currentStep === 6 && (
-						<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden border-0 shadow-lg">
-							<CardHeader className="bg-primary/5 border-b border-border/40 pb-6">
-								<CardTitle className="flex items-center gap-2">
-									<FileUp className="h-5 w-5" /> Supporting Documents
-								</CardTitle>
-								<CardDescription>
-									Upload pitch decks, financial models, legal documents, or
-									other supporting materials. Each file is validated
-									automatically.
-								</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-6">
-								{!submissionId && (
-									<div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
-										Please save your pitch draft first (go back and fill in at
-										least Step 1) before uploading documents.
-									</div>
-								)}
-
-								{submissionId && (
-									<>
-										<div className="space-y-4">
-											<div className="space-y-2">
-												<Label>1. Select Document Type</Label>
-												<Select
-													value={selectedDocType}
-													onValueChange={setSelectedDocType}
-												>
-													<SelectTrigger className="w-full">
-														<SelectValue />
-													</SelectTrigger>
-													<SelectContent>
-														{DOC_CATEGORIES.map((dt) => (
-															<SelectItem key={dt.value} value={dt.value}>
-																{dt.label} {dt.required && "*"}
-															</SelectItem>
-														))}
-													</SelectContent>
-												</Select>
-											</div>
-
-											<div className="space-y-2">
-												<Label>2. Upload File(s)</Label>
-												<label
-													htmlFor="file-upload"
-													className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-muted/20 hover:bg-muted/50 border-muted-foreground/30 hover:border-primary/50 transition-all"
-												>
-													<div className="flex flex-col items-center justify-center pt-5 pb-6">
-														{uploading ? (
-															<Loader2 className="w-8 h-8 mb-3 text-primary animate-spin" />
-														) : (
-															<FileUp className="w-8 h-8 mb-3 text-muted-foreground" />
-														)}
-														<p className="mb-2 text-sm text-foreground font-medium">
-															{uploading
-																? "Uploading carefully..."
-																: "Click to browse and upload"}
-														</p>
-														<p className="text-xs text-muted-foreground">
-															SVG, PNG, JPG, GIF up to 25MB
-														</p>
-													</div>
-													<Input
-														id="file-upload"
-														type="file"
-														multiple
-														className="hidden"
-														accept=".pdf,.pptx,.ppt,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp"
-														onChange={handleFileUpload}
-														disabled={uploading}
-													/>
-												</label>
-											</div>
+									<div className="grid gap-6 sm:grid-cols-2">
+										<div className="space-y-2">
+											<Label htmlFor="sector">Industry Sector *</Label>
+											<Controller
+												name="sector"
+												control={metadataForm.control}
+												render={({ field }) => (
+													<Select
+														value={field.value}
+														onValueChange={field.onChange}
+													>
+														<SelectTrigger className="w-full">
+															<SelectValue placeholder="Select a sector" />
+														</SelectTrigger>
+														<SelectContent>
+															{SECTORS.map((s) => (
+																<SelectItem key={s.value} value={s.value}>
+																	{s.label}
+																</SelectItem>
+															))}
+														</SelectContent>
+													</Select>
+												)}
+											/>
 										</div>
 
-										{/* Uploaded documents list */}
-										{uploadedDocs.length > 0 && (
-											<div className="space-y-3">
-												<h4 className="font-medium text-sm">
-													Uploaded Documents ({uploadedDocs.length})
-												</h4>
-												{uploadedDocs.map((doc) => (
-													<div
-														key={doc._id}
-														className="flex items-center justify-between rounded-lg border bg-card p-3"
+										<div className="space-y-2">
+											<Label htmlFor="stage">Startup Stage *</Label>
+											<Controller
+												name="stage"
+												control={metadataForm.control}
+												render={({ field }) => (
+													<Select
+														value={field.value}
+														onValueChange={field.onChange}
 													>
-														<div className="flex items-center gap-3 min-w-0">
-															<FileUp className="h-4 w-4 shrink-0 text-muted-foreground" />
-															<div className="min-w-0">
-																<p className="text-sm font-medium truncate">
-																	{doc.filename}
-																</p>
-																<p className="text-xs text-muted-foreground">
-																	{DOC_CATEGORIES.find(
-																		(dt) => dt.value === doc.type,
-																	)?.label || doc.type}
-																</p>
-																{doc.processingError && (
-																	<p className="text-xs text-destructive mt-1">
-																		{doc.processingError}
+														<SelectTrigger className="w-full">
+															<SelectValue placeholder="Select a stage" />
+														</SelectTrigger>
+														<SelectContent>
+															{STAGES.map((s) => (
+																<SelectItem key={s.value} value={s.value}>
+																	{s.label}
+																</SelectItem>
+															))}
+														</SelectContent>
+													</Select>
+												)}
+											/>
+										</div>
+									</div>
+
+									<div className="space-y-2">
+										<Label htmlFor="targetAmount">
+											Target Funding Amount (ETB) *
+										</Label>
+										<Input
+											id="targetAmount"
+											type="number"
+											placeholder="e.g., 500000"
+											{...metadataForm.register("targetAmount", {
+												valueAsNumber: true,
+											})}
+										/>
+										{metadataForm.formState.errors.targetAmount && (
+											<p className="text-sm text-destructive">
+												{metadataForm.formState.errors.targetAmount.message}
+											</p>
+										)}
+									</div>
+
+									<div className="space-y-2">
+										<Label htmlFor="summary">Executive Summary *</Label>
+										<Textarea
+											id="summary"
+											placeholder="A concise overview of your business and what makes it compelling..."
+											rows={5}
+											{...metadataForm.register("summary")}
+										/>
+										{metadataForm.formState.errors.summary && (
+											<p className="text-sm text-destructive">
+												{metadataForm.formState.errors.summary.message}
+											</p>
+										)}
+									</div>
+								</CardContent>
+							</Card>
+						)}
+
+						{/* Step 2: Problem */}
+						{currentStep === 2 && (
+							<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden border-0 shadow-lg">
+								<CardHeader className="bg-primary/5 border-b border-border/40 pb-6">
+									<CardTitle className="flex items-center gap-2">
+										<Search className="h-5 w-5" /> The Problem
+									</CardTitle>
+									<CardDescription>
+										Describe the problem your business solves
+									</CardDescription>
+								</CardHeader>
+								<CardContent className="space-y-6">
+									<div className="space-y-2">
+										<Label htmlFor="statement">Problem Statement *</Label>
+										<Textarea
+											id="statement"
+											placeholder="What specific problem exists in the market today?"
+											rows={5}
+											{...problemForm.register("statement")}
+										/>
+										{problemForm.formState.errors.statement && (
+											<p className="text-sm text-destructive">
+												{problemForm.formState.errors.statement.message}
+											</p>
+										)}
+									</div>
+
+									<div className="space-y-2">
+										<Label htmlFor="targetMarket">Target Market *</Label>
+										<Textarea
+											id="targetMarket"
+											placeholder="Who are your target customers? Describe demographics, segments..."
+											rows={3}
+											{...problemForm.register("targetMarket")}
+										/>
+										{problemForm.formState.errors.targetMarket && (
+											<p className="text-sm text-destructive">
+												{problemForm.formState.errors.targetMarket.message}
+											</p>
+										)}
+									</div>
+
+									<div className="space-y-2">
+										<Label htmlFor="marketSize">Market Size *</Label>
+										<Textarea
+											id="marketSize"
+											placeholder="TAM / SAM / SOM — estimated market size in dollars..."
+											rows={3}
+											{...problemForm.register("marketSize")}
+										/>
+										{problemForm.formState.errors.marketSize && (
+											<p className="text-sm text-destructive">
+												{problemForm.formState.errors.marketSize.message}
+											</p>
+										)}
+									</div>
+								</CardContent>
+							</Card>
+						)}
+
+						{/* Step 3: Solution */}
+						{currentStep === 3 && (
+							<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden border-0 shadow-lg">
+								<CardHeader className="bg-primary/5 border-b border-border/40 pb-6">
+									<CardTitle className="flex items-center gap-2">
+										<Lightbulb className="h-5 w-5" /> Your Solution
+									</CardTitle>
+									<CardDescription>
+										How does your product or service solve the problem?
+									</CardDescription>
+								</CardHeader>
+								<CardContent className="space-y-6">
+									<div className="space-y-2">
+										<Label htmlFor="description">Solution Description *</Label>
+										<Textarea
+											id="description"
+											placeholder="Describe your product/service and how it works..."
+											rows={5}
+											{...solutionForm.register("description")}
+										/>
+										{solutionForm.formState.errors.description && (
+											<p className="text-sm text-destructive">
+												{solutionForm.formState.errors.description.message}
+											</p>
+										)}
+									</div>
+
+									<div className="space-y-2">
+										<Label htmlFor="uniqueValue">
+											Unique Value Proposition *
+										</Label>
+										<Textarea
+											id="uniqueValue"
+											placeholder="What makes your solution uniquely better than alternatives?"
+											rows={3}
+											{...solutionForm.register("uniqueValue")}
+										/>
+										{solutionForm.formState.errors.uniqueValue && (
+											<p className="text-sm text-destructive">
+												{solutionForm.formState.errors.uniqueValue.message}
+											</p>
+										)}
+									</div>
+
+									<div className="space-y-2">
+										<Label htmlFor="competitiveAdvantage">
+											Competitive Advantage *
+										</Label>
+										<Textarea
+											id="competitiveAdvantage"
+											placeholder="What moats or barriers to entry do you have?"
+											rows={3}
+											{...solutionForm.register("competitiveAdvantage")}
+										/>
+										{solutionForm.formState.errors.competitiveAdvantage && (
+											<p className="text-sm text-destructive">
+												{
+													solutionForm.formState.errors.competitiveAdvantage
+														.message
+												}
+											</p>
+										)}
+									</div>
+								</CardContent>
+							</Card>
+						)}
+
+						{/* Step 4: Business Model */}
+						{currentStep === 4 && (
+							<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden border-0 shadow-lg">
+								<CardHeader className="bg-primary/5 border-b border-border/40 pb-6">
+									<CardTitle className="flex items-center gap-2">
+										<BarChart3 className="h-5 w-5" /> Business Model
+									</CardTitle>
+									<CardDescription>
+										How does your business make money?
+									</CardDescription>
+								</CardHeader>
+								<CardContent className="space-y-6">
+									<div className="space-y-2">
+										<Label htmlFor="revenueStreams">Revenue Streams *</Label>
+										<Textarea
+											id="revenueStreams"
+											placeholder="How does your business generate revenue? (SaaS, marketplace, licensing...)"
+											rows={4}
+											{...businessForm.register("revenueStreams")}
+										/>
+										{businessForm.formState.errors.revenueStreams && (
+											<p className="text-sm text-destructive">
+												{businessForm.formState.errors.revenueStreams.message}
+											</p>
+										)}
+									</div>
+
+									<div className="space-y-2">
+										<Label htmlFor="pricingStrategy">Pricing Strategy *</Label>
+										<Textarea
+											id="pricingStrategy"
+											placeholder="How do you price your product/service? Include tiers if applicable..."
+											rows={3}
+											{...businessForm.register("pricingStrategy")}
+										/>
+										{businessForm.formState.errors.pricingStrategy && (
+											<p className="text-sm text-destructive">
+												{businessForm.formState.errors.pricingStrategy.message}
+											</p>
+										)}
+									</div>
+
+									<div className="space-y-2">
+										<Label htmlFor="customerAcquisition">
+											Customer Acquisition Strategy *
+										</Label>
+										<Textarea
+											id="customerAcquisition"
+											placeholder="How do you plan to acquire and retain customers?"
+											rows={3}
+											{...businessForm.register("customerAcquisition")}
+										/>
+										{businessForm.formState.errors.customerAcquisition && (
+											<p className="text-sm text-destructive">
+												{
+													businessForm.formState.errors.customerAcquisition
+														.message
+												}
+											</p>
+										)}
+									</div>
+								</CardContent>
+							</Card>
+						)}
+
+						{/* Step 5: Financials */}
+						{currentStep === 5 && (
+							<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden border-0 shadow-lg">
+								<CardHeader className="bg-primary/5 border-b border-border/40 pb-6">
+									<CardTitle className="flex items-center gap-2">
+										<DollarSign className="h-5 w-5" /> Financial Details
+									</CardTitle>
+									<CardDescription>
+										Share your financial metrics and projections
+									</CardDescription>
+								</CardHeader>
+								<CardContent className="space-y-6">
+									<div className="space-y-2">
+										<Label htmlFor="currentRevenue">Current Revenue</Label>
+										<Input
+											id="currentRevenue"
+											placeholder="e.g., $50,000 MRR or Pre-revenue"
+											{...financialsForm.register("currentRevenue")}
+										/>
+									</div>
+
+									<div className="space-y-2">
+										<Label htmlFor="projectedRevenue">
+											Projected Revenue (12 months) *
+										</Label>
+										<Input
+											id="projectedRevenue"
+											placeholder="e.g., $500,000 ARR by Q4 2027"
+											{...financialsForm.register("projectedRevenue")}
+										/>
+										{financialsForm.formState.errors.projectedRevenue && (
+											<p className="text-sm text-destructive">
+												{
+													financialsForm.formState.errors.projectedRevenue
+														.message
+												}
+											</p>
+										)}
+									</div>
+
+									<div className="space-y-2">
+										<Label htmlFor="burnRate">Monthly Burn Rate</Label>
+										<Input
+											id="burnRate"
+											placeholder="e.g., $15,000/month"
+											{...financialsForm.register("burnRate")}
+										/>
+									</div>
+
+									<div className="space-y-2">
+										<Label htmlFor="runway">Remaining Runway</Label>
+										<Input
+											id="runway"
+											placeholder="e.g., 8 months at current burn rate"
+											{...financialsForm.register("runway")}
+										/>
+									</div>
+								</CardContent>
+							</Card>
+						)}
+
+						{/* Step 6: Documents */}
+						{currentStep === 6 && (
+							<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden border-0 shadow-lg">
+								<CardHeader className="bg-primary/5 border-b border-border/40 pb-6">
+									<CardTitle className="flex items-center gap-2">
+										<FileUp className="h-5 w-5" /> Supporting Documents
+									</CardTitle>
+									<CardDescription>
+										Upload pitch decks, financial models, legal documents, or
+										other supporting materials. Each file is validated
+										automatically.
+									</CardDescription>
+								</CardHeader>
+								<CardContent className="space-y-6">
+									{!submissionId && (
+										<div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+											Please save your pitch draft first (go back and fill in at
+											least Step 1) before uploading documents.
+										</div>
+									)}
+
+									{submissionId && (
+										<>
+											<div className="space-y-4">
+												<div className="space-y-2">
+													<Label>1. Select Document Type</Label>
+													<Select
+														value={selectedDocType}
+														onValueChange={setSelectedDocType}
+													>
+														<SelectTrigger className="w-full">
+															<SelectValue />
+														</SelectTrigger>
+														<SelectContent>
+															{DOC_CATEGORIES.map((dt) => (
+																<SelectItem key={dt.value} value={dt.value}>
+																	{dt.label} {dt.required && "*"}
+																</SelectItem>
+															))}
+														</SelectContent>
+													</Select>
+												</div>
+
+												<div className="space-y-2">
+													<Label>2. Upload File(s)</Label>
+													<label
+														htmlFor="file-upload"
+														className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-muted/20 hover:bg-muted/50 border-muted-foreground/30 hover:border-primary/50 transition-all"
+													>
+														<div className="flex flex-col items-center justify-center pt-5 pb-6">
+															{uploading ? (
+																<Loader2 className="w-8 h-8 mb-3 text-primary animate-spin" />
+															) : (
+																<FileUp className="w-8 h-8 mb-3 text-muted-foreground" />
+															)}
+															<p className="mb-2 text-sm text-foreground font-medium">
+																{uploading
+																	? "Uploading carefully..."
+																	: "Click to browse and upload"}
+															</p>
+															<p className="text-xs text-muted-foreground">
+																SVG, PNG, JPG, GIF up to 25MB
+															</p>
+														</div>
+														<Input
+															id="file-upload"
+															type="file"
+															multiple
+															className="hidden"
+															accept=".pdf,.pptx,.ppt,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp"
+															onChange={handleFileUpload}
+															disabled={uploading}
+														/>
+													</label>
+												</div>
+											</div>
+
+											{/* Uploaded documents list */}
+											{uploadedDocs.length > 0 && (
+												<div className="space-y-3">
+													<h4 className="font-medium text-sm">
+														Uploaded Documents ({uploadedDocs.length})
+													</h4>
+													{uploadedDocs.map((doc) => (
+														<div
+															key={doc._id}
+															className="flex items-center justify-between rounded-lg border bg-card p-3"
+														>
+															<div className="flex items-center gap-3 min-w-0">
+																<FileUp className="h-4 w-4 shrink-0 text-muted-foreground" />
+																<div className="min-w-0">
+																	<p className="text-sm font-medium truncate">
+																		{doc.filename}
 																	</p>
-																)}
+																	<p className="text-xs text-muted-foreground">
+																		{DOC_CATEGORIES.find(
+																			(dt) => dt.value === doc.type,
+																		)?.label || doc.type}
+																	</p>
+																	{doc.processingError && (
+																		<p className="text-xs text-destructive mt-1">
+																			{doc.processingError}
+																		</p>
+																	)}
+																</div>
+															</div>
+															<div className="flex items-center gap-2 shrink-0">
+																{getDocStatusBadge(doc.status)}
+																<Button
+																	variant="ghost"
+																	size="icon"
+																	className="h-8 w-8 text-muted-foreground hover:text-destructive"
+																	onClick={() => handleDeleteDoc(doc._id)}
+																>
+																	<Trash2 className="h-4 w-4" />
+																</Button>
 															</div>
 														</div>
-														<div className="flex items-center gap-2 shrink-0">
-															{getDocStatusBadge(doc.status)}
-															<Button
-																variant="ghost"
-																size="icon"
-																className="h-8 w-8 text-muted-foreground hover:text-destructive"
-																onClick={() => handleDeleteDoc(doc._id)}
-															>
-																<Trash2 className="h-4 w-4" />
-															</Button>
-														</div>
-													</div>
-												))}
-											</div>
-										)}
+													))}
+												</div>
+											)}
 
-										{uploadedDocs.length === 0 && (
-											<div className="rounded-lg border-2 border-dashed border-border p-8 text-center">
-												<FileUp className="mx-auto h-10 w-10 text-muted-foreground/50 mb-3" />
-												<p className="text-sm text-muted-foreground">
-													No documents uploaded yet. Upload your pitch deck,
-													financials, or legal docs to strengthen your
-													submission.
-												</p>
-											</div>
-										)}
-									</>
-								)}
-							</CardContent>
-						</Card>
-					)}
+											{uploadedDocs.length === 0 && (
+												<div className="rounded-lg border-2 border-dashed border-border p-8 text-center">
+													<FileUp className="mx-auto h-10 w-10 text-muted-foreground/50 mb-3" />
+													<p className="text-sm text-muted-foreground">
+														No documents uploaded yet. Upload your pitch deck,
+														financials, or legal docs to strengthen your
+														submission.
+													</p>
+												</div>
+											)}
+										</>
+									)}
+								</CardContent>
+							</Card>
+						)}
 
-					{/* Navigation Buttons */}
-					<div className="mt-8 flex items-center justify-between sticky bottom-0 z-20 bg-background/80 backdrop-blur-md p-4 sm:p-6 mx-[-16px] sm:mx-0 border-t border-border/40 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] sm:rounded-b-2xl">
-						<Button
-							variant="outline"
-							onClick={goBack}
-							disabled={currentStep === 1}
-							className="shadow-sm hover:shadow-md transition-all"
-						>
-							← Previous
-						</Button>
+						{/* Navigation Buttons */}
+						<div className="mt-8 flex items-center justify-between sticky bottom-0 z-20 bg-background/80 backdrop-blur-md p-4 sm:p-6 mx-[-16px] sm:mx-0 border-t border-border/40 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] sm:rounded-b-2xl">
+							<Button
+								variant="outline"
+								onClick={goBack}
+								disabled={currentStep === 1}
+								className="shadow-sm hover:shadow-md transition-all"
+							>
+								← Previous
+							</Button>
 
-						<div className="flex items-center gap-2 text-sm font-medium text-muted-foreground/80 bg-muted/30 px-3 py-1.5 rounded-full">
-							Step {currentStep} of {STEPS.length}
+							<div className="flex items-center gap-2 text-sm font-medium text-muted-foreground/80 bg-muted/30 px-3 py-1.5 rounded-full">
+								Step {currentStep} of {STEPS.length}
+							</div>
+
+							<Button
+								onClick={goNext}
+								className="shadow-md hover:shadow-lg transition-all"
+							>
+								{currentStep === STEPS.length ? "Review Pitch →" : "Next →"}
+							</Button>
 						</div>
-
-						<Button
-							onClick={goNext}
-							className="shadow-md hover:shadow-lg transition-all"
-						>
-							{currentStep === STEPS.length ? "Review Pitch →" : "Next →"}
-						</Button>
 					</div>
 				</main>
 			</div>
