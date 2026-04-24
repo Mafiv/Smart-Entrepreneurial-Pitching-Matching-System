@@ -12,7 +12,14 @@ void main() async {
 
   // Load environment variables from .env (if present). This allows setting
   // API_BASE_URL for local development without rebuilding with --dart-define.
-  await dotenv.load(fileName: '.env');
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (e) {
+    // File may not be present on the target (not packaged as an asset).
+    // This is expected when running on a device if .env wasn't bundled.
+    // Fall back to --dart-define or debug defaults in ApiConfig.
+    debugPrint('No .env file loaded: $e');
+  }
 
   // Set preferred orientations
   await SystemChrome.setPreferredOrientations([
@@ -59,7 +66,7 @@ void main() async {
   } else {
     runApp(
       DevicePreview(
-        enabled: true,
+        enabled: false,
         builder: (context) => const _FirebaseMissingStubApp(),
       ),
     );

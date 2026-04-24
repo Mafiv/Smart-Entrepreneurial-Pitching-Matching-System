@@ -38,7 +38,7 @@ dependencies:
 
   # File handling
   image_picker: ^1.0.5
-  file_picker: ^6.1.1
+  file_picker: ^11.0.2
 
   # Localization
   flutter_localizations:

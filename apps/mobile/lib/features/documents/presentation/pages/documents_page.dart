@@ -24,7 +24,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
   }
 
   Future<void> _pickAndUpload() async {
-    final result = await FilePicker.platform.pickFiles(withData: false);
+    final result = await FilePicker.pickFiles(withData: false);
     final path = result?.files.single.path;
     if (path == null) return;
 
