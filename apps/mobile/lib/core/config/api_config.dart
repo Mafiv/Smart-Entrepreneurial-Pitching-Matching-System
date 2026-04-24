@@ -1,27 +1,36 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+// Use dotenv if available at runtime to override API base URL for development.
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiConfig {
   ApiConfig._();
 
-  static const String _configuredBaseUrl =
-      String.fromEnvironment('API_BASE_URL', defaultValue: '');
-
   static String get baseUrl {
     /// Returns the effective API base URL.
-    /// Uses --dart-define value when provided, otherwise falls back
-    /// to sane local defaults in debug mode (emulator vs device).
-    if (_configuredBaseUrl.isNotEmpty) {
-      return _configuredBaseUrl;
+    /// Preference order:
+    /// 1. .env via flutter_dotenv (dotenv.env['API_BASE_URL']) if set
+    /// 2. --dart-define via String.fromEnvironment('API_BASE_URL')
+    /// 3. sensible debug defaults (10.0.2.2 or localhost)
+
+    final envDot = dotenv.env['API_BASE_URL'];
+    if (envDot != null && envDot.isNotEmpty) {
+      return envDot;
+    }
+
+    const configuredBaseUrl =
+        String.fromEnvironment('API_BASE_URL', defaultValue: '');
+    if (configuredBaseUrl.isNotEmpty) {
+      return configuredBaseUrl;
     }
     if (kDebugMode) {
       if (Platform.isAndroid) {
-        return 'http://10.0.2.2:5000/api';
+        return 'https://sepms-backend.vercel.app/api';
       } else if (Platform.isIOS) {
-        return 'http://localhost:5000/api';
+        return 'https://sepms-backend.vercel.app/api';
       }
-      return 'http://localhost:5000/api';
+      return 'https://sepms-backend.vercel.app/api';
     }
     throw StateError(
       'API_BASE_URL must be provided via --dart-define in non-debug builds.',
@@ -50,7 +59,8 @@ class ApiConfig {
   static const String submissionsFeedBrowse = '/submissions/feed/browse';
   static String submissionById(String id) => '/submissions/$id';
   static String submissionSubmit(String id) => '/submissions/$id/submit';
-  static String submissionCompleteness(String id) => '/submissions/$id/completeness';
+  static String submissionCompleteness(String id) =>
+      '/submissions/$id/completeness';
 
   // Matching
   static String matchingRun(String submissionId) =>
@@ -77,7 +87,8 @@ class ApiConfig {
 
   // Communication
   static const String meetings = '/meetings';
-  static String meetingStatus(String meetingId) => '/meetings/$meetingId/status';
+  static String meetingStatus(String meetingId) =>
+      '/meetings/$meetingId/status';
   static const String conversations = '/messages/conversations';
   static String conversationById(String conversationId) =>
       '/messages/conversations/$conversationId';

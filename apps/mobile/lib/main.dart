@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -8,6 +9,10 @@ import 'package:device_preview/device_preview.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Load environment variables from .env (if present). This allows setting
+  // API_BASE_URL for local development without rebuilding with --dart-define.
+  await dotenv.load(fileName: '.env');
 
   // Set preferred orientations
   await SystemChrome.setPreferredOrientations([
@@ -71,12 +76,12 @@ class _FirebaseMissingStubApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         appBar: AppBar(title: const Text('SEPMS - Missing Firebase')),
-        body: Padding(
-          padding: const EdgeInsets.all(24.0),
+        body: const Padding(
+          padding: EdgeInsets.all(24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: const [
+            children: [
               Text(
                 'Firebase is not configured for this platform.\n\n'
                 'To run the full app, configure Firebase for desktop/web, or run on a '
