@@ -16,8 +16,10 @@
 import { type Request, type Response, Router } from "express";
 import { authenticate, authorize } from "../middleware/auth";
 import { MatchResult } from "../models/MatchResult";
+import { Submission } from "../models/Submission";
 import { AIService } from "../services/ai.service";
 import { MatchingService } from "../services/matching.service";
+import { MessageService } from "../services/message.service";
 import { applyRocchioUpdate } from "./rocchio.service";
 
 const router = Router();
@@ -32,6 +34,56 @@ const router = Router();
 // ── POST /api/recommendation/classify ────────────────────────────────────────
 // Admin-only proxy to the Python /classify-pitch endpoint.
 // Keeps the AI service off the public internet — browser calls Node, Node calls Python.
+/**
+ * @openapi
+ * /api/recommendation/classify:
+ *   post:
+ *     tags: [Recommendation]
+ *     summary: Classify a pitch via the AI service
+ *     description: Admin-only proxy to the Python /classify-pitch endpoint. Keeps the AI service off the public internet.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [pitchText]
+ *             properties:
+ *               pitchText:
+ *                 type: string
+ *                 description: The pitch text to classify
+ *     responses:
+ *       200:
+ *         description: Classification result
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *       400:
+ *         description: pitchText is required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Forbidden — admin only
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Classification failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.post(
 	"/classify",
 	authenticate,
@@ -59,6 +111,36 @@ router.post(
 // ── GET /api/recommendation/matches/count ────────────────────────────────────
 // Returns accepted match count for the authenticated entrepreneur's submissions.
 // Used by the entrepreneur dashboard stat card.
+/**
+ * @openapi
+ * /api/recommendation/matches/count:
+ *   get:
+ *     tags: [Recommendation]
+ *     summary: Get accepted match count for entrepreneur
+ *     description: Returns the number of accepted matches for the authenticated entrepreneur's submissions.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Match count returned
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 count:
+ *                   type: integer
+ *                   example: 3
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.get(
 	"/matches/count",
 	authenticate,
@@ -83,6 +165,42 @@ router.get(
 // Records an implicit "click" Rocchio signal (+0.05) when an investor opens
 // a pitch detail page. Also returns the match context (score, breakdown,
 // status) so the pitch page can display it without a separate fetch.
+/**
+ * @openapi
+ * /api/recommendation/matches/click/{submissionId}:
+ *   post:
+ *     tags: [Recommendation]
+ *     summary: Record click signal on a pitch
+ *     description: Records an implicit Rocchio click signal when an investor views a pitch. Returns the match context.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: submissionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Click recorded and match context returned
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 match:
+ *                   nullable: true
+ *                   $ref: '#/components/schemas/MatchResultObject'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.post(
 	"/matches/click/:submissionId",
 	authenticate,
@@ -142,8 +260,26 @@ router.post(
  *     responses:
  *       200:
  *         description: Matches fetched
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 count:
+ *                   type: integer
+ *                 matches:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/MatchResultObject'
  *       500:
  *         description: Failed to fetch matches
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get(
 	"/matches",
@@ -206,12 +342,39 @@ router.get(
  *     responses:
  *       200:
  *         description: Match response recorded
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                 match:
+ *                   $ref: '#/components/schemas/MatchResultObject'
+ *                 conversationId:
+ *                   type: string
+ *                   nullable: true
  *       400:
  *         description: Invalid status
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Match not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Failed to update match
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.patch(
 	"/matches/:matchId/respond",
@@ -252,10 +415,43 @@ router.patch(
 				});
 			});
 
+			// On accept: create/get conversation and send automatic system message
+			let conversationId: string | null = null;
+			if (status === "accepted") {
+				try {
+					const entrepreneurUserId = match.entrepreneurId.toString();
+					const conversation = await MessageService.getOrCreateConversation({
+						currentUserId: investorUserId,
+						otherUserId: entrepreneurUserId,
+						matchResultId: match._id.toString(),
+						submissionId: match.submissionId.toString(),
+					});
+					conversationId = conversation._id.toString();
+
+					// Fetch submission title for the system message
+					const submission = await Submission.findById(match.submissionId)
+						.select("title")
+						.lean();
+					const pitchTitle = submission?.title ?? "your pitch";
+
+					// Send automatic system message from investor to entrepreneur
+					await MessageService.sendMessage({
+						conversationId: conversationId,
+						senderId: investorUserId,
+						body: `👋 Hi! I reviewed your pitch "${pitchTitle}" and I'm interested in learning more. I've accepted the match — let's connect and discuss next steps.`,
+						type: "text",
+					});
+				} catch (err) {
+					// Non-critical — don't fail the whole request
+					console.error("Failed to create conversation on accept:", err);
+				}
+			}
+
 			res.status(200).json({
 				status: "success",
 				message: `Match ${status}`,
 				match,
+				conversationId,
 			});
 		} catch (err) {
 			if (MatchingService.isServiceError(err)) {

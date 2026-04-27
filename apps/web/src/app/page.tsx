@@ -1,5 +1,4 @@
 "use client";
-
 import { motion, useScroll, useTransform } from "framer-motion";
 import {
 	BarChart3,
@@ -12,7 +11,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Logo } from "@/components/Logo";
 import Navbar from "@/components/Navbar";
 import {
@@ -157,7 +156,11 @@ export default function Home() {
 	const { user, userProfile } = useAuth();
 	const router = useRouter();
 
-	// Dashboard Mockup setup
+	useEffect(() => {
+		console.log("Home mounted");
+	}, []);
+
+	// 3D Dashboard Scroll Effect setup
 	const dashboardRef = useRef<HTMLDivElement>(null);
 
 	const getDashboardRoute = () => {
@@ -171,6 +174,8 @@ export default function Home() {
 		}
 		return null;
 	};
+
+	const dashboardRoute = getDashboardRoute();
 
 	return (
 		<div className="flex min-h-screen flex-col relative overflow-hidden bg-background">
@@ -356,11 +361,11 @@ export default function Home() {
 								},
 							}}
 						>
-							{user && getDashboardRoute() ? (
+							{user && dashboardRoute ? (
 								<Button
 									size="lg"
 									className="h-12 px-8 text-sm font-semibold rounded-full group relative overflow-hidden"
-									onClick={() => router.push(getDashboardRoute()!)}
+									onClick={() => router.push(dashboardRoute as string)}
 								>
 									<span className="relative z-10 transition-transform duration-300 group-hover:scale-105 inline-block">
 										Go to my Dashboard
@@ -666,11 +671,11 @@ export default function Home() {
 										with the right investors through AI-powered matching.
 									</p>
 									<div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-										{user && getDashboardRoute() ? (
+										{user && dashboardRoute ? (
 											<Button
 												size="lg"
 												className="h-12 px-8 font-semibold hover:scale-105 transition-transform duration-300"
-												onClick={() => router.push(getDashboardRoute()!)}
+												onClick={() => router.push(dashboardRoute as string)}
 											>
 												Go to Dashboard
 											</Button>
