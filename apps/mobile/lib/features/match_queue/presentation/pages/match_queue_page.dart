@@ -38,7 +38,9 @@ class _MatchQueuePageState extends State<MatchQueuePage> {
             ],
             onChanged: (v) {
               setState(() => _filter = v);
-              context.read<MatchQueueBloc>().add(MatchQueueRequested(statusFilter: v));
+              context
+                  .read<MatchQueueBloc>()
+                  .add(MatchQueueRequested(statusFilter: v));
             },
           ),
           IconButton(
@@ -58,7 +60,8 @@ class _MatchQueuePageState extends State<MatchQueuePage> {
                 return const Center(child: CircularProgressIndicator());
               }
               if (state.status == MatchQueueStatus.error) {
-                return Center(child: Text(state.error ?? 'Failed to load matches'));
+                return Center(
+                    child: Text(state.error ?? 'Failed to load matches'));
               }
               if (state.items.isEmpty) {
                 return const Center(child: Text('No matches.'));
@@ -74,10 +77,10 @@ class _MatchQueuePageState extends State<MatchQueuePage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text(
-                            m.investorName.isEmpty ? 'Match' : m.investorName,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
+                          // Text(
+                          //   m.investorName?.isEmpty ?? true ? 'Match' : m.investorName,
+                          //   style: Theme.of(context).textTheme.titleMedium,
+                          // ),
                           AppSpacing.gapXs,
                           Text('Score: ${m.score?.toStringAsFixed(2) ?? '-'}'),
                           Text('Status: ${m.status}'),
@@ -86,28 +89,32 @@ class _MatchQueuePageState extends State<MatchQueuePage> {
                             children: [
                               Expanded(
                                 child: OutlinedButton(
-                                  onPressed: (m.id.isEmpty || m.status == 'accepted')
+                                  onPressed: (m.id.isEmpty ||
+                                          m.status == 'accepted')
                                       ? null
-                                      : () => context.read<MatchQueueBloc>().add(
-                                            MatchStatusChanged(
-                                              matchId: m.id,
-                                              newStatus: 'accepted',
-                                            ),
-                                          ),
+                                      : () =>
+                                          context.read<MatchQueueBloc>().add(
+                                                MatchStatusChanged(
+                                                  matchId: m.id,
+                                                  newStatus: 'accepted',
+                                                ),
+                                              ),
                                   child: const Text('Accept'),
                                 ),
                               ),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: OutlinedButton(
-                                  onPressed: (m.id.isEmpty || m.status == 'declined')
+                                  onPressed: (m.id.isEmpty ||
+                                          m.status == 'declined')
                                       ? null
-                                      : () => context.read<MatchQueueBloc>().add(
-                                            MatchStatusChanged(
-                                              matchId: m.id,
-                                              newStatus: 'declined',
-                                            ),
-                                          ),
+                                      : () =>
+                                          context.read<MatchQueueBloc>().add(
+                                                MatchStatusChanged(
+                                                  matchId: m.id,
+                                                  newStatus: 'declined',
+                                                ),
+                                              ),
                                   child: const Text('Decline'),
                                 ),
                               ),
@@ -126,4 +133,3 @@ class _MatchQueuePageState extends State<MatchQueuePage> {
     );
   }
 }
-

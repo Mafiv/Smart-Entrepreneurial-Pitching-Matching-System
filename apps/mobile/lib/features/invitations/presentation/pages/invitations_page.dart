@@ -18,7 +18,9 @@ class _InvitationsPageState extends State<InvitationsPage> {
   @override
   void initState() {
     super.initState();
-    context.read<InvitationsBloc>().add(const InvitationsRequested(direction: 'all'));
+    context
+        .read<InvitationsBloc>()
+        .add(const InvitationsRequested(direction: 'all'));
   }
 
   @override
@@ -39,7 +41,8 @@ class _InvitationsPageState extends State<InvitationsPage> {
               if (v == null) return;
               setState(() => _direction = v);
               context.read<InvitationsBloc>().add(
-                    InvitationsRequested(direction: _direction, status: _status),
+                    InvitationsRequested(
+                        direction: _direction, status: _status),
                   );
             },
           ),
@@ -58,7 +61,8 @@ class _InvitationsPageState extends State<InvitationsPage> {
             onChanged: (v) {
               setState(() => _status = v);
               context.read<InvitationsBloc>().add(
-                    InvitationsRequested(direction: _direction, status: _status),
+                    InvitationsRequested(
+                        direction: _direction, status: _status),
                   );
             },
           ),
@@ -75,9 +79,11 @@ class _InvitationsPageState extends State<InvitationsPage> {
           padding: AppSpacing.screenPadding,
           child: BlocBuilder<InvitationsBloc, InvitationsState>(
             builder: (context, state) {
-              if (state.isLoading) return const Center(child: CircularProgressIndicator());
+              if (state.isLoading)
+                return const Center(child: CircularProgressIndicator());
               if (state.status == InvitationsStatus.error) {
-                return Center(child: Text(state.error ?? 'Failed to load invitations'));
+                return Center(
+                    child: Text(state.error ?? 'Failed to load invitations'));
               }
               if (state.items.isEmpty) {
                 return const Center(child: Text('No invitations.'));
@@ -94,43 +100,48 @@ class _InvitationsPageState extends State<InvitationsPage> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text('Status: ${inv.status}'),
-                          if (inv.message.isNotEmpty) ...[
+                          if (inv.message!.isNotEmpty) ...[
                             AppSpacing.gapXs,
-                            Text(inv.message),
+                            Text(inv.message!),
                           ],
                           AppSpacing.gapSm,
                           Row(
                             children: [
                               Expanded(
                                 child: OutlinedButton(
-                                  onPressed: (inv.id.isEmpty || inv.status != 'pending')
+                                  onPressed: (inv.id.isEmpty ||
+                                          inv.status != 'pending')
                                       ? null
-                                      : () => context.read<InvitationsBloc>().add(
-                                            InvitationRespondRequested(
-                                              invitationId: inv.id,
-                                              status: 'accepted',
-                                            ),
-                                          ),
+                                      : () =>
+                                          context.read<InvitationsBloc>().add(
+                                                InvitationRespondRequested(
+                                                  invitationId: inv.id,
+                                                  status: 'accepted',
+                                                ),
+                                              ),
                                   child: const Text('Accept'),
                                 ),
                               ),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: OutlinedButton(
-                                  onPressed: (inv.id.isEmpty || inv.status != 'pending')
+                                  onPressed: (inv.id.isEmpty ||
+                                          inv.status != 'pending')
                                       ? null
-                                      : () => context.read<InvitationsBloc>().add(
-                                            InvitationRespondRequested(
-                                              invitationId: inv.id,
-                                              status: 'declined',
-                                            ),
-                                          ),
+                                      : () =>
+                                          context.read<InvitationsBloc>().add(
+                                                InvitationRespondRequested(
+                                                  invitationId: inv.id,
+                                                  status: 'declined',
+                                                ),
+                                              ),
                                   child: const Text('Decline'),
                                 ),
                               ),
                               const SizedBox(width: 8),
                               IconButton(
-                                onPressed: (inv.id.isEmpty || inv.status != 'pending')
+                                onPressed: (inv.id.isEmpty ||
+                                        inv.status != 'pending')
                                     ? null
                                     : () => context
                                         .read<InvitationsBloc>()
@@ -155,4 +166,3 @@ class _InvitationsPageState extends State<InvitationsPage> {
     );
   }
 }
-

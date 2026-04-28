@@ -133,7 +133,9 @@ class MessagingRemoteDataSourceImpl implements MessagingRemoteDataSource {
       );
       if (res.statusCode == 201 || res.statusCode == 200) {
         final data = res.data as Map<String, dynamic>;
-        final msg = (data['message'] as Map?)?.cast<String, dynamic>() ?? data;
+        final msg = (data['data'] as Map?)?.cast<String, dynamic>() ??
+            (data['message'] as Map?)?.cast<String, dynamic>() ??
+            data;
         return MessageModel.fromJson(msg);
       }
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');

@@ -19,7 +19,9 @@ class _MatchResultsPageState extends State<MatchResultsPage> {
   @override
   void initState() {
     super.initState();
-    context.read<MatchingBloc>().add(MatchingResultsRequested(widget.submissionId));
+    context
+        .read<MatchingBloc>()
+        .add(MatchingResultsRequested(widget.submissionId));
   }
 
   @override
@@ -31,7 +33,9 @@ class _MatchResultsPageState extends State<MatchResultsPage> {
           IconButton(
             icon: const Icon(Icons.play_arrow),
             onPressed: () {
-              context.read<MatchingBloc>().add(MatchingRunRequested(widget.submissionId));
+              context
+                  .read<MatchingBloc>()
+                  .add(MatchingRunRequested(widget.submissionId));
             },
             tooltip: 'Run matching',
           ),
@@ -46,10 +50,12 @@ class _MatchResultsPageState extends State<MatchResultsPage> {
                 return const Center(child: CircularProgressIndicator());
               }
               if (state.status == MatchingStatus.error) {
-                return Center(child: Text(state.error ?? 'Failed to load results'));
+                return Center(
+                    child: Text(state.error ?? 'Failed to load results'));
               }
               if (state.results.isEmpty) {
-                return const Center(child: Text('No matches yet. Tap ▶ to run.'));
+                return const Center(
+                    child: Text('No matches yet. Tap ▶ to run.'));
               }
               return ListView.separated(
                 itemCount: state.results.length,
@@ -62,10 +68,10 @@ class _MatchResultsPageState extends State<MatchResultsPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text(
-                            r.investorName.isEmpty ? 'Investor' : r.investorName,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
+                          // Text(
+                          //   r.investorName.isEmpty ? 'Investor' : r.investorName,
+                          //   style: Theme.of(context).textTheme.titleMedium,
+                          // ),
                           AppSpacing.gapXs,
                           Text('Score: ${r.score?.toStringAsFixed(2) ?? '-'}'),
                           Text('Status: ${r.status}'),
@@ -81,8 +87,10 @@ class _MatchResultsPageState extends State<MatchResultsPage> {
                                         context,
                                         MaterialPageRoute(
                                           builder: (_) => BlocProvider(
-                                            create: (_) => sl<SendInvitationBloc>(),
-                                            child: SendInvitationPage(matchId: r.id),
+                                            create: (_) =>
+                                                sl<SendInvitationBloc>(),
+                                            child: SendInvitationPage(
+                                                matchId: r.id),
                                           ),
                                         ),
                                       );
@@ -103,4 +111,3 @@ class _MatchResultsPageState extends State<MatchResultsPage> {
     );
   }
 }
-

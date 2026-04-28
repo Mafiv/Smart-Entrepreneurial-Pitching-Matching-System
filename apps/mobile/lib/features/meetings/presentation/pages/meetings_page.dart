@@ -24,7 +24,8 @@ class _MeetingsPageState extends State<MeetingsPage> {
 
   void _scheduleDialog() {
     final title = TextEditingController();
-    final when = TextEditingController(text: DateTime.now().add(const Duration(days: 1)).toIso8601String());
+    final when = TextEditingController(
+        text: DateTime.now().add(const Duration(days: 1)).toIso8601String());
     final duration = TextEditingController(text: '30');
     final participants = TextEditingController();
     final meetingUrl = TextEditingController();
@@ -41,16 +42,23 @@ class _MeetingsPageState extends State<MeetingsPage> {
               AppSpacing.gapSm,
               AppTextField(label: 'ScheduledAt (ISO)', controller: when),
               AppSpacing.gapSm,
-              AppTextField(label: 'Duration minutes', controller: duration, keyboardType: TextInputType.number),
+              AppTextField(
+                  label: 'Duration minutes',
+                  controller: duration,
+                  keyboardType: TextInputType.number),
               AppSpacing.gapSm,
-              AppTextField(label: 'Participants (comma userIds)', controller: participants),
+              AppTextField(
+                  label: 'Participants (comma userIds)',
+                  controller: participants),
               AppSpacing.gapSm,
-              AppTextField(label: 'Meeting URL (optional)', controller: meetingUrl),
+              AppTextField(
+                  label: 'Meeting URL (optional)', controller: meetingUrl),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
@@ -63,9 +71,11 @@ class _MeetingsPageState extends State<MeetingsPage> {
                     MeetingScheduled({
                       'title': title.text.trim(),
                       'scheduledAt': when.text.trim(),
-                      'durationMinutes': int.tryParse(duration.text.trim()) ?? 30,
+                      'durationMinutes':
+                          int.tryParse(duration.text.trim()) ?? 30,
                       'participants': ids,
-                      if (meetingUrl.text.trim().isNotEmpty) 'meetingUrl': meetingUrl.text.trim(),
+                      if (meetingUrl.text.trim().isNotEmpty)
+                        'meetingUrl': meetingUrl.text.trim(),
                     }),
                   );
             },
@@ -94,7 +104,9 @@ class _MeetingsPageState extends State<MeetingsPage> {
             ],
             onChanged: (v) {
               setState(() => _status = v);
-              context.read<MeetingsBloc>().add(MeetingsRequested(status: _status));
+              context
+                  .read<MeetingsBloc>()
+                  .add(MeetingsRequested(status: _status));
             },
           ),
           IconButton(
@@ -103,7 +115,9 @@ class _MeetingsPageState extends State<MeetingsPage> {
           ),
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => context.read<MeetingsBloc>().add(MeetingsRequested(status: _status)),
+            onPressed: () => context
+                .read<MeetingsBloc>()
+                .add(MeetingsRequested(status: _status)),
           ),
         ],
       ),
@@ -112,11 +126,14 @@ class _MeetingsPageState extends State<MeetingsPage> {
           padding: AppSpacing.screenPadding,
           child: BlocBuilder<MeetingsBloc, MeetingsState>(
             builder: (context, state) {
-              if (state.isLoading) return const Center(child: CircularProgressIndicator());
+              if (state.isLoading)
+                return const Center(child: CircularProgressIndicator());
               if (state.status == MeetingsStatus.error) {
-                return Center(child: Text(state.error ?? 'Failed to load meetings'));
+                return Center(
+                    child: Text(state.error ?? 'Failed to load meetings'));
               }
-              if (state.items.isEmpty) return const Center(child: Text('No meetings.'));
+              if (state.items.isEmpty)
+                return const Center(child: Text('No meetings.'));
 
               return ListView.separated(
                 itemCount: state.items.length,
@@ -130,38 +147,48 @@ class _MeetingsPageState extends State<MeetingsPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text(m.title.isEmpty ? 'Meeting' : m.title, style: Theme.of(context).textTheme.titleMedium),
+                          Text(m.title.isEmpty ? 'Meeting' : m.title,
+                              style: Theme.of(context).textTheme.titleMedium),
                           AppSpacing.gapXs,
                           Text('Status: ${m.status}'),
                           if (when.isNotEmpty) Text('At: $when'),
-                          if (m.meetingUrl.isNotEmpty) Text('URL: ${m.meetingUrl}'),
+                          if (m.meetingUrl!.isNotEmpty)
+                            Text('URL: ${m.meetingUrl}'),
                           AppSpacing.gapSm,
                           Row(
                             children: [
                               Expanded(
                                 child: OutlinedButton(
-                                  onPressed: (m.id.isEmpty) ? null : () {
-                                    context.read<MeetingsBloc>().add(
-                                          MeetingStatusUpdated(
-                                            meetingId: m.id,
-                                            payload: {'status': 'completed'},
-                                          ),
-                                        );
-                                  },
+                                  onPressed: (m.id.isEmpty)
+                                      ? null
+                                      : () {
+                                          context.read<MeetingsBloc>().add(
+                                                MeetingStatusUpdated(
+                                                  meetingId: m.id,
+                                                  payload: {
+                                                    'status': 'completed'
+                                                  },
+                                                ),
+                                              );
+                                        },
                                   child: const Text('Complete'),
                                 ),
                               ),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: OutlinedButton(
-                                  onPressed: (m.id.isEmpty) ? null : () {
-                                    context.read<MeetingsBloc>().add(
-                                          MeetingStatusUpdated(
-                                            meetingId: m.id,
-                                            payload: {'status': 'cancelled'},
-                                          ),
-                                        );
-                                  },
+                                  onPressed: (m.id.isEmpty)
+                                      ? null
+                                      : () {
+                                          context.read<MeetingsBloc>().add(
+                                                MeetingStatusUpdated(
+                                                  meetingId: m.id,
+                                                  payload: {
+                                                    'status': 'cancelled'
+                                                  },
+                                                ),
+                                              );
+                                        },
                                   child: const Text('Cancel'),
                                 ),
                               ),
@@ -180,4 +207,3 @@ class _MeetingsPageState extends State<MeetingsPage> {
     );
   }
 }
-

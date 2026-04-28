@@ -28,7 +28,15 @@ class EntrepreneurProfileRemoteDataSourceImpl
   Future<bool> hasProfile() async {
     try {
       final res = await _dio.get(ApiConfig.entrepreneurProfileCheck);
-      return (res.statusCode == 200);
+      if (res.statusCode != 200) return false;
+      final data = res.data;
+      if (data is Map<String, dynamic>) {
+        final payload = data['data'];
+        if (payload is Map<String, dynamic>) {
+          return payload['hasProfile'] == true;
+        }
+      }
+      return false;
     } on DioException catch (e) {
       if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
         throw const AuthFailure(message: 'Not authorized');
@@ -43,7 +51,8 @@ class EntrepreneurProfileRemoteDataSourceImpl
       final res = await _dio.get(ApiConfig.entrepreneurProfile);
       if (res.statusCode == 200) {
         final data = res.data as Map<String, dynamic>;
-        final profile = (data['profile'] as Map?)?.cast<String, dynamic>() ??
+        final profile = (data['data'] as Map?)?.cast<String, dynamic>() ??
+            (data['profile'] as Map?)?.cast<String, dynamic>() ??
             (data['entrepreneurProfile'] as Map?)?.cast<String, dynamic>() ??
             data;
         return EntrepreneurProfileModel.fromJson(profile);
@@ -82,7 +91,9 @@ class EntrepreneurProfileRemoteDataSourceImpl
       );
       if (res.statusCode == 201 || res.statusCode == 200) {
         final data = res.data as Map<String, dynamic>;
-        final profile = (data['profile'] as Map?)?.cast<String, dynamic>() ?? data;
+        final profile = (data['data'] as Map?)?.cast<String, dynamic>() ??
+            (data['profile'] as Map?)?.cast<String, dynamic>() ??
+            data;
         return EntrepreneurProfileModel.fromJson(profile);
       }
       throw const ServerFailure(message: 'Failed to create profile');
@@ -104,7 +115,9 @@ class EntrepreneurProfileRemoteDataSourceImpl
       );
       if (res.statusCode == 200) {
         final data = res.data as Map<String, dynamic>;
-        final profile = (data['profile'] as Map?)?.cast<String, dynamic>() ?? data;
+        final profile = (data['data'] as Map?)?.cast<String, dynamic>() ??
+            (data['profile'] as Map?)?.cast<String, dynamic>() ??
+            data;
         return EntrepreneurProfileModel.fromJson(profile);
       }
       throw const ServerFailure(message: 'Failed to update profile');
