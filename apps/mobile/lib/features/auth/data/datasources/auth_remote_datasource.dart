@@ -6,6 +6,7 @@ import '../../../../core/error/failures.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../domain/entities/user_entity.dart';
 import '../models/user_model.dart';
+import 'dart:developer' as developer;
 
 abstract class AuthRemoteDataSource {
   Future<UserModel> signUp({
@@ -232,10 +233,65 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<UserModel?> _fetchUserProfile() async {
     try {
       final response = await _dioClient.get(ApiConfig.me);
+      developer.log('GET ${ApiConfig.me} status=${response.statusCode}',
+          name: 'auth_remote_datasource');
+      developer.log('GET ${ApiConfig.me} data=${response.data}',
+          name: 'auth_remote_datasource');
 
       if (response.statusCode == 200) {
-        final data = response.data as Map<String, dynamic>;
-        return UserModel.fromJson(data['user'] as Map<String, dynamic>);
+        // Backend may return the user under different keys. Be tolerant
+        // and try to locate a user object in common places.
+        final resp = response.data;
+        developer.log('Response type: ${resp.runtimeType}',
+            name: 'auth_remote_datasource');
+        if (resp is Map<String, dynamic>) {
+          if (resp['user'] is Map<String, dynamic>) {
+            return UserModel.fromJson(resp['user'] as Map<String, dynamic>);
+          }
+
+          // Handle case where backend returns a list of users instead of a single user
+          if (resp['user'] is List && (resp['user'] as List).isNotEmpty) {
+            final userList = resp['user'] as List;
+            if (userList.first is Map) {
+              developer.log('User is a list, extracting first element',
+                  name: 'auth_remote_datasource');
+              return UserModel.fromJson(
+                  Map<String, dynamic>.from(userList.first as Map));
+            }
+          }
+
+          if (resp.containsKey('data') &&
+              resp['data'] is Map<String, dynamic>) {
+            final data = resp['data'] as Map<String, dynamic>;
+            if (data['user'] is Map<String, dynamic>) {
+              return UserModel.fromJson(data['user'] as Map<String, dynamic>);
+            }
+            // Handle nested user list in data
+            if (data['user'] is List && (data['user'] as List).isNotEmpty) {
+              final userList = data['user'] as List;
+              if (userList.first is Map) {
+                developer.log('data.user is a list, extracting first element',
+                    name: 'auth_remote_datasource');
+                return UserModel.fromJson(
+                    Map<String, dynamic>.from(userList.first as Map));
+              }
+            }
+            if (data.containsKey('uid') || data.containsKey('email')) {
+              return UserModel.fromJson(Map<String, dynamic>.from(data));
+            }
+          }
+
+          // In some implementations the user object is returned at top-level.
+          if (resp.containsKey('uid') || resp.containsKey('email')) {
+            return UserModel.fromJson(Map<String, dynamic>.from(resp));
+          }
+        }
+
+        // If we couldn't parse a user object, treat as server failure.
+        developer.log('Unexpected /auth/me response shape',
+            name: 'auth_remote_datasource', error: response.data);
+        throw const ServerFailure(
+            message: 'Unexpected /auth/me response shape');
       }
 
       if (response.statusCode == 404) {
@@ -246,6 +302,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         message: 'Failed to load profile (HTTP ${response.statusCode})',
       );
     } on DioException catch (e) {
+      developer.log('DioException when fetching /auth/me',
+          name: 'auth_remote_datasource', error: e, stackTrace: e.stackTrace);
       // Network or server error encountered while fetching the profile.
       // Convert Dio exceptions into domain failures for higher layers.
       if (e.type == DioExceptionType.connectionTimeout ||
@@ -256,6 +314,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
       final status = e.response?.statusCode;
       if (status == 404) {
+        developer.log('/auth/me returned 404', name: 'auth_remote_datasource');
         return null;
       }
       if (status == 401 || status == 403) {
@@ -267,6 +326,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         message: e.message ?? 'Could not reach the server',
       );
     } catch (e) {
+      developer.log('Unexpected error in _fetchUserProfile',
+          name: 'auth_remote_datasource', error: e);
       if (e is AuthFailure || e is NetworkFailure || e is ServerFailure) {
         rethrow;
       }
@@ -293,8 +354,69 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = response.data as Map<String, dynamic>;
-        return UserModel.fromJson(data['user'] as Map<String, dynamic>);
+        final resp = response.data;
+        developer.log(
+            'POST ${ApiConfig.register} status=${response.statusCode}',
+            name: 'auth_remote_datasource');
+        developer.log('POST ${ApiConfig.register} data=${resp}',
+            name: 'auth_remote_datasource');
+        developer.log('Register response type: ${resp.runtimeType}',
+            name: 'auth_remote_datasource');
+        if (resp is Map<String, dynamic>) {
+          // Look for common keys where the backend may place the user object.
+          if (resp['user'] is Map<String, dynamic>) {
+            return UserModel.fromJson(resp['user'] as Map<String, dynamic>);
+          }
+
+          // Handle case where user is returned as a list
+          if (resp['user'] is List && (resp['user'] as List).isNotEmpty) {
+            final userList = resp['user'] as List;
+            if (userList.first is Map) {
+              developer.log(
+                  'Register: user is a list, extracting first element',
+                  name: 'auth_remote_datasource');
+              return UserModel.fromJson(
+                  Map<String, dynamic>.from(userList.first as Map));
+            }
+          }
+
+          if (resp.containsKey('data') &&
+              resp['data'] is Map<String, dynamic>) {
+            final data = resp['data'] as Map<String, dynamic>;
+            if (data['user'] is Map<String, dynamic>) {
+              return UserModel.fromJson(data['user'] as Map<String, dynamic>);
+            }
+            // Handle nested user list in data
+            if (data['user'] is List && (data['user'] as List).isNotEmpty) {
+              final userList = data['user'] as List;
+              if (userList.first is Map) {
+                developer.log(
+                    'Register data.user is a list, extracting first element',
+                    name: 'auth_remote_datasource');
+                return UserModel.fromJson(
+                    Map<String, dynamic>.from(userList.first as Map));
+              }
+            }
+            if (data.containsKey('uid') || data.containsKey('email')) {
+              return UserModel.fromJson(Map<String, dynamic>.from(data));
+            }
+          }
+
+          // If backend returned the created user at top-level, accept it.
+          if (resp.containsKey('uid') || resp.containsKey('email')) {
+            return UserModel.fromJson(Map<String, dynamic>.from(resp));
+          }
+
+          // Some backends return only a message/status; surface that message.
+          final msg =
+              resp['message'] is String ? resp['message'] as String : null;
+          developer.log('Registration response missing user object',
+              name: 'auth_remote_datasource', error: resp);
+          throw AuthFailure(message: msg ?? 'Failed to register with backend');
+        }
+
+        throw const AuthFailure(
+            message: 'Invalid response from registration endpoint');
       }
 
       throw const AuthFailure(message: 'Failed to register with backend');

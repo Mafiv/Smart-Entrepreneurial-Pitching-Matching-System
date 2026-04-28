@@ -14,7 +14,20 @@ class ApiConfig {
     /// 2. --dart-define via String.fromEnvironment('API_BASE_URL')
     /// 3. sensible debug defaults (10.0.2.2 or localhost)
 
-    final envDot = dotenv.env['API_BASE_URL'];
+    // Access dotenv only if it was loaded successfully. Calling
+    // `dotenv.env` before `dotenv.load()` runs throws NotInitializedError
+    // (which is what you saw in the logs). Prefer dart-define or debug
+    // defaults when dotenv is not initialized.
+    String? envDot;
+    try {
+      if (dotenv.isInitialized) {
+        envDot = dotenv.env['API_BASE_URL'];
+      }
+    } catch (_) {
+      // If any error occurs reading dotenv, ignore and fall back.
+      envDot = null;
+    }
+
     if (envDot != null && envDot.isNotEmpty) {
       return envDot;
     }
