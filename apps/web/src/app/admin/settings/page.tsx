@@ -1,19 +1,15 @@
 "use client";
 
 import {
-	Bell,
 	CheckCircle2,
 	ClipboardList,
 	Globe,
-	LayoutDashboard,
 	Loader2,
 	Lock,
-	Mail,
 	Save,
 	Settings,
 	Shield,
 	Trash2,
-	Users,
 	UserX,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -21,7 +17,6 @@ import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProfilePictureUpload from "@/components/ProfilePictureUpload";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,19 +37,10 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from "@/context/AuthContext";
 import { ADMIN_NAV } from "@/constants/navigation";
-
-
+import { useAuth } from "@/context/AuthContext";
 
 export default function AdminSettingsPage() {
 	const { user, userProfile, refreshUserProfile, signOut } = useAuth();
@@ -129,8 +115,10 @@ export default function AdminSettingsPage() {
 			if (!res.ok) throw new Error("Failed to update profile");
 			await refreshUserProfile();
 			toast.success("Profile updated successfully!");
-		} catch (err: any) {
-			toast.error(err.message || "Failed to update profile");
+		} catch (err) {
+			toast.error(
+				err instanceof Error ? err.message : "Failed to update profile",
+			);
 		} finally {
 			setSavingProfile(false);
 		}
@@ -231,8 +219,8 @@ export default function AdminSettingsPage() {
 					toast.success(`Suspended ${suspendedCount} unverified accounts`);
 				}
 			}
-		} catch (err: any) {
-			toast.error(err.message || "Action failed");
+		} catch (err) {
+			toast.error(err instanceof Error ? err.message : "Action failed");
 		} finally {
 			setActionLoading(false);
 			setConfirmAction(null);
@@ -243,7 +231,7 @@ export default function AdminSettingsPage() {
 	const email = userProfile?.email || "";
 	const adminLevel = userProfile?.adminLevel || "admin";
 
-	const initials = displayName
+	const _initials = displayName
 		.split(" ")
 		.map((n) => n[0])
 		.join("")
@@ -253,29 +241,6 @@ export default function AdminSettingsPage() {
 	return (
 		<ProtectedRoute allowedRoles={["admin"]}>
 			<DashboardLayout navItems={ADMIN_NAV} title="SEPMS Admin">
-				<div className="mb-8 flex items-center gap-4">
-					<Avatar className="h-16 w-16 border-2 border-primary/10">
-						{userProfile?.photoURL && (
-							<AvatarImage
-								src={userProfile.photoURL}
-								alt={displayName}
-								className="object-cover"
-							/>
-						)}
-						<AvatarFallback className="bg-primary/10 text-primary text-lg font-bold">
-							{initials}
-						</AvatarFallback>
-					</Avatar>
-					<div>
-						<h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-							Settings
-						</h1>
-						<p className="mt-1 text-muted-foreground">
-							Manage your account and platform configuration
-						</p>
-					</div>
-				</div>
-
 				<Tabs defaultValue="account" className="space-y-6">
 					<TabsList>
 						<TabsTrigger value="account" className="gap-1.5">

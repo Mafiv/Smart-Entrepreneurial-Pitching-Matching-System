@@ -49,13 +49,13 @@ router.post(
 	authenticate,
 	async (req: Request, res: Response): Promise<void> => {
 		try {
-			console.log("📋 POST /register — firebaseUid:", req.firebaseUser!.uid);
-			console.log("📋 POST /register — email:", req.firebaseUser!.email);
+			console.log("📋 POST /register — firebaseUid:", req.firebaseUser?.uid);
+			console.log("📋 POST /register — email:", req.firebaseUser?.email);
 			console.log("📋 POST /register — body.role:", req.body.role);
 
 			// 1. Check for existing user by Firebase UID
 			const existingByUid = await User.findOne({
-				firebaseUid: req.firebaseUser!.uid,
+				firebaseUid: req.firebaseUser?.uid,
 			});
 
 			if (existingByUid) {
@@ -79,18 +79,18 @@ router.post(
 
 			// 2. Check for existing user by email (handles Google sign-in for users
 			//    originally created with email/password — different Firebase UID, same email)
-			const email = req.firebaseUser!.email;
+			const email = req.firebaseUser?.email;
 			if (email) {
 				const existingByEmail = await User.findOne({ email });
 
 				if (existingByEmail) {
 					// Link the new Firebase UID to the existing account so future
 					// lookups by UID succeed immediately
-					existingByEmail.firebaseUid = req.firebaseUser!.uid;
-					if (req.firebaseUser!.picture && !existingByEmail.photoURL) {
-						existingByEmail.photoURL = req.firebaseUser!.picture;
+					existingByEmail.firebaseUid = req.firebaseUser?.uid;
+					if (req.firebaseUser?.picture && !existingByEmail.photoURL) {
+						existingByEmail.photoURL = req.firebaseUser?.picture;
 					}
-					if (req.firebaseUser!.email_verified) {
+					if (req.firebaseUser?.email_verified) {
 						existingByEmail.emailVerified = true;
 					}
 					await existingByEmail.save();
@@ -116,7 +116,7 @@ router.post(
 
 			// 3. Brand-new user — create with the requested role
 			const isSuperAdminEmail =
-				req.firebaseUser!.email?.toLowerCase() ===
+				req.firebaseUser?.email?.toLowerCase() ===
 				SUPER_ADMIN_EMAIL.toLowerCase();
 
 			const requestedRole = req.body.role as
@@ -131,16 +131,16 @@ router.post(
 			const initialStatus = isSuperAdminEmail ? "verified" : "unverified";
 
 			const newUser = await User.create({
-				firebaseUid: req.firebaseUser!.uid,
-				fullName: req.body.fullName || req.firebaseUser!.name || "New User",
-				email: req.firebaseUser!.email,
+				firebaseUid: req.firebaseUser?.uid,
+				fullName: req.body.fullName || req.firebaseUser?.name || "New User",
+				email: req.firebaseUser?.email,
 				role: assignedRole,
 				adminLevel: isSuperAdminEmail ? "super_admin" : undefined,
 				status: initialStatus,
-				photoURL: req.firebaseUser!.picture || null,
+				photoURL: req.firebaseUser?.picture || null,
 				emailVerified: isSuperAdminEmail
 					? true
-					: req.firebaseUser!.email_verified || false,
+					: req.firebaseUser?.email_verified || false,
 			});
 
 			res.status(201).json({
@@ -281,7 +281,7 @@ router.patch(
 			}
 
 			const updatedUser = await User.findOneAndUpdate(
-				{ firebaseUid: req.firebaseUser!.uid },
+				{ firebaseUid: req.firebaseUser?.uid },
 				{ role, status: "pending" },
 				{ new: true },
 			);
@@ -345,7 +345,8 @@ router.get(
 			if (role && role !== "all") filter.role = role;
 			if (statusFilter && statusFilter !== "all") filter.status = statusFilter;
 
-			const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
+			const skip =
+				(parseInt(page as string, 10) - 1) * parseInt(limit as string, 10);
 			const total = await User.countDocuments(filter);
 			const users = await User.find(filter)
 				.select(
@@ -353,7 +354,7 @@ router.get(
 				)
 				.sort({ createdAt: -1 })
 				.skip(skip)
-				.limit(parseInt(limit as string));
+				.limit(parseInt(limit as string, 10));
 
 			const stats = {
 				total: await User.countDocuments(),
@@ -369,8 +370,8 @@ router.get(
 				status: "success",
 				count: users.length,
 				total,
-				page: parseInt(page as string),
-				totalPages: Math.ceil(total / parseInt(limit as string)),
+				page: parseInt(page as string, 10),
+				totalPages: Math.ceil(total / parseInt(limit as string, 10)),
 				users,
 				stats,
 			});
@@ -509,7 +510,7 @@ router.get(
 	"/admin/admins",
 	authenticate,
 	authorizeSuperAdmin,
-	async (req: Request, res: Response): Promise<void> => {
+	async (_req: Request, res: Response): Promise<void> => {
 		try {
 			const admins = await User.find({ role: "admin" })
 				.select("fullName email adminLevel status photoURL createdAt")
@@ -559,7 +560,7 @@ router.post(
 		try {
 			const { email, fullName } = req.body;
 
-			const crypto = await import("crypto");
+			const crypto = await import("node:crypto");
 			const token = crypto.randomBytes(24).toString("hex");
 
 			const expiresAt = new Date();
@@ -688,14 +689,14 @@ router.post(
 
 			if (!user) {
 				user = await User.create({
-					firebaseUid: req.firebaseUser!.uid,
-					email: req.firebaseUser!.email || invite.email || "",
-					fullName: req.firebaseUser!.name || invite.fullName || "Admin",
-					photoURL: req.firebaseUser!.picture || null,
+					firebaseUid: req.firebaseUser?.uid,
+					email: req.firebaseUser?.email || invite.email || "",
+					fullName: req.firebaseUser?.name || invite.fullName || "Admin",
+					photoURL: req.firebaseUser?.picture || null,
 					role: "admin",
 					adminLevel: "admin",
 					status: "verified",
-					emailVerified: req.firebaseUser!.email_verified || false,
+					emailVerified: req.firebaseUser?.email_verified || false,
 				});
 			} else {
 				if (user.role === "admin" && user.adminLevel === "super_admin") {

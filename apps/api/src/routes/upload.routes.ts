@@ -81,7 +81,7 @@ router.post(
 			const docType = (req.body.type as string) || "other";
 			const isVideo = req.file.mimetype.startsWith("video/");
 			const resourceType = isVideo ? "video" : "auto";
-			const folder = `sepms/submissions/${req.user!._id}/${docType}`;
+			const folder = `sepms/submissions/${req.user?._id}/${docType}`;
 
 			const result = await new Promise<UploadApiResponse>((resolve, reject) => {
 				const uploadStream = cloudinary.uploader.upload_stream(
@@ -107,7 +107,7 @@ router.post(
 						else resolve(result as UploadApiResponse);
 					},
 				);
-				uploadStream.end(req.file!.buffer);
+				uploadStream.end(req.file?.buffer);
 			});
 
 			res.status(200).json({

@@ -7,6 +7,7 @@ import {
 	DollarSign,
 	ExternalLink,
 	FileUp,
+	Handshake,
 	Lightbulb,
 	Loader2,
 	Search,
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -87,6 +89,18 @@ interface CompletenessResult {
 	missingRequired: string[];
 }
 
+interface MatchRequest {
+	_id: string;
+	investorId: {
+		_id: string;
+		fullName: string;
+		email: string;
+	};
+	score: number;
+	status: string;
+	matchedAt: string;
+}
+
 function ReviewPitchPageInner() {
 	const { user } = useAuth();
 	const router = useRouter();
@@ -100,6 +114,10 @@ function ReviewPitchPageInner() {
 	);
 	const [loading, setLoading] = useState(true);
 	const [submitting, setSubmitting] = useState(false);
+	const [matchRequests, setMatchRequests] = useState<MatchRequest[]>([]);
+	const [respondingMatchId, setRespondingMatchId] = useState<string | null>(
+		null,
+	);
 	const [error, setError] = useState("");
 
 	const API_URL = (
@@ -113,14 +131,16 @@ function ReviewPitchPageInner() {
 			const res = await fetch(`${API_URL}/submissions/${id}`, {
 				headers: { Authorization: `Bearer ${token}` },
 			});
+			let currentSubmission = submission;
 			if (res.ok) {
-				const { submission } = await res.json();
-				setSubmission(submission);
+				const { submission: submissionData } = await res.json();
+				setSubmission(submissionData);
+				currentSubmission = submissionData;
 			}
 
 			// Fetch document statuses
 			const docRes = await fetch(`${API_URL}/documents?submissionId=${id}`, {
-				headers: { Authorization: `Bearer ${await user.getIdToken()}` },
+				headers: { Authorization: `Bearer ${token}` },
 			});
 			if (docRes.ok) {
 				const { documents } = await docRes.json();
@@ -131,18 +151,33 @@ function ReviewPitchPageInner() {
 
 			// Fetch completeness
 			const compRes = await fetch(`${API_URL}/submissions/${id}/completeness`, {
-				headers: { Authorization: `Bearer ${await user.getIdToken()}` },
+				headers: { Authorization: `Bearer ${token}` },
 			});
 			if (compRes.ok) {
 				const { completeness: compData } = await compRes.json();
 				setCompleteness(compData);
 			}
+
+			// Fetch match requests if submitted
+			if (currentSubmission && currentSubmission.status !== "draft") {
+				const matchRes = await fetch(`${API_URL}/matching/submissions/${id}`, {
+					headers: { Authorization: `Bearer ${token}` },
+				});
+				if (matchRes.ok) {
+					const { matches } = await matchRes.json();
+					if (Array.isArray(matches)) {
+						setMatchRequests(
+							matches.filter((m: any) => m.status === "requested"),
+						);
+					}
+				}
+			}
 		} catch (err) {
-			console.error("Failed to load submission:", err);
+			console.error("Failed to load submission data:", err);
 		} finally {
 			setLoading(false);
 		}
-	}, [id, user, API_URL]);
+	}, [id, user, API_URL, submission]);
 
 	useEffect(() => {
 		loadSubmission();
@@ -184,6 +219,37 @@ function ReviewPitchPageInner() {
 		return STAGES.find((s) => s.value === value)?.label || value;
 	};
 
+	const handleApproveRequest = async (matchId: string, approved: boolean) => {
+		if (!user) return;
+		setRespondingMatchId(matchId);
+		try {
+			const token = await user.getIdToken();
+			const res = await fetch(
+				`${API_URL}/matching/matches/${matchId}/approve`,
+				{
+					method: "PATCH",
+					headers: {
+						Authorization: `Bearer ${token}`,
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ approved }),
+				},
+			);
+			if (res.ok) {
+				toast.success(approved ? "Request approved!" : "Request declined.");
+				setMatchRequests((prev) => prev.filter((m) => m._id !== matchId));
+			} else {
+				const data = await res.json();
+				toast.error(data.message || "Failed to respond to request");
+			}
+		} catch (err) {
+			console.error("Approval error:", err);
+			toast.error("Network error");
+		} finally {
+			setRespondingMatchId(null);
+		}
+	};
+
 	const hasDocIssues =
 		docStatuses.some((d) => d.status === "failed") ||
 		docStatuses.some((d) => d.status === "processing");
@@ -207,41 +273,114 @@ function ReviewPitchPageInner() {
 	return (
 		<ProtectedRoute allowedRoles={["entrepreneur"]}>
 			<div className="min-h-screen bg-background">
-				<header className="border-b border-border/40 bg-card">
-					<div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4">
+				<header className="sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border/40">
+					<div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4 sm:px-6">
 						<Button
 							variant="ghost"
+							size="sm"
 							onClick={() => router.push(`/entrepreneur/pitch/new?id=${id}`)}
 						>
 							← Back to Edit
 						</Button>
-						<Badge variant="outline" className="text-sm">
+						<Badge
+							variant="outline"
+							className="bg-background/50 backdrop-blur-sm"
+						>
 							Review Mode
 						</Badge>
 					</div>
 				</header>
 
-				<main className="mx-auto max-w-4xl px-4 py-8 space-y-6">
+				<main className="mx-auto max-w-4xl px-4 py-8 space-y-8">
 					{/* Title & Overview */}
-					<div className="text-center space-y-3">
-						<h1 className="text-3xl font-bold tracking-tight">
+					<div className="admin-greeting-card bg-card p-8 rounded-2xl admin-content-fade shadow-sm text-center space-y-4">
+						<h1 className="text-3xl sm:text-4xl font-bold tracking-tight admin-header-gradient">
 							{submission.title}
 						</h1>
-						<div className="flex items-center justify-center gap-3 flex-wrap">
-							<Badge>{getSectorLabel(submission.sector)}</Badge>
-							<Badge variant="outline">{getStageLabel(submission.stage)}</Badge>
-							<span className="text-muted-foreground">•</span>
-							<span className="text-lg font-semibold text-primary">
+						<div className="flex items-center justify-center gap-3 mt-4 flex-wrap">
+							<Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-0">
+								{getSectorLabel(submission.sector)}
+							</Badge>
+							<Badge variant="outline" className="border-primary/20">
+								{getStageLabel(submission.stage)}
+							</Badge>
+							<span className="text-muted-foreground/50">•</span>
+							<span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
 								${submission.targetAmount?.toLocaleString()}
 							</span>
 						</div>
 					</div>
 
+					{/* Investment Requests section */}
+					{matchRequests.length > 0 && (
+						<div className="space-y-4 admin-content-fade">
+							<h2 className="text-xl font-bold flex items-center gap-2">
+								<Handshake className="h-5 w-5 text-primary" />
+								Investment Requests
+							</h2>
+							<div className="grid gap-4">
+								{matchRequests.map((request) => (
+									<Card
+										key={request._id}
+										className="border-primary/20 bg-primary/5 shadow-sm overflow-hidden"
+									>
+										<CardContent className="p-6">
+											<div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+												<div className="flex items-center gap-4">
+													<div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">
+														{request.investorId?.fullName?.charAt(0) || "I"}
+													</div>
+													<div>
+														<h3 className="font-bold text-lg">
+															{request.investorId?.fullName ||
+																"Private Investor"}
+														</h3>
+														<p className="text-sm text-muted-foreground">
+															Match Score: {(request.score * 100).toFixed(0)}%
+														</p>
+														<p className="text-xs text-muted-foreground mt-1">
+															Requested on{" "}
+															{new Date(request.matchedAt).toLocaleDateString()}
+														</p>
+													</div>
+												</div>
+												<div className="flex gap-3 w-full sm:w-auto">
+													<Button
+														variant="outline"
+														className="flex-1 sm:flex-none"
+														disabled={respondingMatchId === request._id}
+														onClick={() =>
+															handleApproveRequest(request._id, false)
+														}
+													>
+														Decline
+													</Button>
+													<Button
+														className="flex-1 sm:flex-none"
+														disabled={respondingMatchId === request._id}
+														onClick={() =>
+															handleApproveRequest(request._id, true)
+														}
+													>
+														{respondingMatchId === request._id
+															? "Processing..."
+															: "Approve Investment"}
+													</Button>
+												</div>
+											</div>
+										</CardContent>
+									</Card>
+								))}
+							</div>
+							<Separator />
+						</div>
+					)}
+
 					<Separator />
 
 					{/* Summary */}
-					<Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100 fill-mode-both">
-						<CardHeader>
+					<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100 fill-mode-both border-0 shadow-md overflow-hidden">
+						<CardHeader className="bg-primary/5 border-b border-border/40 pb-4">
 							<CardTitle className="text-lg flex items-center gap-2">
 								<ClipboardList className="h-5 w-5" /> Executive Summary
 							</CardTitle>
@@ -254,8 +393,8 @@ function ReviewPitchPageInner() {
 					</Card>
 
 					{/* Problem */}
-					<Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150 fill-mode-both">
-						<CardHeader>
+					<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150 fill-mode-both border-0 shadow-md overflow-hidden">
+						<CardHeader className="bg-primary/5 border-b border-border/40 pb-4">
 							<CardTitle className="text-lg flex items-center gap-2">
 								<Search className="h-5 w-5" /> The Problem
 							</CardTitle>
@@ -283,8 +422,8 @@ function ReviewPitchPageInner() {
 					</Card>
 
 					{/* Solution */}
-					<Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200 fill-mode-both">
-						<CardHeader>
+					<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200 fill-mode-both border-0 shadow-md overflow-hidden">
+						<CardHeader className="bg-primary/5 border-b border-border/40 pb-4">
 							<CardTitle className="text-lg flex items-center gap-2">
 								<Lightbulb className="h-5 w-5" /> Solution
 							</CardTitle>
@@ -312,8 +451,8 @@ function ReviewPitchPageInner() {
 					</Card>
 
 					{/* Business Model */}
-					<Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300 fill-mode-both">
-						<CardHeader>
+					<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300 fill-mode-both border-0 shadow-md overflow-hidden">
+						<CardHeader className="bg-primary/5 border-b border-border/40 pb-4">
 							<CardTitle className="text-lg flex items-center gap-2">
 								<BarChart3 className="h-5 w-5" /> Business Model
 							</CardTitle>
@@ -342,8 +481,8 @@ function ReviewPitchPageInner() {
 					</Card>
 
 					{/* Financials */}
-					<Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-500 fill-mode-both">
-						<CardHeader>
+					<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 delay-500 fill-mode-both border-0 shadow-md overflow-hidden">
+						<CardHeader className="bg-primary/5 border-b border-border/40 pb-4">
 							<CardTitle className="text-lg flex items-center gap-2">
 								<DollarSign className="h-5 w-5" /> Financials
 							</CardTitle>
@@ -387,8 +526,8 @@ function ReviewPitchPageInner() {
 					</Card>
 
 					{/* Documents & Completeness */}
-					<Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-700 fill-mode-both">
-						<CardHeader>
+					<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 delay-700 fill-mode-both border-0 shadow-md overflow-hidden mb-24">
+						<CardHeader className="bg-primary/5 border-b border-border/40 pb-4">
 							<div className="flex items-center justify-between">
 								<div>
 									<CardTitle className="text-lg flex items-center gap-2">
@@ -594,30 +733,38 @@ function ReviewPitchPageInner() {
 
 					{/* Error */}
 					{error && (
-						<div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+						<div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive fixed bottom-24 left-4 right-4 max-w-4xl mx-auto z-40 backdrop-blur-md shadow-lg">
 							<strong>Submission incomplete:</strong> {error}
 						</div>
 					)}
 
-					{/* Submit Actions */}
-					<div className="flex items-center justify-between rounded-xl border bg-card p-6">
-						<div>
-							<h3 className="font-semibold">Ready to submit?</h3>
-							<p className="text-sm text-muted-foreground">
-								Your pitch will be analyzed by our AI system for scoring and
-								matching.
-							</p>
-						</div>
-						<div className="flex gap-3">
-							<Button
-								variant="outline"
-								onClick={() => router.push(`/entrepreneur/pitch/new?id=${id}`)}
-							>
-								Edit
-							</Button>
-							<Button onClick={handleSubmit} disabled={submitting}>
-								{submitting ? "Submitting..." : "Submit for AI Review 🚀"}
-							</Button>
+					{/* Sticky Submit Actions */}
+					<div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-t border-border/40 shadow-[0_-20px_40px_-20px_rgba(0,0,0,0.1)] p-4 sm:p-6">
+						<div className="mx-auto max-w-4xl flex flex-col sm:flex-row items-center justify-between gap-4">
+							<div className="text-center sm:text-left">
+								<h3 className="font-semibold text-lg">Ready to submit?</h3>
+								<p className="text-sm text-muted-foreground">
+									Your pitch will be analyzed by our AI system for scoring.
+								</p>
+							</div>
+							<div className="flex gap-3 w-full sm:w-auto">
+								<Button
+									variant="outline"
+									className="flex-1 sm:flex-none shadow-sm"
+									onClick={() =>
+										router.push(`/entrepreneur/pitch/new?id=${id}`)
+									}
+								>
+									Edit Draft
+								</Button>
+								<Button
+									onClick={handleSubmit}
+									disabled={submitting}
+									className="flex-1 sm:flex-none shadow-md hover:shadow-lg transition-all"
+								>
+									{submitting ? "Submitting..." : "Submit for AI Review 🚀"}
+								</Button>
+							</div>
 						</div>
 					</div>
 				</main>

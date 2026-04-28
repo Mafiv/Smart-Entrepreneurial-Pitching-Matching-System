@@ -1,8 +1,8 @@
-import mongoose from "mongoose";
 import type { Response } from "express";
+import mongoose from "mongoose";
 import type { AuthRequest } from "../middleware/auth";
-import { ProfileService } from "../services/profile.service";
 import { InvestorProfile } from "../models/InvestorProfile";
+import { ProfileService } from "../services/profile.service";
 
 export class InvestorController {
 	// Create investor profile
@@ -32,8 +32,11 @@ export class InvestorController {
 				message: "Investor profile created successfully",
 				data: profile,
 			});
-		} catch (error: any) {
-			if (error.message === "Profile already exists") {
+		} catch (error: unknown) {
+			if (
+				error instanceof Error &&
+				error.message === "Profile already exists"
+			) {
 				return res.status(400).json({ message: error.message });
 			}
 			console.error("Create investor profile error:", error);
@@ -58,8 +61,8 @@ export class InvestorController {
 				success: true,
 				data: profile,
 			});
-		} catch (error: any) {
-			if (error.message === "Profile not found") {
+		} catch (error: unknown) {
+			if (error instanceof Error && error.message === "Profile not found") {
 				return res.status(404).json({ message: "Profile not found" });
 			}
 			console.error("Get investor profile error:", error);
@@ -88,8 +91,8 @@ export class InvestorController {
 				message: "Profile updated successfully",
 				data: profile,
 			});
-		} catch (error: any) {
-			if (error.message === "Profile not found") {
+		} catch (error: unknown) {
+			if (error instanceof Error && error.message === "Profile not found") {
 				return res.status(404).json({ message: "Profile not found" });
 			}
 			console.error("Update investor profile error:", error);
@@ -108,13 +111,19 @@ export class InvestorController {
 			const { id: pitchId } = req.params;
 
 			if (!mongoose.Types.ObjectId.isValid(pitchId)) {
-				return res.status(400).json({ success: false, message: "Invalid pitch ID format" });
+				return res
+					.status(400)
+					.json({ success: false, message: "Invalid pitch ID format" });
 			}
 
 			const profile = await InvestorProfile.findOne({ userId });
-			
+
 			if (!profile) {
-				return res.status(404).json({ success: false, message: "Investor profile not found. Please complete your profile first." });
+				return res.status(404).json({
+					success: false,
+					message:
+						"Investor profile not found. Please complete your profile first.",
+				});
 			}
 
 			const savedPitches = profile.savedPitches || [];
@@ -122,16 +131,26 @@ export class InvestorController {
 			const pitchObjectId = new mongoose.Types.ObjectId(pitchId);
 
 			if (index > -1) {
-				await InvestorProfile.updateOne({ _id: profile._id }, { $pull: { savedPitches: pitchObjectId } });
+				await InvestorProfile.updateOne(
+					{ _id: profile._id },
+					{ $pull: { savedPitches: pitchObjectId } },
+				);
 			} else {
-				await InvestorProfile.updateOne({ _id: profile._id }, { $addToSet: { savedPitches: pitchObjectId } });
+				await InvestorProfile.updateOne(
+					{ _id: profile._id },
+					{ $addToSet: { savedPitches: pitchObjectId } },
+				);
 			}
 
 			res.json({
 				success: true,
-				message: index > -1 ? "Pitch removed from saved" : "Pitch saved successfully",
+				message:
+					index > -1 ? "Pitch removed from saved" : "Pitch saved successfully",
 				isSaved: index === -1,
-				savedPitches: index > -1 ? savedPitches.filter(id => id.toString() !== pitchId) : [...savedPitches, pitchObjectId]
+				savedPitches:
+					index > -1
+						? savedPitches.filter((id) => id.toString() !== pitchId)
+						: [...savedPitches, pitchObjectId],
 			});
 		} catch (error) {
 			console.error("Toggle saved pitch error:", error);
@@ -149,17 +168,24 @@ export class InvestorController {
 			const userId = req.user._id;
 
 			const profile = await InvestorProfile.findOne({ userId }).populate({
-				path: 'savedPitches',
-				populate: { path: 'entrepreneurId', select: 'firstName lastName fullName' },
+				path: "savedPitches",
+				populate: {
+					path: "entrepreneurId",
+					select: "firstName lastName fullName",
+				},
 			});
-			
+
 			if (!profile) {
-				return res.status(404).json({ success: false, message: "Investor profile not found. Please complete your profile first." });
+				return res.status(404).json({
+					success: false,
+					message:
+						"Investor profile not found. Please complete your profile first.",
+				});
 			}
 
 			res.json({
 				success: true,
-				data: profile.savedPitches || []
+				data: profile.savedPitches || [],
 			});
 		} catch (error) {
 			console.error("Get saved pitches error:", error);

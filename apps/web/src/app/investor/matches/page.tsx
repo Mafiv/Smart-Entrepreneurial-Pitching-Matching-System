@@ -3,12 +3,10 @@
 import {
 	BadgeCheck,
 	Briefcase,
-	CalendarDays,
 	ChevronDown,
 	ChevronUp,
 	Loader2,
 	Sparkles,
-	Video,
 	XCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -16,9 +14,6 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import ScheduleMeetingModal, {
-	type ScheduledMeeting,
-} from "@/components/ScheduleMeetingModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -108,11 +103,6 @@ export default function InvestorMatchesPage() {
 	const [statusFilter, setStatusFilter] = useState<string>("all");
 	const [responding, setResponding] = useState<string | null>(null);
 	const [expanded, setExpanded] = useState<Set<string>>(new Set());
-	const [scheduleTarget, setScheduleTarget] = useState<Match | null>(null);
-	// meetingId keyed by matchId
-	const [meetingMap, setMeetingMap] = useState<
-		Record<string, ScheduledMeeting>
-	>({});
 
 	// ── Fetch ──────────────────────────────────────────────────────────────
 
@@ -166,17 +156,15 @@ export default function InvestorMatchesPage() {
 			if (data.status === "success") {
 				toast.success(
 					status === "accepted"
-						? "Match accepted — invitation sent"
+						? "Match accepted — redirecting to chat"
 						: "Match declined",
 				);
-				// Update locally so UI reflects immediately
 				setMatches((prev) =>
 					prev.map((m) => (m._id === matchId ? { ...m, status } : m)),
 				);
-				// After accepting, open schedule modal
-				if (status === "accepted") {
-					const target = matches.find((m) => m._id === matchId);
-					if (target) setScheduleTarget(target);
+				// On accept: go straight to the conversation
+				if (status === "accepted" && data.conversationId) {
+					router.push(`/investor/messages?open=${data.conversationId}`);
 				}
 			} else {
 				toast.error(data.message ?? "Failed to respond");
@@ -204,39 +192,82 @@ export default function InvestorMatchesPage() {
 		<ProtectedRoute allowedRoles={["investor"]}>
 			<DashboardLayout navItems={INVESTOR_NAV} title="SEPMS">
 				{/* Header */}
-				<div className="mb-8">
-					<h1 className="text-2xl font-bold tracking-tight sm:text-3xl flex items-center gap-2">
-						<Sparkles className="h-6 w-6 text-primary" />
-						AI Match Queue
-					</h1>
-					<p className="mt-1 text-muted-foreground">
-						Pitches the AI matched to your investment profile. Accept to
-						connect, decline to refine future recommendations.
-					</p>
+				<div className="admin-greeting-card bg-card mb-8 p-6 sm:p-8 admin-content-fade">
+					<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+						<div>
+							<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient flex items-center gap-2">
+								<Sparkles className="h-6 w-6 text-primary" />
+								AI Match Queue
+							</h1>
+							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
+								Pitches the AI matched to your investment profile. Accept to
+								connect, decline to refine future recommendations.
+							</p>
+						</div>
+						{pendingCount > 0 && (
+							<Badge
+								variant="destructive"
+								className="text-xs font-medium gap-1.5 py-1 px-3 w-fit"
+							>
+								{pendingCount} Pending
+							</Badge>
+						)}
+					</div>
 				</div>
 
 				{/* Stats */}
-				<div className="grid gap-4 sm:grid-cols-3 mb-8">
-					<Card>
-						<CardContent className="p-5">
-							<p className="text-sm text-muted-foreground">Pending</p>
-							<p className="text-2xl font-bold mt-1">{pendingCount}</p>
-						</CardContent>
-					</Card>
-					<Card>
-						<CardContent className="p-5">
-							<p className="text-sm text-muted-foreground">Accepted</p>
-							<p className="text-2xl font-bold mt-1">
-								{matches.filter((m) => m.status === "accepted").length}
-							</p>
-						</CardContent>
-					</Card>
-					<Card>
-						<CardContent className="p-5">
-							<p className="text-sm text-muted-foreground">Total Matches</p>
-							<p className="text-2xl font-bold mt-1">{matches.length}</p>
-						</CardContent>
-					</Card>
+				<div className="admin-stat-grid grid gap-4 sm:grid-cols-3 mb-8">
+					<div className="admin-stat-card bg-card">
+						<div className="p-5">
+							<div className="flex items-center gap-3">
+								<div className="admin-icon-glow admin-icon-amber rounded-xl p-2.5 flex items-center justify-center shadow-sm">
+									<Sparkles className="h-4.5 w-4.5 text-white" />
+								</div>
+								<div className="min-w-0 flex-1">
+									<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
+										Pending
+									</p>
+									<p className="text-2xl font-bold tracking-tight">
+										{pendingCount}
+									</p>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div className="admin-stat-card bg-card">
+						<div className="p-5">
+							<div className="flex items-center gap-3">
+								<div className="admin-icon-glow admin-icon-emerald rounded-xl p-2.5 flex items-center justify-center shadow-sm">
+									<BadgeCheck className="h-4.5 w-4.5 text-white" />
+								</div>
+								<div className="min-w-0 flex-1">
+									<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
+										Accepted
+									</p>
+									<p className="text-2xl font-bold tracking-tight">
+										{matches.filter((m) => m.status === "accepted").length}
+									</p>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div className="admin-stat-card bg-card">
+						<div className="p-5">
+							<div className="flex items-center gap-3">
+								<div className="admin-icon-glow admin-icon-blue rounded-xl p-2.5 flex items-center justify-center shadow-sm">
+									<Briefcase className="h-4.5 w-4.5 text-white" />
+								</div>
+								<div className="min-w-0 flex-1">
+									<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
+										Total Matches
+									</p>
+									<p className="text-2xl font-bold tracking-tight">
+										{matches.length}
+									</p>
+								</div>
+							</div>
+						</div>
+					</div>
 				</div>
 
 				{/* Filter */}
@@ -410,35 +441,6 @@ export default function InvestorMatchesPage() {
 													View Pitch
 												</Button>
 
-												{/* Show Schedule button if accepted but no meeting */}
-												{match.status === "accepted" &&
-													!meetingMap[match._id] && (
-														<Button
-															variant="outline"
-															size="sm"
-															onClick={() => setScheduleTarget(match)}
-														>
-															<CalendarDays className="h-3.5 w-3.5 mr-1" />
-															Schedule
-														</Button>
-													)}
-
-												{/* Show Join button if meeting exists */}
-												{meetingMap[match._id] && (
-													<Button
-														size="sm"
-														onClick={() =>
-															router.push(
-																`/investor/meeting/${meetingMap[match._id]._id}`,
-															)
-														}
-														className="bg-green-600 hover:bg-green-700"
-													>
-														<Video className="h-3.5 w-3.5 mr-1" />
-														Join
-													</Button>
-												)}
-
 												{isPending && (
 													<>
 														<Button
@@ -477,23 +479,6 @@ export default function InvestorMatchesPage() {
 					</div>
 				)}
 			</DashboardLayout>
-
-			{/* Schedule Meeting Modal */}
-			{scheduleTarget && (
-				<ScheduleMeetingModal
-					submissionId={scheduleTarget.submissionId._id}
-					submissionTitle={scheduleTarget.submissionId.title}
-					entrepreneurUserId={""}
-					onClose={() => setScheduleTarget(null)}
-					onScheduled={(meeting) => {
-						setMeetingMap((prev) => ({
-							...prev,
-							[scheduleTarget._id]: meeting,
-						}));
-						setScheduleTarget(null);
-					}}
-				/>
-			)}
 		</ProtectedRoute>
 	);
 }

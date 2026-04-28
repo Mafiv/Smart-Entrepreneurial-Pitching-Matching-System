@@ -100,6 +100,42 @@ router.get(
 
 /**
  * @openapi
+ * /api/matching/respond/{submissionId}:
+ *   patch:
+ *     tags: [Matching]
+ *     summary: Investor accepts or declines a project directly from feed
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: submissionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [status]
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [accepted, declined]
+ *     responses:
+ *       200:
+ *         description: Match status updated (or match created)
+ */
+router.patch(
+	"/direct-respond/:submissionId",
+	authenticate,
+	authorize("investor"),
+	MatchingController.respondToSubmission,
+);
+
+/**
+ * @openapi
  * /api/matching/{matchId}/status:
  *   patch:
  *     tags: [Matching]
@@ -132,6 +168,41 @@ router.patch(
 	authenticate,
 	authorize("investor"),
 	MatchingController.updateInvestorMatchStatus,
+);
+
+/**
+ * @openapi
+ * /api/matching/matches/{matchId}/approve:
+ *   patch:
+ *     tags: [Matching]
+ *     summary: Entrepreneur approves or declines an investment request
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: matchId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [approved]
+ *             properties:
+ *               approved:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Match status updated
+ */
+router.patch(
+	"/matches/:matchId/approve",
+	authenticate,
+	authorize("entrepreneur"),
+	MatchingController.approveInvestmentRequest,
 );
 
 export default router;
