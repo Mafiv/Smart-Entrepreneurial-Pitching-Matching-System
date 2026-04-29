@@ -1,8 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'dart:async';
 import '../../../../core/config/api_config.dart';
+import '../../../../core/config/urls.dart';
 import '../../../../core/error/failures.dart';
+import '../../../../core/mock/mock_backend.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../domain/entities/user_entity.dart';
 import '../models/user_model.dart';
@@ -48,6 +51,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final FirebaseAuth _firebaseAuth;
   final GoogleSignIn _googleSignIn;
   final DioClient _dioClient;
+  UserModel? _mockCurrentUser;
 
   AuthRemoteDataSourceImpl({
     FirebaseAuth? firebaseAuth,
@@ -58,10 +62,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         _dioClient = dioClient;
 
   @override
-  Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
+  Stream<User?> get authStateChanges =>
+      ApiConfig.useMockData ? const Stream<User?>.empty() : _firebaseAuth.authStateChanges();
 
   @override
-  User? get currentFirebaseUser => _firebaseAuth.currentUser;
+  User? get currentFirebaseUser =>
+      ApiConfig.useMockData ? null : _firebaseAuth.currentUser;
 
   @override
   Future<UserModel> signUp({
@@ -72,6 +78,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     String? companyName,
     String? fundName,
   }) async {
+    if (ApiConfig.useMockData) {
+      await Future<void>.delayed(ApiConfig.mockLatency);
+      _mockCurrentUser = _buildMockSignedInUser(
+        email: email,
+        fullName: fullName,
+        role: role,
+      );
+      return _mockCurrentUser!;
+    }
     try {
       final credential = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email,
@@ -101,6 +116,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String email,
     required String password,
   }) async {
+    if (ApiConfig.useMockData) {
+      await Future<void>.delayed(ApiConfig.mockLatency);
+      _mockCurrentUser ??= _buildMockSignedInUser(
+        email: email,
+        fullName: 'Demo Entrepreneur',
+        role: UserRole.entrepreneur,
+      );
+      return _mockCurrentUser!;
+    }
     try {
       await _firebaseAuth.signInWithEmailAndPassword(
         email: email,
@@ -126,6 +150,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     String? companyName,
     String? fundName,
   }) async {
+    if (ApiConfig.useMockData) {
+      await Future<void>.delayed(ApiConfig.mockLatency);
+      _mockCurrentUser = _buildMockSignedInUser(
+        email: 'google.demo@sepms.app',
+        fullName: role == UserRole.investor ? 'Demo Investor' : 'Demo Entrepreneur',
+        role: role,
+      );
+      return _mockCurrentUser!;
+    }
     try {
       final googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
@@ -162,6 +195,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<void> signOut() async {
+    if (ApiConfig.useMockData) {
+      await Future<void>.delayed(ApiConfig.mockLatency);
+      _mockCurrentUser = null;
+      return;
+    }
     try {
       await Future.wait([
         _firebaseAuth.signOut(),
@@ -174,6 +212,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<UserModel?> getCurrentUser() async {
+    if (ApiConfig.useMockData) {
+      await Future<void>.delayed(ApiConfig.mockLatency);
+      return _mockCurrentUser;
+    }
     if (_firebaseAuth.currentUser == null) {
       return null;
     }
@@ -182,6 +224,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<void> resendEmailVerification() async {
+    if (ApiConfig.useMockData) {
+      await Future<void>.delayed(ApiConfig.mockLatency);
+      return;
+    }
     try {
       final user = _firebaseAuth.currentUser;
       if (user == null) {
@@ -198,6 +244,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<UserModel> refreshUserProfile() async {
+    if (ApiConfig.useMockData) {
+      await Future<void>.delayed(ApiConfig.mockLatency);
+      if (_mockCurrentUser == null) {
+        throw const AuthFailure(message: 'No user logged in');
+      }
+      _mockCurrentUser = UserModel.fromJson({
+        ..._mockCurrentUser!.toJson(),
+        'emailVerified': true,
+        'updatedAt': DateTime.now().toUtc().toIso8601String(),
+      });
+      return _mockCurrentUser!;
+    }
     try {
       final user = _firebaseAuth.currentUser;
       if (user == null) {
@@ -219,6 +277,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<void> sendPasswordResetEmail(String email) async {
+    if (ApiConfig.useMockData) {
+      await Future<void>.delayed(ApiConfig.mockLatency);
+      return;
+    }
     try {
       await _firebaseAuth.sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch (e) {
@@ -232,10 +294,21 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   /// as first-time Google sign-in that then call [_registerWithBackend].
   Future<UserModel?> _fetchUserProfile() async {
     try {
-      final response = await _dioClient.get(ApiConfig.me);
-      developer.log('GET ${ApiConfig.me} status=${response.statusCode}',
+      if (ApiConfig.useMockData) {
+        await Future<void>.delayed(ApiConfig.mockLatency);
+        final fbUser = _firebaseAuth.currentUser;
+        if (fbUser == null) return null;
+        return MockBackend.mockUser(
+          uid: fbUser.uid,
+          email: fbUser.email,
+          displayName: fbUser.displayName,
+          role: UserRole.entrepreneur,
+        );
+      }
+      final response = await _dioClient.get(Urls.authMe);
+      developer.log('GET ${Urls.authMe} status=${response.statusCode}',
           name: 'auth_remote_datasource');
-      developer.log('GET ${ApiConfig.me} data=${response.data}',
+      developer.log('GET ${Urls.authMe} data=${response.data}',
           name: 'auth_remote_datasource');
 
       if (response.statusCode == 200) {
@@ -342,8 +415,19 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     String? fundName,
   }) async {
     try {
+      if (ApiConfig.useMockData) {
+        await Future<void>.delayed(ApiConfig.mockLatency);
+        final fbUser = _firebaseAuth.currentUser;
+        final uid = fbUser?.uid ?? 'user_mock_${DateTime.now().millisecondsSinceEpoch}';
+        return MockBackend.mockUser(
+          uid: uid,
+          email: fbUser?.email,
+          displayName: fullName,
+          role: role,
+        );
+      }
       final response = await _dioClient.post(
-        ApiConfig.register,
+        Urls.authRegister,
         data: {
           'fullName': fullName,
           'role': role.name,
@@ -355,10 +439,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final resp = response.data;
-        developer.log(
-            'POST ${ApiConfig.register} status=${response.statusCode}',
+        developer.log('POST ${Urls.authRegister} status=${response.statusCode}',
             name: 'auth_remote_datasource');
-        developer.log('POST ${ApiConfig.register} data=${resp}',
+        developer.log('POST ${Urls.authRegister} data=${resp}',
             name: 'auth_remote_datasource');
         developer.log('Register response type: ${resp.runtimeType}',
             name: 'auth_remote_datasource');
@@ -424,5 +507,25 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (e is AuthFailure) rethrow;
       throw AuthFailure(message: 'Failed to register: $e');
     }
+  }
+
+  UserModel _buildMockSignedInUser({
+    required String email,
+    required String fullName,
+    required UserRole role,
+  }) {
+    final base = MockBackend.mockUser(
+      uid: 'mock_auth_${email.hashCode.abs()}',
+      email: email,
+      displayName: fullName,
+      role: role,
+    );
+    return UserModel.fromJson({
+      ...base.toJson(),
+      'emailVerified': true,
+      'status': 'verified',
+      'isActive': true,
+      'updatedAt': DateTime.now().toUtc().toIso8601String(),
+    });
   }
 }

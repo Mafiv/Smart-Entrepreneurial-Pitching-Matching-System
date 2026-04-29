@@ -28,7 +28,7 @@ class _MatchResultsPageState extends State<MatchResultsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Match results'),
+        title: const Text('Match Results'),
         actions: [
           IconButton(
             icon: const Icon(Icons.play_arrow),
@@ -51,58 +51,78 @@ class _MatchResultsPageState extends State<MatchResultsPage> {
               }
               if (state.status == MatchingStatus.error) {
                 return Center(
-                    child: Text(state.error ?? 'Failed to load results'));
+                  child: Text(state.error ??
+                      'Could not load match results. Please try again.'),
+                );
               }
               if (state.results.isEmpty) {
                 return const Center(
-                    child: Text('No matches yet. Tap ▶ to run.'));
+                  child: Text(
+                      'No matches yet. Tap Run Matching to generate results.'),
+                );
               }
-              return ListView.separated(
-                itemCount: state.results.length,
-                separatorBuilder: (_, __) => AppSpacing.gapSm,
-                itemBuilder: (context, i) {
-                  final r = state.results[i];
-                  return Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Text(
-                          //   r.investorName.isEmpty ? 'Investor' : r.investorName,
-                          //   style: Theme.of(context).textTheme.titleMedium,
-                          // ),
-                          AppSpacing.gapXs,
-                          Text('Score: ${r.score?.toStringAsFixed(2) ?? '-'}'),
-                          Text('Status: ${r.status}'),
-                          AppSpacing.gapSm,
-                          Text('Match ID: ${r.id}'),
-                          if (r.status == 'accepted') ...[
-                            AppSpacing.gapSm,
-                            ElevatedButton(
-                              onPressed: r.id.isEmpty
-                                  ? null
-                                  : () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => BlocProvider(
-                                            create: (_) =>
-                                                sl<SendInvitationBloc>(),
-                                            child: SendInvitationPage(
-                                                matchId: r.id),
-                                          ),
-                                        ),
-                                      );
-                                    },
-                              child: const Text('Send invitation'),
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'AI-ranked investor candidates for this submission',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  AppSpacing.gapMd,
+                  Expanded(
+                    child: ListView.separated(
+                      itemCount: state.results.length,
+                      separatorBuilder: (_, __) => AppSpacing.gapMd,
+                      itemBuilder: (context, i) {
+                        final r = state.results[i];
+                        return Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Text(
+                                    'Compatibility score: ${r.score?.toStringAsFixed(2) ?? '-'}'),
+                                AppSpacing.gapXs,
+                                Wrap(
+                                  spacing: 8,
+                                  children: [
+                                    Chip(
+                                        label: Text(
+                                            r.status.toString().toUpperCase()))
+                                  ],
+                                ),
+                                AppSpacing.gapSm,
+                                Text('Match reference: ${r.id}'),
+                                if (r.status == 'accepted') ...[
+                                  AppSpacing.gapSm,
+                                  ElevatedButton(
+                                    onPressed: r.id.isEmpty
+                                        ? null
+                                        : () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) => BlocProvider(
+                                                  create: (_) =>
+                                                      sl<SendInvitationBloc>(),
+                                                  child: SendInvitationPage(
+                                                      matchId: r.id),
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                    child: const Text('Send Invitation'),
+                                  ),
+                                ],
+                              ],
                             ),
-                          ],
-                        ],
-                      ),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
+                  ),
+                ],
               );
             },
           ),

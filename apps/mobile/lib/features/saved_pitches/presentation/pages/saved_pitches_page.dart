@@ -22,11 +22,13 @@ class _SavedPitchesPageState extends State<SavedPitchesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Saved pitches'),
+        title: const Text('Saved Pitches'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => context.read<SavedPitchesBloc>().add(const SavedPitchesRequested()),
+            onPressed: () => context
+                .read<SavedPitchesBloc>()
+                .add(const SavedPitchesRequested()),
           ),
         ],
       ),
@@ -35,30 +37,51 @@ class _SavedPitchesPageState extends State<SavedPitchesPage> {
           padding: AppSpacing.screenPadding,
           child: BlocBuilder<SavedPitchesBloc, SavedPitchesState>(
             builder: (context, state) {
-              if (state.isLoading) return const Center(child: CircularProgressIndicator());
+              if (state.isLoading)
+                return const Center(child: CircularProgressIndicator());
               if (state.status == SavedPitchesStatus.error) {
-                return Center(child: Text(state.error ?? 'Failed to load saved pitches'));
+                return Center(
+                  child: Text(state.error ??
+                      'Could not load saved pitches. Please try again.'),
+                );
               }
-              if (state.items.isEmpty) return const Center(child: Text('No saved pitches.'));
+              if (state.items.isEmpty)
+                return const Center(child: Text('No saved pitches yet.'));
 
-              return ListView.separated(
-                itemCount: state.items.length,
-                separatorBuilder: (_, __) => AppSpacing.gapSm,
-                itemBuilder: (context, i) {
-                  final p = state.items[i];
-                  return Card(
-                    child: ListTile(
-                      title: Text(p.title.isEmpty ? 'Untitled pitch' : p.title),
-                      subtitle: Text('Sector: ${p.sector}  Stage: ${p.stage}'),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.bookmark_remove_outlined),
-                        onPressed: p.id.isEmpty
-                            ? null
-                            : () => context.read<SavedPitchesBloc>().add(SavedPitchToggled(p.id)),
-                      ),
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Your bookmarked opportunities in one place',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  AppSpacing.gapMd,
+                  Expanded(
+                    child: ListView.separated(
+                      itemCount: state.items.length,
+                      separatorBuilder: (_, __) => AppSpacing.gapMd,
+                      itemBuilder: (context, i) {
+                        final p = state.items[i];
+                        return Card(
+                          child: ListTile(
+                            title: Text(
+                                p.title.isEmpty ? 'Untitled pitch' : p.title),
+                            subtitle: Text(
+                                'Sector: ${p.sector}  •  Stage: ${p.stage}'),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.bookmark_remove_outlined),
+                              onPressed: p.id.isEmpty
+                                  ? null
+                                  : () => context
+                                      .read<SavedPitchesBloc>()
+                                      .add(SavedPitchToggled(p.id)),
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
+                  ),
+                ],
               );
             },
           ),
@@ -67,4 +90,3 @@ class _SavedPitchesPageState extends State<SavedPitchesPage> {
     );
   }
 }
-

@@ -44,7 +44,8 @@ class _DocumentsPageState extends State<DocumentsPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => context.read<DocumentsBloc>().add(const DocumentsRequested()),
+            onPressed: () =>
+                context.read<DocumentsBloc>().add(const DocumentsRequested()),
           ),
         ],
       ),
@@ -59,19 +60,41 @@ class _DocumentsPageState extends State<DocumentsPage> {
             children: [
               Row(
                 children: [
-                  const Text('Type:'),
-                  const SizedBox(width: 12),
-                  DropdownButton<String>(
-                    value: _type,
-                    items: const [
-                      DropdownMenuItem(value: 'pitch_deck', child: Text('Pitch deck')),
-                      DropdownMenuItem(value: 'financial_model', child: Text('Financial model')),
-                      DropdownMenuItem(value: 'legal', child: Text('Legal')),
-                      DropdownMenuItem(value: 'other', child: Text('Other')),
-                    ],
-                    onChanged: (v) => setState(() => _type = v ?? 'pitch_deck'),
+                  Expanded(
+                    child: Text(
+                      'Manage uploaded files and validations',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
                   ),
                 ],
+              ),
+              AppSpacing.gapMd,
+              Card(
+                child: Padding(
+                  padding: AppSpacing.paddingMd,
+                  child: Row(
+                    children: [
+                      const Text('Upload type'),
+                      const SizedBox(width: 12),
+                      DropdownButton<String>(
+                        value: _type,
+                        items: const [
+                          DropdownMenuItem(
+                              value: 'pitch_deck', child: Text('Pitch deck')),
+                          DropdownMenuItem(
+                              value: 'financial_model',
+                              child: Text('Financial model')),
+                          DropdownMenuItem(
+                              value: 'legal', child: Text('Legal')),
+                          DropdownMenuItem(
+                              value: 'other', child: Text('Other')),
+                        ],
+                        onChanged: (v) =>
+                            setState(() => _type = v ?? 'pitch_deck'),
+                      ),
+                    ],
+                  ),
+                ),
               ),
               AppSpacing.gapMd,
               Expanded(
@@ -81,33 +104,48 @@ class _DocumentsPageState extends State<DocumentsPage> {
                       return const Center(child: CircularProgressIndicator());
                     }
                     if (state.status == DocumentsStatus.error) {
-                      return Center(child: Text(state.error ?? 'Failed to load documents'));
+                      return Center(
+                        child: Text(state.error ??
+                            'Could not load documents. Please try again.'),
+                      );
                     }
                     if (state.items.isEmpty) {
-                      return const Center(child: Text('No documents yet.'));
+                      return const Center(
+                        child: Text(
+                            'No documents yet. Tap upload to add your first file.'),
+                      );
                     }
                     return ListView.separated(
                       itemCount: state.items.length,
-                      separatorBuilder: (_, __) => AppSpacing.gapSm,
+                      separatorBuilder: (_, __) => AppSpacing.gapMd,
                       itemBuilder: (context, i) {
                         final d = state.items[i];
                         return Card(
                           child: ListTile(
                             title: Text(d.filename.isEmpty ? d.id : d.filename),
-                            subtitle: Text('Type: ${d.type}  Status: ${d.status}'),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.delete_outline),
-                              onPressed: d.id.isEmpty
-                                  ? null
-                                  : () => context
-                                      .read<DocumentsBloc>()
-                                      .add(DocumentDeleteRequested(d.id)),
+                            subtitle:
+                                Text('Type: ${d.type}  •  Status: ${d.status}'),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.rule_folder_outlined),
+                                  onPressed: d.id.isEmpty
+                                      ? null
+                                      : () => context.read<DocumentsBloc>().add(
+                                          DocumentValidationRequested(d.id)),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline),
+                                  onPressed: d.id.isEmpty
+                                      ? null
+                                      : () => context
+                                          .read<DocumentsBloc>()
+                                          .add(DocumentDeleteRequested(d.id)),
+                                ),
+                              ],
                             ),
-                            onTap: d.id.isEmpty
-                                ? null
-                                : () => context
-                                    .read<DocumentsBloc>()
-                                    .add(DocumentValidationRequested(d.id)),
+                            onTap: d.id.isEmpty ? null : () {},
                           ),
                         );
                       },
@@ -122,4 +160,3 @@ class _DocumentsPageState extends State<DocumentsPage> {
     );
   }
 }
-

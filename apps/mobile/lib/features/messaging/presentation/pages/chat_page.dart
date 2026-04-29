@@ -20,8 +20,12 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
-    context.read<MessagingBloc>().add(MessagesRequested(widget.conversationId, page: 1, limit: 30));
-    context.read<MessagingBloc>().add(ConversationReadRequested(widget.conversationId));
+    context
+        .read<MessagingBloc>()
+        .add(MessagesRequested(widget.conversationId, page: 1, limit: 30));
+    context
+        .read<MessagingBloc>()
+        .add(ConversationReadRequested(widget.conversationId));
   }
 
   @override
@@ -35,7 +39,8 @@ class _ChatPageState extends State<ChatPage> {
     if (text.isEmpty) return;
     _controller.clear();
     context.read<MessagingBloc>().add(
-          MessageSendRequested(conversationId: widget.conversationId, body: text),
+          MessageSendRequested(
+              conversationId: widget.conversationId, body: text),
         );
   }
 
@@ -47,9 +52,8 @@ class _ChatPageState extends State<ChatPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => context
-                .read<MessagingBloc>()
-                .add(MessagesRequested(widget.conversationId, page: 1, limit: 30)),
+            onPressed: () => context.read<MessagingBloc>().add(
+                MessagesRequested(widget.conversationId, page: 1, limit: 30)),
           ),
         ],
       ),
@@ -64,25 +68,36 @@ class _ChatPageState extends State<ChatPage> {
                     if (state.isLoading && state.messages.isEmpty) {
                       return const Center(child: CircularProgressIndicator());
                     }
-                    if (state.status == MessagingStatus.error && state.messages.isEmpty) {
-                      return Center(child: Text(state.error ?? 'Failed to load messages'));
+                    if (state.status == MessagingStatus.error &&
+                        state.messages.isEmpty) {
+                      return Center(
+                        child: Text(state.error ??
+                            'Could not load messages. Please try again.'),
+                      );
                     }
                     final msgs = state.messages;
-                    if (msgs.isEmpty) return const Center(child: Text('No messages yet.'));
+                    if (msgs.isEmpty)
+                      return const Center(
+                        child: Text('No messages yet. Start the conversation.'),
+                      );
 
-                    return ListView.builder(
+                    return ListView.separated(
                       reverse: true,
                       itemCount: msgs.length,
+                      separatorBuilder: (_, __) => AppSpacing.gapXs,
                       itemBuilder: (context, i) {
                         final m = msgs[msgs.length - 1 - i];
                         return Align(
                           alignment: Alignment.centerLeft,
                           child: Container(
-                            margin: const EdgeInsets.symmetric(vertical: 4),
-                            padding: const EdgeInsets.all(10),
+                            constraints: const BoxConstraints(maxWidth: 320),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 10),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                              borderRadius: BorderRadius.circular(10),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(14),
                             ),
                             child: Text(m.body),
                           ),
@@ -99,7 +114,6 @@ class _ChatPageState extends State<ChatPage> {
                 children: [
                   Expanded(
                     child: AppTextField(
-                      label: '',
                       hint: 'Type a message',
                       controller: _controller,
                       textInputAction: TextInputAction.send,
@@ -120,4 +134,3 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 }
-

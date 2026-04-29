@@ -14,25 +14,40 @@ class NotificationsPage extends StatelessWidget {
         if (state.isLoading && state.notifications.isEmpty) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (state.status == MessagingStatus.error && state.notifications.isEmpty) {
-          return Center(child: Text(state.error ?? 'Failed to load notifications'));
+        if (state.status == MessagingStatus.error &&
+            state.notifications.isEmpty) {
+          return Center(
+            child: Text(state.error ??
+                'Could not load notifications. Please try again.'),
+          );
         }
         if (state.notifications.isEmpty) {
-          return const Center(child: Text('No notifications.'));
+          return const Center(child: Text('No notifications yet.'));
         }
         return ListView.separated(
           itemCount: state.notifications.length,
-          separatorBuilder: (_, __) => AppSpacing.gapSm,
+          separatorBuilder: (_, __) => AppSpacing.gapMd,
           itemBuilder: (context, i) {
             final n = state.notifications[i];
             return Card(
               child: ListTile(
                 title: Text(n.title),
                 subtitle: Text(n.body),
-                trailing: n.read ? const Icon(Icons.check) : const Icon(Icons.circle_outlined),
+                trailing: n.read
+                    ? const Icon(Icons.check_circle_outline)
+                    : Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
                 onTap: n.id.isEmpty
                     ? null
-                    : () => context.read<MessagingBloc>().add(NotificationReadRequested(n.id)),
+                    : () => context
+                        .read<MessagingBloc>()
+                        .add(NotificationReadRequested(n.id)),
               ),
             );
           },
@@ -41,4 +56,3 @@ class NotificationsPage extends StatelessWidget {
     );
   }
 }
-

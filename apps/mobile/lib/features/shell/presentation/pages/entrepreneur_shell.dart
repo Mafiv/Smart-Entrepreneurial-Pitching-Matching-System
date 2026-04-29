@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/widgets/app_bottom_nav.dart';
 import '../../../entrepreneur_profile/presentation/bloc/entrepreneur_profile_bloc.dart';
 import '../../../entrepreneur_profile/presentation/pages/entrepreneur_profile_page.dart';
 import '../../../../core/di/injection_container.dart';
@@ -19,10 +20,12 @@ class EntrepreneurShell extends StatefulWidget {
 
 class _EntrepreneurShellState extends State<EntrepreneurShell> {
   int _index = 0;
+  late final List<Widget> _pages;
 
   @override
-  Widget build(BuildContext context) {
-    final pages = <Widget>[
+  void initState() {
+    super.initState();
+    _pages = <Widget>[
       const EntrepreneurHomePage(),
       BlocProvider<SubmissionsBloc>(
         create: (_) => sl<SubmissionsBloc>(),
@@ -37,24 +40,34 @@ class _EntrepreneurShellState extends State<EntrepreneurShell> {
         child: const EntrepreneurProfilePage(),
       ),
     ];
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      body: pages[_index],
-      bottomNavigationBar: NavigationBar(
+      body: IndexedStack(index: _index, children: _pages),
+      bottomNavigationBar: AppBottomNav(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
-          NavigationDestination(
-            icon: Icon(Icons.description_outlined),
+        destinations: const <AppBottomNavDestination>[
+          AppBottomNavDestination(
+            icon: Icons.home_outlined,
+            selectedIcon: Icons.home,
+            label: 'Home',
+          ),
+          AppBottomNavDestination(
+            icon: Icons.description_outlined,
+            selectedIcon: Icons.description,
             label: 'Pitches',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.chat_bubble_outline),
+          AppBottomNavDestination(
+            icon: Icons.chat_bubble_outline,
+            selectedIcon: Icons.chat_bubble,
             label: 'Messages',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
+          AppBottomNavDestination(
+            icon: Icons.person_outline,
+            selectedIcon: Icons.person,
             label: 'Profile',
           ),
         ],
@@ -62,22 +75,3 @@ class _EntrepreneurShellState extends State<EntrepreneurShell> {
     );
   }
 }
-
-class _PlaceholderTab extends StatelessWidget {
-  final String title;
-  const _PlaceholderTab({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Center(
-        child: Text(
-          title,
-          style: Theme.of(context).textTheme.headlineSmall,
-          textAlign: TextAlign.center,
-        ),
-      ),
-    );
-  }
-}
-

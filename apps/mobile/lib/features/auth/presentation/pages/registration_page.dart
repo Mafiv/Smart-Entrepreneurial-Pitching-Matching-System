@@ -150,101 +150,113 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     textAlign: TextAlign.center,
                   ),
                   AppSpacing.gapLg,
-                  RoleSelector(
-                    selectedRole: _selectedRole,
-                    onRoleChanged: _onRoleChanged,
-                    enabled: !_isLoading,
-                  ),
-                  AppSpacing.gapLg,
-                  GoogleSignInButton(
-                    onPressed: _isLoading ? null : _onGoogleSignUp,
-                    isLoading: _isLoading,
-                  ),
-                  AppSpacing.gapLg,
-                  const AppDividerWithText(text: 'Or continue with email'),
-                  AppSpacing.gapLg,
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: AppTextField(
-                          label: 'Full Name',
-                          hint: 'Abebe Kebede',
-                          controller: _fullNameController,
-                          prefixIcon: Icons.person_outline,
-                          textCapitalization: TextCapitalization.words,
-                          enabled: !_isLoading,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Name is required';
-                            }
-                            return null;
-                          },
-                        ),
+                  Card(
+                    child: Padding(
+                      padding: AppSpacing.paddingMd,
+                      child: Column(
+                        children: [
+                          RoleSelector(
+                            selectedRole: _selectedRole,
+                            onRoleChanged: _onRoleChanged,
+                            enabled: !_isLoading,
+                          ),
+                          AppSpacing.gapLg,
+                          GoogleSignInButton(
+                            onPressed: _isLoading ? null : _onGoogleSignUp,
+                            isLoading: _isLoading,
+                          ),
+                          AppSpacing.gapLg,
+                          const AppDividerWithText(
+                              text: 'Or continue with email'),
+                          AppSpacing.gapLg,
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: AppTextField(
+                                  label: 'Full Name',
+                                  hint: 'Abebe Kebede',
+                                  controller: _fullNameController,
+                                  prefixIcon: Icons.person_outline,
+                                  textCapitalization: TextCapitalization.words,
+                                  enabled: !_isLoading,
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Name is required';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                              AppSpacing.hGapMd,
+                              Expanded(
+                                child: AppTextField(
+                                  label: _selectedRole == UserRole.entrepreneur
+                                      ? 'Company'
+                                      : 'Org / Fund',
+                                  hint: _selectedRole == UserRole.entrepreneur
+                                      ? 'Ethio Tech PLC'
+                                      : 'Addis Capital Group',
+                                  controller: _companyController,
+                                  prefixIcon: Icons.business_outlined,
+                                  textCapitalization: TextCapitalization.words,
+                                  enabled: !_isLoading,
+                                ),
+                              ),
+                            ],
+                          ),
+                          AppSpacing.gapMd,
+                          AppTextField(
+                            label: 'Email',
+                            hint: 'you@example.com',
+                            controller: _emailController,
+                            prefixIcon: Icons.email_outlined,
+                            keyboardType: TextInputType.emailAddress,
+                            enabled: !_isLoading,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Email is required';
+                              }
+                              if (!value.contains('@')) {
+                                return 'Enter a valid email';
+                              }
+                              return null;
+                            },
+                          ),
+                          AppSpacing.gapMd,
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: AppPasswordField(
+                                  label: 'Password',
+                                  controller: _passwordController,
+                                  enabled: !_isLoading,
+                                  validator: _validatePassword,
+                                ),
+                              ),
+                              AppSpacing.hGapMd,
+                              Expanded(
+                                child: AppPasswordField(
+                                  label: 'Confirm',
+                                  controller: _confirmPasswordController,
+                                  enabled: !_isLoading,
+                                  validator: _validateConfirmPassword,
+                                ),
+                              ),
+                            ],
+                          ),
+                          AppSpacing.gapLg,
+                          AppButton(
+                            text: _isLoading
+                                ? 'Creating account...'
+                                : 'Create Account',
+                            onPressed: _isLoading ? null : _onSignUp,
+                            isLoading: _isLoading,
+                          ),
+                        ],
                       ),
-                      AppSpacing.hGapMd,
-                      Expanded(
-                        child: AppTextField(
-                          label: _selectedRole == UserRole.entrepreneur
-                              ? 'Company'
-                              : 'Org / Fund',
-                          hint: _selectedRole == UserRole.entrepreneur
-                              ? 'Ethio Tech PLC'
-                              : 'Addis Capital Group',
-                          controller: _companyController,
-                          prefixIcon: Icons.business_outlined,
-                          textCapitalization: TextCapitalization.words,
-                          enabled: !_isLoading,
-                        ),
-                      ),
-                    ],
-                  ),
-                  AppSpacing.gapMd,
-                  AppTextField(
-                    label: 'Email',
-                    hint: 'you@example.com',
-                    controller: _emailController,
-                    prefixIcon: Icons.email_outlined,
-                    keyboardType: TextInputType.emailAddress,
-                    enabled: !_isLoading,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Email is required';
-                      }
-                      if (!value.contains('@')) {
-                        return 'Enter a valid email';
-                      }
-                      return null;
-                    },
-                  ),
-                  AppSpacing.gapMd,
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: AppPasswordField(
-                          label: 'Password',
-                          controller: _passwordController,
-                          enabled: !_isLoading,
-                          validator: _validatePassword,
-                        ),
-                      ),
-                      AppSpacing.hGapMd,
-                      Expanded(
-                        child: AppPasswordField(
-                          label: 'Confirm',
-                          controller: _confirmPasswordController,
-                          enabled: !_isLoading,
-                          validator: _validateConfirmPassword,
-                        ),
-                      ),
-                    ],
-                  ),
-                  AppSpacing.gapLg,
-                  AppButton(
-                    text: _isLoading ? 'Creating account...' : 'Create Account',
-                    onPressed: _isLoading ? null : _onSignUp,
-                    isLoading: _isLoading,
+                    ),
                   ),
                   AppSpacing.gapLg,
                   Row(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/widgets/app_bottom_nav.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import '../bloc/feedback_bloc.dart';
@@ -39,7 +40,10 @@ class _FeedbackPageState extends State<FeedbackPage> {
             children: [
               AppTextField(label: 'To User ID', controller: toUserId),
               AppSpacing.gapSm,
-              AppTextField(label: 'Rating (1-5)', controller: rating, keyboardType: TextInputType.number),
+              AppTextField(
+                  label: 'Rating (1-5)',
+                  controller: rating,
+                  keyboardType: TextInputType.number),
               AppSpacing.gapSm,
               AppTextField(label: 'Category', controller: category),
               AppSpacing.gapSm,
@@ -48,7 +52,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
@@ -80,12 +85,18 @@ class _FeedbackPageState extends State<FeedbackPage> {
       appBar: AppBar(
         title: const Text('Feedback'),
         actions: [
-          IconButton(icon: const Icon(Icons.add_comment_outlined), onPressed: _submitDialog),
+          IconButton(
+              icon: const Icon(Icons.add_comment_outlined),
+              onPressed: _submitDialog),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              context.read<FeedbackBloc>().add(const FeedbackSummaryRequested());
-              context.read<FeedbackBloc>().add(const FeedbackReceivedRequested());
+              context
+                  .read<FeedbackBloc>()
+                  .add(const FeedbackSummaryRequested());
+              context
+                  .read<FeedbackBloc>()
+                  .add(const FeedbackReceivedRequested());
               context.read<FeedbackBloc>().add(const FeedbackGivenRequested());
             },
           ),
@@ -94,21 +105,45 @@ class _FeedbackPageState extends State<FeedbackPage> {
       body: SafeArea(
         child: Padding(
           padding: AppSpacing.screenPadding,
-          child: tabs[_tab],
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 220),
+            child: KeyedSubtree(
+              key: ValueKey<int>(_tab),
+              child: tabs[_tab],
+            ),
+          ),
         ),
       ),
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: AppBottomNav(
         selectedIndex: _tab,
         onDestinationSelected: (i) {
           setState(() => _tab = i);
-          if (i == 0) context.read<FeedbackBloc>().add(const FeedbackReceivedRequested());
-          if (i == 1) context.read<FeedbackBloc>().add(const FeedbackGivenRequested());
-          if (i == 2) context.read<FeedbackBloc>().add(const FeedbackSummaryRequested());
+          if (i == 0) {
+            context.read<FeedbackBloc>().add(const FeedbackReceivedRequested());
+          }
+          if (i == 1) {
+            context.read<FeedbackBloc>().add(const FeedbackGivenRequested());
+          }
+          if (i == 2) {
+            context.read<FeedbackBloc>().add(const FeedbackSummaryRequested());
+          }
         },
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.inbox_outlined), label: 'Received'),
-          NavigationDestination(icon: Icon(Icons.outbox_outlined), label: 'Given'),
-          NavigationDestination(icon: Icon(Icons.query_stats), label: 'Summary'),
+        destinations: const <AppBottomNavDestination>[
+          AppBottomNavDestination(
+            icon: Icons.inbox_outlined,
+            selectedIcon: Icons.inbox,
+            label: 'Received',
+          ),
+          AppBottomNavDestination(
+            icon: Icons.outbox_outlined,
+            selectedIcon: Icons.outbox,
+            label: 'Given',
+          ),
+          AppBottomNavDestination(
+            icon: Icons.query_stats,
+            selectedIcon: Icons.query_stats,
+            label: 'Summary',
+          ),
         ],
       ),
     );
@@ -128,13 +163,15 @@ class _FeedbackList extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
         if (state.status == FeedbackStatus.error) {
-          return Center(child: Text(state.error ?? 'Failed to load $kind'));
+          return Center(
+              child: Text(state.error ?? 'Could not load $kind feedback.'));
         }
         final items = selector(state);
-        if (items.isEmpty) return Center(child: Text('No $kind feedback.'));
+        if (items.isEmpty) return Center(child: Text('No $kind feedback yet.'));
 
-        return ListView.builder(
+        return ListView.separated(
           itemCount: items.length,
+          separatorBuilder: (_, __) => AppSpacing.gapMd,
           itemBuilder: (context, i) {
             final f = items[i];
             return Card(
@@ -159,20 +196,31 @@ class _FeedbackSummary extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
         if (state.status == FeedbackStatus.error) {
-          return Center(child: Text(state.error ?? 'Failed to load summary'));
+          return Center(child: Text(state.error ?? 'Could not load summary.'));
         }
         final s = state.summary;
-        if (s == null) return const Center(child: Text('No summary yet.'));
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        if (s == null) {
+          return const Center(child: Text('No summary available yet.'));
+        }
+        return ListView(
           children: [
-            const Text('Summary'),
+            Text(
+              'Summary',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             AppSpacing.gapMd,
-            Text(s.toString()),
+            Card(
+              child: Padding(
+                padding: AppSpacing.paddingMd,
+                child: Text(s.toString()),
+              ),
+            ),
             AppSpacing.gapMd,
             AppButton(
               text: 'Refresh',
-              onPressed: () => context.read<FeedbackBloc>().add(const FeedbackSummaryRequested()),
+              onPressed: () => context
+                  .read<FeedbackBloc>()
+                  .add(const FeedbackSummaryRequested()),
             ),
           ],
         );
@@ -180,4 +228,3 @@ class _FeedbackSummary extends StatelessWidget {
     );
   }
 }
-

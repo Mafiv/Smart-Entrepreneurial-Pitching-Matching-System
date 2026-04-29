@@ -82,7 +82,9 @@ class _LoginPageState extends State<LoginPage> {
           return;
         }
 
-        if (state.hasError && state.errorMessage != null && !_awaitingPasswordReset) {
+        if (state.hasError &&
+            state.errorMessage != null &&
+            !_awaitingPasswordReset) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.errorMessage!),
@@ -133,69 +135,81 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                     textAlign: TextAlign.center,
                   ),
-                  AppSpacing.gapXl,
-                  GoogleSignInButton(
-                    onPressed: _isLoading ? null : _onGoogleSignIn,
-                    isLoading: _isLoading,
-                  ),
                   AppSpacing.gapLg,
-                  const AppDividerWithText(text: 'Or continue with email'),
-                  AppSpacing.gapLg,
-                  AppTextField(
-                    label: 'Email',
-                    hint: 'you@example.com',
-                    controller: _emailController,
-                    prefixIcon: Icons.email_outlined,
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
-                    enabled: !_isLoading,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Email is required';
-                      }
-                      if (!value.contains('@')) {
-                        return 'Enter a valid email';
-                      }
-                      return null;
-                    },
-                  ),
-                  AppSpacing.gapMd,
-                  AppPasswordField(
-                    label: 'Password',
-                    controller: _passwordController,
-                    textInputAction: TextInputAction.done,
-                    enabled: !_isLoading,
-                    onSubmitted: (_) => _onSignIn(),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Password is required';
-                      }
-                      return null;
-                    },
-                  ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: _isLoading
-                          ? null
-                          : () {
-                              _showForgotPasswordDialog();
+                  Card(
+                    child: Padding(
+                      padding: AppSpacing.paddingMd,
+                      child: Column(
+                        children: [
+                          GoogleSignInButton(
+                            onPressed: _isLoading ? null : _onGoogleSignIn,
+                            isLoading: _isLoading,
+                          ),
+                          AppSpacing.gapLg,
+                          const AppDividerWithText(
+                              text: 'Or continue with email'),
+                          AppSpacing.gapLg,
+                          AppTextField(
+                            label: 'Email',
+                            hint: 'you@example.com',
+                            controller: _emailController,
+                            prefixIcon: Icons.email_outlined,
+                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
+                            enabled: !_isLoading,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Email is required';
+                              }
+                              if (!value.contains('@')) {
+                                return 'Enter a valid email';
+                              }
+                              return null;
                             },
-                      child: Text(
-                        'Forgot Password?',
-                        style:
-                            Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w500,
-                                ),
+                          ),
+                          AppSpacing.gapMd,
+                          AppPasswordField(
+                            label: 'Password',
+                            controller: _passwordController,
+                            textInputAction: TextInputAction.done,
+                            enabled: !_isLoading,
+                            onSubmitted: (_) => _onSignIn(),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Password is required';
+                              }
+                              return null;
+                            },
+                          ),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: _isLoading
+                                  ? null
+                                  : () {
+                                      _showForgotPasswordDialog();
+                                    },
+                              child: Text(
+                                'Forgot Password?',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                              ),
+                            ),
+                          ),
+                          AppSpacing.gapSm,
+                          AppButton(
+                            text: _isLoading ? 'Signing in...' : 'Sign In',
+                            onPressed: _isLoading ? null : _onSignIn,
+                            isLoading: _isLoading,
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  AppSpacing.gapMd,
-                  AppButton(
-                    text: _isLoading ? 'Signing in...' : 'Sign In',
-                    onPressed: _isLoading ? null : _onSignIn,
-                    isLoading: _isLoading,
                   ),
                   AppSpacing.gapLg,
                   Row(
@@ -276,7 +290,9 @@ class _LoginPageState extends State<LoginPage> {
                 return;
               }
               setState(() => _awaitingPasswordReset = true);
-              context.read<AuthBloc>().add(PasswordResetRequested(email: email));
+              context
+                  .read<AuthBloc>()
+                  .add(PasswordResetRequested(email: email));
             },
             child: const Text('Send Reset Link'),
           ),

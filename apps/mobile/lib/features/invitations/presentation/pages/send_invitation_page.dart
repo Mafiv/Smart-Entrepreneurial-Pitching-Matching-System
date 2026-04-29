@@ -41,7 +41,7 @@ class _SendInvitationPageState extends State<SendInvitationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Send invitation')),
+      appBar: AppBar(title: const Text('Send Invitation')),
       body: SafeArea(
         child: Padding(
           padding: AppSpacing.screenPadding,
@@ -54,29 +54,40 @@ class _SendInvitationPageState extends State<SendInvitationPage> {
             builder: (context, state) {
               return Form(
                 key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                child: ListView(
                   children: [
-                    Text('Match ID: ${widget.matchId}'),
+                    Text('Match reference: ${widget.matchId}'),
                     AppSpacing.gapMd,
-                    AppTextField(
-                      label: 'Message',
-                      controller: _message,
-                      maxLines: 4,
-                      validator: (v) =>
-                          (v == null || v.trim().isEmpty) ? 'Message required' : null,
-                    ),
-                    AppSpacing.gapMd,
-                    AppTextField(
-                      label: 'Expires in days',
-                      controller: _expires,
-                      keyboardType: TextInputType.number,
+                    Card(
+                      child: Padding(
+                        padding: AppSpacing.paddingMd,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            AppTextField(
+                              label: 'Message',
+                              controller: _message,
+                              maxLines: 4,
+                              validator: (v) => (v == null || v.trim().isEmpty)
+                                  ? 'Message required'
+                                  : null,
+                            ),
+                            AppSpacing.gapMd,
+                            AppTextField(
+                              label: 'Expires in days',
+                              controller: _expires,
+                              keyboardType: TextInputType.number,
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                     AppSpacing.gapLg,
                     if (state.status == SendInvitationStatus.error)
                       Text(
                         state.error ?? 'Failed to send invitation',
-                        style: TextStyle(color: Theme.of(context).colorScheme.error),
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.error),
                       ),
                     AppSpacing.gapMd,
                     AppButton(
@@ -94,4 +105,3 @@ class _SendInvitationPageState extends State<SendInvitationPage> {
     );
   }
 }
-

@@ -26,6 +26,10 @@ class EntrepreneurProfileRemoteDataSourceImpl
 
   @override
   Future<bool> hasProfile() async {
+    if (ApiConfig.useMockData) {
+      await Future<void>.delayed(ApiConfig.mockLatency);
+      return true;
+    }
     try {
       final res = await _dio.get(ApiConfig.entrepreneurProfileCheck);
       if (res.statusCode != 200) return false;
@@ -47,6 +51,28 @@ class EntrepreneurProfileRemoteDataSourceImpl
 
   @override
   Future<EntrepreneurProfileModel> getProfile() async {
+    if (ApiConfig.useMockData) {
+      await Future<void>.delayed(ApiConfig.mockLatency);
+      return EntrepreneurProfileModel.fromJson({
+        '_id': 'entrepreneur_profile_001',
+        'userId': 'user_entrepreneur_001',
+        'fullName': 'Demo Entrepreneur',
+        'companyName': 'ClinicFlow Ltd',
+        'companyRegistrationNumber': 'REG-2024-00123',
+        'businessSector': 'Health',
+        'businessStage': 'earlyRevenue',
+        'bio':
+            'Founder building operational tools for rural clinics. Background in product and health systems.',
+        'website': 'https://example.com/clinicflow',
+        'location': 'Addis Ababa',
+        'teamSize': 6,
+        'createdAt': DateTime.now()
+            .toUtc()
+            .subtract(const Duration(days: 90))
+            .toIso8601String(),
+        'updatedAt': DateTime.now().toUtc().toIso8601String(),
+      });
+    }
     try {
       final res = await _dio.get(ApiConfig.entrepreneurProfile);
       if (res.statusCode == 200) {
@@ -78,6 +104,20 @@ class EntrepreneurProfileRemoteDataSourceImpl
     required String businessSector,
     required String businessStage,
   }) async {
+    if (ApiConfig.useMockData) {
+      await Future<void>.delayed(ApiConfig.mockLatency);
+      return EntrepreneurProfileModel.fromJson({
+        '_id': 'entrepreneur_profile_001',
+        'userId': 'user_entrepreneur_001',
+        'fullName': fullName,
+        'companyName': companyName,
+        'companyRegistrationNumber': companyRegistrationNumber,
+        'businessSector': businessSector,
+        'businessStage': businessStage,
+        'createdAt': DateTime.now().toUtc().toIso8601String(),
+        'updatedAt': DateTime.now().toUtc().toIso8601String(),
+      });
+    }
     try {
       final res = await _dio.post(
         ApiConfig.entrepreneurProfile,
@@ -108,6 +148,13 @@ class EntrepreneurProfileRemoteDataSourceImpl
 
   @override
   Future<EntrepreneurProfileModel> updateProfile(Map<String, dynamic> patch) async {
+    if (ApiConfig.useMockData) {
+      await Future<void>.delayed(ApiConfig.mockLatency);
+      final base = (await getProfile()).data;
+      final updated = Map<String, dynamic>.from(base)..addAll(patch);
+      updated['updatedAt'] = DateTime.now().toUtc().toIso8601String();
+      return EntrepreneurProfileModel.fromJson(updated);
+    }
     try {
       final res = await _dio.put(
         ApiConfig.entrepreneurProfile,

@@ -24,7 +24,8 @@ class _MilestonesPageState extends State<MilestonesPage> {
     final matchResultId = TextEditingController();
     final title = TextEditingController();
     final amount = TextEditingController();
-    final dueDate = TextEditingController(text: DateTime.now().add(const Duration(days: 14)).toIso8601String());
+    final dueDate = TextEditingController(
+        text: DateTime.now().add(const Duration(days: 14)).toIso8601String());
 
     showDialog(
       context: context,
@@ -40,14 +41,18 @@ class _MilestonesPageState extends State<MilestonesPage> {
               AppSpacing.gapSm,
               AppTextField(label: 'Title', controller: title),
               AppSpacing.gapSm,
-              AppTextField(label: 'Amount', controller: amount, keyboardType: TextInputType.number),
+              AppTextField(
+                  label: 'Amount',
+                  controller: amount,
+                  keyboardType: TextInputType.number),
               AppSpacing.gapSm,
               AppTextField(label: 'Due date (ISO)', controller: dueDate),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
@@ -88,7 +93,8 @@ class _MilestonesPageState extends State<MilestonesPage> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
@@ -97,7 +103,11 @@ class _MilestonesPageState extends State<MilestonesPage> {
                       id: milestoneId,
                       payload: {
                         'evidenceDocuments': [
-                          {'name': name.text.trim(), 'url': url.text.trim(), 'type': type.text.trim()},
+                          {
+                            'name': name.text.trim(),
+                            'url': url.text.trim(),
+                            'type': type.text.trim()
+                          },
                         ],
                       },
                     ),
@@ -133,14 +143,18 @@ class _MilestonesPageState extends State<MilestonesPage> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
               context.read<MilestonesBloc>().add(
                     MilestoneVerified(
                       id: milestoneId,
-                      payload: {'approved': approved.value, 'notes': notes.text.trim()},
+                      payload: {
+                        'approved': approved.value,
+                        'notes': notes.text.trim()
+                      },
                     ),
                   );
             },
@@ -160,7 +174,8 @@ class _MilestonesPageState extends State<MilestonesPage> {
           IconButton(icon: const Icon(Icons.add), onPressed: _createDialog),
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => context.read<MilestonesBloc>().add(const MilestonesRequested()),
+            onPressed: () =>
+                context.read<MilestonesBloc>().add(const MilestonesRequested()),
           ),
         ],
       ),
@@ -169,45 +184,76 @@ class _MilestonesPageState extends State<MilestonesPage> {
           padding: AppSpacing.screenPadding,
           child: BlocBuilder<MilestonesBloc, MilestonesState>(
             builder: (context, state) {
-              if (state.isLoading) return const Center(child: CircularProgressIndicator());
+              if (state.isLoading)
+                return const Center(child: CircularProgressIndicator());
               if (state.status == MilestonesStatus.error) {
-                return Center(child: Text(state.error ?? 'Failed to load milestones'));
+                return Center(
+                    child: Text(state.error ?? 'Failed to load milestones'));
               }
-              if (state.items.isEmpty) return const Center(child: Text('No milestones.'));
-              return ListView.separated(
-                itemCount: state.items.length,
-                separatorBuilder: (_, __) => AppSpacing.gapSm,
-                itemBuilder: (context, i) {
-                  final m = state.items[i];
-                  return Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(m.title.isEmpty ? 'Milestone' : m.title, style: Theme.of(context).textTheme.titleMedium),
-                          AppSpacing.gapXs,
-                          Text('Status: ${m.status}'),
-                          if (m.amount != null) Text('Amount: ${m.amount} ${m.currency}'),
-                          AppSpacing.gapSm,
-                          Wrap(
-                            spacing: 8,
-                            children: [
-                              OutlinedButton(
-                                onPressed: m.id.isEmpty ? null : () => _evidenceDialog(m.id),
-                                child: const Text('Evidence'),
-                              ),
-                              OutlinedButton(
-                                onPressed: m.id.isEmpty ? null : () => _verifyDialog(m.id),
-                                child: const Text('Verify'),
-                              ),
-                            ],
+              if (state.items.isEmpty)
+                return const Center(child: Text('No milestones.'));
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Track evidence and verification progress',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  AppSpacing.gapMd,
+                  Expanded(
+                    child: ListView.separated(
+                      itemCount: state.items.length,
+                      separatorBuilder: (_, __) => AppSpacing.gapMd,
+                      itemBuilder: (context, i) {
+                        final m = state.items[i];
+                        return Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Text(
+                                  m.title.isEmpty ? 'Milestone' : m.title,
+                                  style:
+                                      Theme.of(context).textTheme.titleMedium,
+                                ),
+                                AppSpacing.gapXs,
+                                Wrap(
+                                  spacing: 8,
+                                  children: [
+                                    Chip(
+                                        label:
+                                            Text(m.status.name.toUpperCase()))
+                                  ],
+                                ),
+                                if (m.amount != null)
+                                  Text('Amount: ${m.amount} ${m.currency}'),
+                                AppSpacing.gapSm,
+                                Wrap(
+                                  spacing: 8,
+                                  children: [
+                                    OutlinedButton(
+                                      onPressed: m.id.isEmpty
+                                          ? null
+                                          : () => _evidenceDialog(m.id),
+                                      child: const Text('Evidence'),
+                                    ),
+                                    OutlinedButton(
+                                      onPressed: m.id.isEmpty
+                                          ? null
+                                          : () => _verifyDialog(m.id),
+                                      child: const Text('Verify'),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
-                  );
-                },
+                  ),
+                ],
               );
             },
           ),
@@ -216,4 +262,3 @@ class _MilestonesPageState extends State<MilestonesPage> {
     );
   }
 }
-

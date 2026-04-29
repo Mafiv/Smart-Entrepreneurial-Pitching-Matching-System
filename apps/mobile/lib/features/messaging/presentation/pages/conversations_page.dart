@@ -15,22 +15,48 @@ class ConversationsPage extends StatelessWidget {
         if (state.isLoading && state.conversations.isEmpty) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (state.status == MessagingStatus.error && state.conversations.isEmpty) {
-          return Center(child: Text(state.error ?? 'Failed to load conversations'));
+        if (state.status == MessagingStatus.error &&
+            state.conversations.isEmpty) {
+          return Center(
+            child: Text(state.error ??
+                'Could not load conversations. Please try again.'),
+          );
         }
         if (state.conversations.isEmpty) {
-          return const Center(child: Text('No conversations yet.'));
+          return const Center(
+              child: Text('No conversations yet. Start a new chat soon.'));
         }
 
         return ListView.separated(
           itemCount: state.conversations.length,
-          separatorBuilder: (_, __) => AppSpacing.gapSm,
+          separatorBuilder: (_, __) => AppSpacing.gapMd,
           itemBuilder: (context, i) {
             final c = state.conversations[i];
             return Card(
               child: ListTile(
-                title: Text(c.otherUserName.isEmpty ? 'Conversation' : c.otherUserName),
-                subtitle: Text('Unread: ${c.unreadCount}'),
+                title: Text(
+                    c.otherUserName.isEmpty ? 'Conversation' : c.otherUserName),
+                subtitle: Text('Tap to open chat'),
+                trailing: c.unreadCount > 0
+                    ? Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withOpacity(0.14),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          '${c.unreadCount}',
+                          style:
+                              Theme.of(context).textTheme.labelMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                        ),
+                      )
+                    : const Icon(Icons.check_circle_outline),
                 onTap: c.id.isEmpty
                     ? null
                     : () {
@@ -52,4 +78,3 @@ class ConversationsPage extends StatelessWidget {
     );
   }
 }
-

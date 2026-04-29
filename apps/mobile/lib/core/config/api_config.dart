@@ -1,133 +1,109 @@
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
-// Use dotenv if available at runtime to override API base URL for development.
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'urls.dart';
 
 class ApiConfig {
   ApiConfig._();
 
-  static String get baseUrl {
-    /// Returns the effective API base URL.
-    /// Preference order:
-    /// 1. .env via flutter_dotenv (dotenv.env['API_BASE_URL']) if set
-    /// 2. --dart-define via String.fromEnvironment('API_BASE_URL')
-    /// 3. sensible debug defaults (10.0.2.2 or localhost)
+  /// When enabled, the app will bypass real HTTP calls in remote data-sources
+  /// and return deterministic mock responses instead (useful for UI preview).
+  static const bool useMockData = true;
 
-    // Access dotenv only if it was loaded successfully. Calling
-    // `dotenv.env` before `dotenv.load()` runs throws NotInitializedError
-    // (which is what you saw in the logs). Prefer dart-define or debug
-    // defaults when dotenv is not initialized.
-    String? envDot;
-    try {
-      if (dotenv.isInitialized) {
-        envDot = dotenv.env['API_BASE_URL'];
-      }
-    } catch (_) {
-      // If any error occurs reading dotenv, ignore and fall back.
-      envDot = null;
-    }
+  /// Artificial latency to better simulate real network calls in mock mode.
+  static const Duration mockLatency = Duration(milliseconds: 350);
 
-    if (envDot != null && envDot.isNotEmpty) {
-      return envDot;
-    }
+  /// Base URL for all API requests - centralized in Urls class
+  static String get baseUrl => Urls.baseUrl;
 
-    const configuredBaseUrl =
-        String.fromEnvironment('API_BASE_URL', defaultValue: '');
-    if (configuredBaseUrl.isNotEmpty) {
-      return configuredBaseUrl;
-    }
-    if (kDebugMode) {
-      if (Platform.isAndroid) {
-        return 'https://sepms-backend.vercel.app/api';
-      } else if (Platform.isIOS) {
-        return 'https://sepms-backend.vercel.app/api';
-      }
-      return 'https://sepms-backend.vercel.app/api';
-    }
-    throw StateError(
-      'API_BASE_URL must be provided via --dart-define in non-debug builds.',
-    );
-  }
+  // ============================================================================
+  // ENDPOINT SHORTCUTS - Delegate to Urls class for consistency
+  // ============================================================================
 
-  static const String register = '/auth/register';
-  static const String me = '/auth/me';
-  static const String role = '/auth/role';
+  /// Auth endpoints
+  static String get register => Urls.authRegister;
+  static String get authMe => Urls.authMe;
 
-  // Users
-  static const String usersMe = '/users/me';
-  static const String usersMeProfile = '/users/me/profile';
-  static const String usersMeAvatar = '/users/me/avatar';
+  /// User endpoints
+  static String get usersMe => Urls.updateUserProfile;
+  static String get usersMeProfile => Urls.updateUserProfile;
+  static String get usersMeAvatar => Urls.updateUserProfile;
 
-  // Entrepreneur
-  static const String entrepreneurProfile = '/entrepreneur/profile';
-  static const String entrepreneurProfileCheck = '/entrepreneur/profile/check';
+  /// Entrepreneur endpoints
+  static String get entrepreneurProfile => Urls.updateUserProfile;
+  static String get entrepreneurProfileCheck => Urls.getUserProfile;
 
-  // Investor
-  static const String investorProfile = '/investor/profile';
-  static const String investorSavedPitches = '/investor/saved-pitches';
+  /// Investor endpoints
+  static String get investorProfile => Urls.updateInvestorProfile;
+  static String get investorSavedPitches => Urls.getInvestorPortfolio;
 
-  // Submissions
-  static const String submissions = '/submissions';
-  static const String submissionsFeedBrowse = '/submissions/feed/browse';
-  static String submissionById(String id) => '/submissions/$id';
-  static String submissionSubmit(String id) => '/submissions/$id/submit';
+  /// Pitch/Submission endpoints
+  static String get submissions => Urls.listPitches;
+  static String get submissionsFeedBrowse => Urls.listPitches;
+  static String submissionById(String id) => Urls.buildUrl(Urls.getPitch, id);
+  static String submissionSubmit(String id) =>
+      Urls.buildUrl(Urls.submitPitch, id);
   static String submissionCompleteness(String id) =>
-      '/submissions/$id/completeness';
+      Urls.buildUrl(Urls.getPitch, id);
 
-  // Matching
+  /// Matching endpoints
   static String matchingRun(String submissionId) =>
-      '/matching/submissions/$submissionId/run';
+      Urls.buildUrl(Urls.createMatch, submissionId);
   static String matchingResults(String submissionId) =>
-      '/matching/submissions/$submissionId';
-  static const String matchingInvestorQueue = '/matching/me/investor';
-  static String matchingStatus(String matchId) => '/matching/$matchId/status';
+      Urls.buildUrl(Urls.getMatch, submissionId);
+  static String get matchingInvestorQueue => Urls.getRecommendedPitches;
+  static String matchingStatus(String matchId) =>
+      Urls.buildUrl(Urls.updateMatchStatus, matchId);
 
-  // Invitations
-  static const String invitations = '/invitations';
-  static const String invitationsMe = '/invitations/me';
+  /// Invitation endpoints
+  static String get invitations => Urls.createMatch;
+  static String get invitationsMe => Urls.listMatches;
   static String invitationRespond(String invitationId) =>
-      '/invitations/$invitationId/respond';
+      Urls.buildUrl(Urls.getMatch, invitationId);
   static String invitationCancel(String invitationId) =>
-      '/invitations/$invitationId/cancel';
+      Urls.buildUrl(Urls.getMatch, invitationId);
 
-  // Upload / Documents
-  static const String upload = '/upload';
-  static String uploadDelete(String publicId) => '/upload/$publicId';
-  static const String documents = '/documents';
-  static String documentById(String id) => '/documents/$id';
-  static String documentValidation(String id) => '/documents/$id/validation';
+  /// Upload/Document endpoints
+  static String get upload => Urls.uploadFile;
+  static String uploadDelete(String publicId) =>
+      Urls.buildUrl(Urls.deleteUploadedFile, publicId);
+  static String get documents => Urls.listDocuments;
+  static String documentById(String id) =>
+      Urls.buildUrl(Urls.deleteDocument, id);
+  static String documentValidation(String id) =>
+      Urls.buildUrl(Urls.getDocumentValidation, id);
 
-  // Communication
-  static const String meetings = '/meetings';
+  /// Communication endpoints
+  static String get meetings => Urls.listMeetings;
   static String meetingStatus(String meetingId) =>
-      '/meetings/$meetingId/status';
-  static const String conversations = '/messages/conversations';
+      Urls.buildUrl(Urls.updateMeetingStatus, meetingId);
+  static String get conversations => Urls.listConversations;
   static String conversationById(String conversationId) =>
-      '/messages/conversations/$conversationId';
+      Urls.buildUrl(Urls.getConversationMessages, conversationId);
   static String conversationMessages(String conversationId) =>
-      '/messages/conversations/$conversationId/messages';
+      Urls.buildUrl(Urls.getConversationMessages, conversationId);
   static String conversationRead(String conversationId) =>
-      '/messages/conversations/$conversationId/read';
+      Urls.buildUrl(Urls.getConversationMessages, conversationId);
   static String conversationReport(String conversationId) =>
-      '/messages/conversations/$conversationId/report';
-  static const String unreadCount = '/messages/unread-count';
-  static const String notifications = '/messages/notifications';
+      Urls.buildUrl(Urls.getConversationMessages, conversationId);
+  static String get unreadCount => Urls.listNotifications;
+  static String get notifications => Urls.listNotifications;
   static String notificationRead(String notificationId) =>
-      '/messages/notifications/$notificationId/read';
+      Urls.buildUrl(Urls.markNotificationRead, notificationId);
 
-  // Feedback
-  static const String feedback = '/feedback';
-  static const String feedbackReceived = '/feedback/me/received';
-  static const String feedbackGiven = '/feedback/me/given';
-  static const String feedbackSummary = '/feedback/me/summary';
+  /// Feedback endpoints
+  static String get feedback => Urls.submitFeedback;
+  static String get feedbackReceived => Urls.getFeedbackReceived;
+  static String get feedbackGiven => Urls.getFeedbackGiven;
+  static String get feedbackSummary => Urls.getFeedbackSummary;
 
-  // Milestones
-  static const String milestones = '/milestones';
-  static String milestoneById(String id) => '/milestones/$id';
-  static String milestoneEvidence(String id) => '/milestones/$id/evidence';
-  static String milestoneVerify(String id) => '/milestones/$id/verify';
+  /// Milestones endpoints
+  static String get milestones => Urls.listMilestones;
+  static String milestoneById(String id) =>
+      Urls.buildUrl(Urls.updateMilestone, id);
+  static String milestoneEvidence(String id) =>
+      Urls.buildUrl(Urls.addMilestoneEvidence, id);
+  static String milestoneVerify(String id) =>
+      Urls.buildUrl(Urls.verifyMilestone, id);
 
+  /// Connection timeouts
   static const Duration connectTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);
 }

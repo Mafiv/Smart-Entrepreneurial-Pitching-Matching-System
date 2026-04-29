@@ -16,6 +16,10 @@ class MeetingsPage extends StatefulWidget {
 class _MeetingsPageState extends State<MeetingsPage> {
   String? _status;
 
+  void _refresh() {
+    context.read<MeetingsBloc>().add(MeetingsRequested(status: _status));
+  }
+
   @override
   void initState() {
     super.initState();
@@ -92,32 +96,13 @@ class _MeetingsPageState extends State<MeetingsPage> {
       appBar: AppBar(
         title: const Text('Meetings'),
         actions: [
-          DropdownButton<String?>(
-            value: _status,
-            underline: const SizedBox.shrink(),
-            items: const [
-              DropdownMenuItem(value: null, child: Text('Any')),
-              DropdownMenuItem(value: 'scheduled', child: Text('Scheduled')),
-              DropdownMenuItem(value: 'ongoing', child: Text('Ongoing')),
-              DropdownMenuItem(value: 'completed', child: Text('Completed')),
-              DropdownMenuItem(value: 'cancelled', child: Text('Cancelled')),
-            ],
-            onChanged: (v) {
-              setState(() => _status = v);
-              context
-                  .read<MeetingsBloc>()
-                  .add(MeetingsRequested(status: _status));
-            },
-          ),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: _scheduleDialog,
           ),
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => context
-                .read<MeetingsBloc>()
-                .add(MeetingsRequested(status: _status)),
+            onPressed: _refresh,
           ),
         ],
       ),
@@ -130,75 +115,133 @@ class _MeetingsPageState extends State<MeetingsPage> {
                 return const Center(child: CircularProgressIndicator());
               if (state.status == MeetingsStatus.error) {
                 return Center(
-                    child: Text(state.error ?? 'Failed to load meetings'));
+                  child: Text(state.error ??
+                      'Could not load meetings. Please try again.'),
+                );
               }
               if (state.items.isEmpty)
-                return const Center(child: Text('No meetings.'));
+                return const Center(
+                    child: Text('No meetings found for the selected filter.'));
 
-              return ListView.separated(
-                itemCount: state.items.length,
-                separatorBuilder: (_, __) => AppSpacing.gapSm,
-                itemBuilder: (context, i) {
-                  final m = state.items[i];
-                  final when = m.scheduledAt?.toLocal().toString() ?? '';
-                  return Card(
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Keep upcoming and completed meetings organized',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  AppSpacing.gapMd,
+                  Card(
                     child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(m.title.isEmpty ? 'Meeting' : m.title,
-                              style: Theme.of(context).textTheme.titleMedium),
-                          AppSpacing.gapXs,
-                          Text('Status: ${m.status}'),
-                          if (when.isNotEmpty) Text('At: $when'),
-                          if (m.meetingUrl!.isNotEmpty)
-                            Text('URL: ${m.meetingUrl}'),
-                          AppSpacing.gapSm,
-                          Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton(
-                                  onPressed: (m.id.isEmpty)
-                                      ? null
-                                      : () {
-                                          context.read<MeetingsBloc>().add(
-                                                MeetingStatusUpdated(
-                                                  meetingId: m.id,
-                                                  payload: {
-                                                    'status': 'completed'
-                                                  },
-                                                ),
-                                              );
-                                        },
-                                  child: const Text('Complete'),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: OutlinedButton(
-                                  onPressed: (m.id.isEmpty)
-                                      ? null
-                                      : () {
-                                          context.read<MeetingsBloc>().add(
-                                                MeetingStatusUpdated(
-                                                  meetingId: m.id,
-                                                  payload: {
-                                                    'status': 'cancelled'
-                                                  },
-                                                ),
-                                              );
-                                        },
-                                  child: const Text('Cancel'),
-                                ),
-                              ),
-                            ],
-                          ),
+                      padding: AppSpacing.paddingMd,
+                      child: DropdownButtonFormField<String?>(
+                        value: _status,
+                        decoration:
+                            const InputDecoration(labelText: 'Status filter'),
+                        items: const [
+                          DropdownMenuItem(value: null, child: Text('Any')),
+                          DropdownMenuItem(
+                              value: 'scheduled', child: Text('Scheduled')),
+                          DropdownMenuItem(
+                              value: 'ongoing', child: Text('Ongoing')),
+                          DropdownMenuItem(
+                              value: 'completed', child: Text('Completed')),
+                          DropdownMenuItem(
+                              value: 'cancelled', child: Text('Cancelled')),
                         ],
+                        onChanged: (v) {
+                          setState(() => _status = v);
+                          _refresh();
+                        },
                       ),
                     ),
-                  );
-                },
+                  ),
+                  AppSpacing.gapMd,
+                  Expanded(
+                    child: ListView.separated(
+                      itemCount: state.items.length,
+                      separatorBuilder: (_, __) => AppSpacing.gapMd,
+                      itemBuilder: (context, i) {
+                        final m = state.items[i];
+                        final when = m.scheduledAt?.toLocal().toString() ?? '';
+                        return Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Text(
+                                  m.title.isEmpty ? 'Meeting' : m.title,
+                                  style:
+                                      Theme.of(context).textTheme.titleMedium,
+                                ),
+                                AppSpacing.gapXs,
+                                Wrap(
+                                  spacing: 8,
+                                  children: [
+                                    Chip(
+                                        label: Text(m.status
+                                            .toString()
+                                            .split('.')
+                                            .last
+                                            .toUpperCase())),
+                                  ],
+                                ),
+                                if (when.isNotEmpty) Text('At: $when'),
+                                if ((m.meetingUrl ?? '').isNotEmpty)
+                                  Text('URL: ${m.meetingUrl}'),
+                                AppSpacing.gapSm,
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: OutlinedButton(
+                                        onPressed: (m.id.isEmpty)
+                                            ? null
+                                            : () {
+                                                context
+                                                    .read<MeetingsBloc>()
+                                                    .add(
+                                                      MeetingStatusUpdated(
+                                                        meetingId: m.id,
+                                                        payload: {
+                                                          'status': 'completed'
+                                                        },
+                                                      ),
+                                                    );
+                                              },
+                                        child: const Text('Complete'),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: OutlinedButton(
+                                        onPressed: (m.id.isEmpty)
+                                            ? null
+                                            : () {
+                                                context
+                                                    .read<MeetingsBloc>()
+                                                    .add(
+                                                      MeetingStatusUpdated(
+                                                        meetingId: m.id,
+                                                        payload: {
+                                                          'status': 'cancelled'
+                                                        },
+                                                      ),
+                                                    );
+                                              },
+                                        child: const Text('Cancel'),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               );
             },
           ),

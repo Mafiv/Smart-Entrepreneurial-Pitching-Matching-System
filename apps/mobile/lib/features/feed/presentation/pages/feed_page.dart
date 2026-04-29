@@ -19,14 +19,16 @@ class _FeedPageState extends State<FeedPage> {
   @override
   void initState() {
     super.initState();
-    context.read<FeedBloc>().add(const FeedRequested(sort: 'recent', page: 1, limit: 20));
+    context
+        .read<FeedBloc>()
+        .add(const FeedRequested(sort: 'recent', page: 1, limit: 20));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Investor feed'),
+        title: const Text('Discover Pitches'),
         actions: [
           IconButton(
             icon: const Icon(Icons.bookmark_outline),
@@ -56,38 +58,67 @@ class _FeedPageState extends State<FeedPage> {
           padding: AppSpacing.screenPadding,
           child: BlocBuilder<FeedBloc, FeedState>(
             builder: (context, state) {
-              if (state.isLoading) return const Center(child: CircularProgressIndicator());
+              if (state.isLoading)
+                return const Center(child: CircularProgressIndicator());
               if (state.status == FeedStatus.error) {
-                return Center(child: Text(state.error ?? 'Failed to load feed'));
+                return Center(
+                  child: Text(state.error ??
+                      'Could not load pitches. Please try again.'),
+                );
               }
               if (state.items.isEmpty) {
-                return const Center(child: Text('No pitches available.'));
+                return Center(
+                  child: Text(
+                    'No pitches available right now.',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                );
               }
-              return ListView.separated(
-                itemCount: state.items.length,
-                separatorBuilder: (_, __) => AppSpacing.gapSm,
-                itemBuilder: (context, i) {
-                  final p = state.items[i];
-                  return Card(
-                    child: ListTile(
-                      title: Text(p.title.isEmpty ? 'Untitled pitch' : p.title),
-                      subtitle: Text('Sector: ${p.sector}  Stage: ${p.stage}'),
-                      onTap: p.id.isEmpty
-                          ? null
-                          : () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => BlocProvider.value(
-                                    value: context.read<FeedBloc>(),
-                                    child: PitchDetailPage(pitchId: p.id),
-                                  ),
-                                ),
-                              );
-                            },
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Curated for your investment preferences',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  AppSpacing.gapMd,
+                  Expanded(
+                    child: ListView.separated(
+                      itemCount: state.items.length,
+                      separatorBuilder: (_, __) => AppSpacing.gapMd,
+                      itemBuilder: (context, i) {
+                        final p = state.items[i];
+                        return Card(
+                          child: ListTile(
+                            title: Text(
+                                p.title.isEmpty ? 'Untitled pitch' : p.title),
+                            subtitle: Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Text(
+                                  'Sector: ${p.sector}  •  Stage: ${p.stage}'),
+                            ),
+                            trailing: const Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                size: 16),
+                            onTap: p.id.isEmpty
+                                ? null
+                                : () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => BlocProvider.value(
+                                          value: context.read<FeedBloc>(),
+                                          child: PitchDetailPage(pitchId: p.id),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
+                  ),
+                ],
               );
             },
           ),
@@ -96,4 +127,3 @@ class _FeedPageState extends State<FeedPage> {
     );
   }
 }
-
