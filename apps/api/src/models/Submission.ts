@@ -60,6 +60,8 @@ export interface ISubmission extends Document {
 	aiAnalysis?: Record<string, unknown>;
 	currentStep: number;
 	status: SubmissionStatus;
+	isAiOverride?: boolean;
+	aiOverrideReason?: string;
 	reviewNotes?: string;
 	submittedAt?: Date;
 	closedAt?: Date;
@@ -179,6 +181,14 @@ const SubmissionSchema = new Schema<ISubmission>(
 				"closed",
 			] satisfies SubmissionStatus[],
 			default: "draft",
+		},
+		isAiOverride: {
+			type: Boolean,
+			default: false,
+		},
+		aiOverrideReason: {
+			type: String,
+			default: null,
 		},
 		reviewNotes: {
 			type: String,
