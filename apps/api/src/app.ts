@@ -13,6 +13,7 @@ import { openApiSpec } from "./config/openapi";
 import recommendationRoutes from "./recommendation/recommendation.routes";
 import adminRoutes from "./routes/admin.routes";
 import authRoutes from "./routes/auth.routes";
+import availabilityRoutes from "./routes/availability.routes";
 import documentRoutes from "./routes/document.routes";
 import entrepreneurRoutes from "./routes/entrepreneur.routes";
 import feedbackRoutes from "./routes/feedback.routes";
@@ -167,6 +168,7 @@ app.use("/api/invitations", invitationRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/meetings", meetingRoutes);
+app.use("/api/availability", availabilityRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/finance", financeRoutes);
 

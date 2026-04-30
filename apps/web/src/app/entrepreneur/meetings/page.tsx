@@ -4,6 +4,7 @@ import { CalendarDays, Clock, Loader2, Video } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import AddToCalendarDropdown from "@/components/AddToCalendarDropdown";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Badge } from "@/components/ui/badge";
@@ -197,16 +198,21 @@ function MeetingCard({
 						</span>
 					</p>
 				</div>
-				{isJoinable && onJoin && (
-					<Button
-						onClick={onJoin}
-						className="gap-2 bg-green-600 hover:bg-green-700 shrink-0"
-						size="sm"
-					>
-						<Video className="h-4 w-4" />
-						Join Meeting
-					</Button>
-				)}
+				<div className="flex items-center gap-2 shrink-0">
+					{meeting.status === "scheduled" && (
+						<AddToCalendarDropdown meeting={meeting} />
+					)}
+					{isJoinable && onJoin && (
+						<Button
+							onClick={onJoin}
+							className="gap-2 bg-green-600 hover:bg-green-700"
+							size="sm"
+						>
+							<Video className="h-4 w-4" />
+							Join Meeting
+						</Button>
+					)}
+				</div>
 			</CardContent>
 		</Card>
 	);

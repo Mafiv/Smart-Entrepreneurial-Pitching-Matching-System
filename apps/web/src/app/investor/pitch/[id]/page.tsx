@@ -22,6 +22,7 @@ import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import AddToCalendarDropdown from "@/components/AddToCalendarDropdown";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ScheduleMeetingModal, {
@@ -484,17 +485,27 @@ export default function InvestorPitchViewPage() {
 								Schedule Meeting
 							</Button>
 						)}
-						{/* Show Join button once meeting is scheduled */}
+						{/* Show Join button + calendar once meeting is scheduled */}
 						{scheduledMeeting && (
-							<Button
-								onClick={() =>
-									router.push(`/investor/meeting/${scheduledMeeting._id}`)
-								}
-								className="gap-2 whitespace-nowrap bg-green-600 hover:bg-green-700 rounded-xl shadow-sm"
-							>
-								<Video className="h-4 w-4" />
-								Join Meeting
-							</Button>
+							<>
+								<AddToCalendarDropdown
+									meeting={{
+										_id: scheduledMeeting._id,
+										title: scheduledMeeting.title,
+										scheduledAt: scheduledMeeting.scheduledAt,
+										durationMinutes: scheduledMeeting.durationMinutes,
+									}}
+								/>
+								<Button
+									onClick={() =>
+										router.push(`/investor/meeting/${scheduledMeeting._id}`)
+									}
+									className="gap-2 whitespace-nowrap bg-green-600 hover:bg-green-700 rounded-xl shadow-sm"
+								>
+									<Video className="h-4 w-4" />
+									Join Meeting
+								</Button>
+							</>
 						)}
 					</div>
 				</div>

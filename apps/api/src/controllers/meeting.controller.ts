@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { CalendarService } from "../services/calendar.service";
 import { MeetingService } from "../services/meeting.service";
 
 const handleMeetingError = (
@@ -115,6 +116,73 @@ export class MeetingController {
 			res.status(200).json({ status: "success", meeting });
 		} catch (error) {
 			handleMeetingError(res, error, "Failed to update meeting");
+		}
+	}
+
+	/**
+	 * GET /meetings/:meetingId/calendar-links
+	 * Returns Google Calendar + Outlook deep-links for a meeting.
+	 */
+	static async getCalendarLinks(req: Request, res: Response): Promise<void> {
+		try {
+			if (!req.user) {
+				res.status(401).json({ status: "error", message: "Unauthorized" });
+				return;
+			}
+
+			const meeting = await MeetingService.getMeetingById({
+				meetingId: req.params.meetingId,
+				userId: req.user._id.toString(),
+			});
+
+			const links = CalendarService.getCalendarLinks({
+				_id: meeting._id.toString(),
+				title: meeting.title,
+				scheduledAt: meeting.scheduledAt,
+				durationMinutes: meeting.durationMinutes,
+				notes: meeting.notes,
+				livekitRoomName: meeting.livekitRoomName,
+			});
+
+			res.status(200).json({ status: "success", ...links });
+		} catch (error) {
+			handleMeetingError(res, error, "Failed to generate calendar links");
+		}
+	}
+
+	/**
+	 * GET /meetings/:meetingId/calendar.ics
+	 * Returns a downloadable .ics file for any calendar application.
+	 */
+	static async downloadIcs(req: Request, res: Response): Promise<void> {
+		try {
+			if (!req.user) {
+				res.status(401).json({ status: "error", message: "Unauthorized" });
+				return;
+			}
+
+			const meeting = await MeetingService.getMeetingById({
+				meetingId: req.params.meetingId,
+				userId: req.user._id.toString(),
+			});
+
+			const icsContent = CalendarService.generateIcsFile({
+				_id: meeting._id.toString(),
+				title: meeting.title,
+				scheduledAt: meeting.scheduledAt,
+				durationMinutes: meeting.durationMinutes,
+				notes: meeting.notes,
+				livekitRoomName: meeting.livekitRoomName,
+			});
+
+			res.setHeader("Content-Type", "text/calendar; charset=utf-8");
+			res.setHeader(
+				"Content-Disposition",
+				`attachment; filename="meeting-${req.params.meetingId}.ics"`,
+			);
+			res.status(200).send(icsContent);
+		} catch (error) {
+			handleMeetingError(res, error, "Failed to generate calendar file");
 		}
 	}
 }

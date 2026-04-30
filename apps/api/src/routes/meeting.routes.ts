@@ -120,4 +120,56 @@ router.patch(
  */
 router.get("/:meetingId/token", authenticate, MeetingController.getToken);
 
+/**
+ * @openapi
+ * /api/meetings/{meetingId}/calendar-links:
+ *   get:
+ *     tags: [Communication]
+ *     summary: Get Google Calendar and Outlook deep-links for a meeting
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: meetingId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Calendar deep-links
+ */
+router.get(
+	"/:meetingId/calendar-links",
+	authenticate,
+	MeetingController.getCalendarLinks,
+);
+
+/**
+ * @openapi
+ * /api/meetings/{meetingId}/calendar.ics:
+ *   get:
+ *     tags: [Communication]
+ *     summary: Download an .ics calendar invite file
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: meetingId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: iCalendar (.ics) file download
+ *         content:
+ *           text/calendar:
+ *             schema:
+ *               type: string
+ */
+router.get(
+	"/:meetingId/calendar.ics",
+	authenticate,
+	MeetingController.downloadIcs,
+);
+
 export default router;

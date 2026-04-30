@@ -24,6 +24,31 @@ export const MeetingService = {
 		return error instanceof MeetingServiceError;
 	},
 
+	/** Fetch a single meeting with participant access check. */
+	async getMeetingById(payload: { meetingId: string; userId: string }) {
+		const meeting = await Meeting.findById(payload.meetingId)
+			.populate("organizerId", "fullName email")
+			.populate("participants", "fullName email");
+
+		if (!meeting) {
+			throw MeetingService.createError("Meeting not found", 404);
+		}
+
+		const isParticipant = meeting.participants.some(
+			(p) =>
+				p._id?.toString() === payload.userId || p.toString() === payload.userId,
+		);
+
+		if (!isParticipant) {
+			throw MeetingService.createError(
+				"You are not a participant of this meeting",
+				403,
+			);
+		}
+
+		return meeting;
+	},
+
 	async generateLivekitToken(payload: {
 		meetingId: string;
 		userId: string;
