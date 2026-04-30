@@ -4,6 +4,13 @@ import { Calendar, ChevronDown, Download, ExternalLink } from "lucide-react";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/context/AuthContext";
 
 interface CalendarMeeting {
@@ -107,147 +114,108 @@ export default function AddToCalendarDropdown({
 	}, [user, meeting._id]);
 
 	return (
-		<div className="relative">
-			<Button
-				type="button"
-				variant="outline"
-				size="sm"
-				className="gap-1.5 text-xs"
-				onClick={() => setOpen(!open)}
-			>
-				<Calendar className="h-3.5 w-3.5" />
-				Add to Calendar
-				<ChevronDown className="h-3 w-3" />
-			</Button>
-
-			{open && (
-				<>
-					{/* Backdrop to close dropdown */}
-					<button
-						type="button"
-						className="fixed inset-0 z-40 cursor-default"
-						onClick={() => setOpen(false)}
-						aria-label="Close calendar menu"
-					/>
-
-					<div className="absolute right-0 top-full mt-1.5 z-50 w-56 rounded-lg border bg-popover shadow-lg p-1.5 animate-in fade-in-0 zoom-in-95">
-						{/* Google Calendar */}
-						<a
-							href={buildGoogleCalendarUrl(meeting)}
-							target="_blank"
-							rel="noopener noreferrer"
-							className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md hover:bg-accent transition-colors"
-							onClick={() => setOpen(false)}
+		<DropdownMenu open={open} onOpenChange={setOpen}>
+			<DropdownMenuTrigger asChild>
+				<Button
+					type="button"
+					variant="outline"
+					size="sm"
+					className="gap-1.5 text-xs"
+				>
+					<Calendar className="h-3.5 w-3.5" />
+					Add to Calendar
+					<ChevronDown className="h-3 w-3" />
+				</Button>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent align="end" className="w-56">
+				<DropdownMenuItem asChild>
+					<a
+						href={buildGoogleCalendarUrl(meeting)}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="flex items-center gap-2.5 cursor-pointer w-full"
+					>
+						<svg
+							viewBox="0 0 24 24"
+							className="h-4 w-4"
+							fill="none"
+							aria-hidden="true"
 						>
-							<svg
-								viewBox="0 0 24 24"
-								className="h-4 w-4"
-								fill="none"
-								aria-hidden="true"
-							>
-								<title>Google Calendar</title>
-								<rect x="5" y="10" width="14" height="9" rx="1" fill="white" />
-								<rect x="7" y="5" width="2" height="4" rx="0.5" fill="white" />
-								<rect x="15" y="5" width="2" height="4" rx="0.5" fill="white" />
-								<rect
-									x="7"
-									y="12"
-									width="3"
-									height="2"
-									rx="0.5"
-									fill="#4285F4"
-								/>
-								<rect
-									x="11"
-									y="12"
-									width="3"
-									height="2"
-									rx="0.5"
-									fill="#EA4335"
-								/>
-								<rect
-									x="7"
-									y="15"
-									width="3"
-									height="2"
-									rx="0.5"
-									fill="#34A853"
-								/>
-								<rect
-									x="11"
-									y="15"
-									width="3"
-									height="2"
-									rx="0.5"
-									fill="#FBBC04"
-								/>
-							</svg>
-							<span>Google Calendar</span>
-							<ExternalLink className="h-3 w-3 ml-auto text-muted-foreground" />
-						</a>
+							<title>Google Calendar</title>
+							<rect x="5" y="10" width="14" height="9" rx="1" fill="white" />
+							<rect x="7" y="5" width="2" height="4" rx="0.5" fill="white" />
+							<rect x="15" y="5" width="2" height="4" rx="0.5" fill="white" />
+							<rect x="7" y="12" width="3" height="2" rx="0.5" fill="#4285F4" />
+							<rect
+								x="11"
+								y="12"
+								width="3"
+								height="2"
+								rx="0.5"
+								fill="#EA4335"
+							/>
+							<rect x="7" y="15" width="3" height="2" rx="0.5" fill="#34A853" />
+							<rect
+								x="11"
+								y="15"
+								width="3"
+								height="2"
+								rx="0.5"
+								fill="#FBBC04"
+							/>
+						</svg>
+						<span>Google Calendar</span>
+						<ExternalLink className="h-3 w-3 ml-auto text-muted-foreground" />
+					</a>
+				</DropdownMenuItem>
 
-						{/* Outlook Calendar */}
-						<a
-							href={buildOutlookCalendarUrl(meeting)}
-							target="_blank"
-							rel="noopener noreferrer"
-							className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md hover:bg-accent transition-colors"
-							onClick={() => setOpen(false)}
+				<DropdownMenuItem asChild>
+					<a
+						href={buildOutlookCalendarUrl(meeting)}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="flex items-center gap-2.5 cursor-pointer w-full"
+					>
+						<svg
+							viewBox="0 0 24 24"
+							className="h-4 w-4"
+							fill="none"
+							aria-hidden="true"
 						>
-							<svg
-								viewBox="0 0 24 24"
-								className="h-4 w-4"
-								fill="none"
-								aria-hidden="true"
-							>
-								<title>Outlook Calendar</title>
-								<rect x="5" y="10" width="14" height="9" rx="1" fill="white" />
-								<rect x="7" y="5" width="2" height="4" rx="0.5" fill="white" />
-								<rect x="15" y="5" width="2" height="4" rx="0.5" fill="white" />
-								<rect
-									x="7"
-									y="12"
-									width="3"
-									height="2"
-									rx="0.5"
-									fill="#0078D4"
-								/>
-								<rect
-									x="11"
-									y="12"
-									width="3"
-									height="2"
-									rx="0.5"
-									fill="#0078D4"
-								/>
-								<rect
-									x="7"
-									y="15"
-									width="3"
-									height="2"
-									rx="0.5"
-									fill="#0078D4"
-								/>
-							</svg>
-							<span>Outlook Calendar</span>
-							<ExternalLink className="h-3 w-3 ml-auto text-muted-foreground" />
-						</a>
+							<title>Outlook Calendar</title>
+							<rect x="5" y="10" width="14" height="9" rx="1" fill="white" />
+							<rect x="7" y="5" width="2" height="4" rx="0.5" fill="white" />
+							<rect x="15" y="5" width="2" height="4" rx="0.5" fill="white" />
+							<rect x="7" y="12" width="3" height="2" rx="0.5" fill="#0078D4" />
+							<rect
+								x="11"
+								y="12"
+								width="3"
+								height="2"
+								rx="0.5"
+								fill="#0078D4"
+							/>
+							<rect x="7" y="15" width="3" height="2" rx="0.5" fill="#0078D4" />
+						</svg>
+						<span>Outlook Calendar</span>
+						<ExternalLink className="h-3 w-3 ml-auto text-muted-foreground" />
+					</a>
+				</DropdownMenuItem>
 
-						<div className="h-px bg-border my-1" />
+				<DropdownMenuSeparator />
 
-						{/* Download .ics */}
-						<button
-							type="button"
-							onClick={handleDownloadIcs}
-							disabled={downloading}
-							className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md hover:bg-accent transition-colors w-full text-left"
-						>
-							<Download className="h-4 w-4 text-muted-foreground" />
-							<span>{downloading ? "Downloading…" : "Download .ics file"}</span>
-						</button>
-					</div>
-				</>
-			)}
-		</div>
+				<DropdownMenuItem
+					onClick={(e) => {
+						e.preventDefault();
+						handleDownloadIcs();
+					}}
+					disabled={downloading}
+					className="flex items-center gap-2.5 cursor-pointer w-full"
+				>
+					<Download className="h-4 w-4 text-muted-foreground" />
+					<span>{downloading ? "Downloading…" : "Download .ics file"}</span>
+				</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
 	);
 }
