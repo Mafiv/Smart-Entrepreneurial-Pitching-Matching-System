@@ -7,9 +7,6 @@ import '../../domain/entities/user_entity.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
-import 'login_page.dart';
-import 'verify_email_page.dart';
-
 class RegistrationPage extends StatefulWidget {
   const RegistrationPage({super.key});
 
@@ -108,14 +105,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
         }
 
         if (state.needsEmailVerification) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => VerifyEmailPage(
-                email: _emailController.text.trim(),
-              ),
-            ),
-          );
+          // Dismiss registration so [AuthWrapper] (root) can show verify / login.
+          Navigator.of(context).popUntil((route) => route.isFirst);
         }
 
         if (state.isAuthenticated) {
@@ -224,27 +215,18 @@ class _RegistrationPageState extends State<RegistrationPage> {
                             },
                           ),
                           AppSpacing.gapMd,
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: AppPasswordField(
-                                  label: 'Password',
-                                  controller: _passwordController,
-                                  enabled: !_isLoading,
-                                  validator: _validatePassword,
-                                ),
-                              ),
-                              AppSpacing.hGapMd,
-                              Expanded(
-                                child: AppPasswordField(
-                                  label: 'Confirm',
-                                  controller: _confirmPasswordController,
-                                  enabled: !_isLoading,
-                                  validator: _validateConfirmPassword,
-                                ),
-                              ),
-                            ],
+                          AppPasswordField(
+                            label: 'Password',
+                            controller: _passwordController,
+                            enabled: !_isLoading,
+                            validator: _validatePassword,
+                          ),
+                          AppSpacing.gapMd,
+                          AppPasswordField(
+                            label: 'Confirm password',
+                            controller: _confirmPasswordController,
+                            enabled: !_isLoading,
+                            validator: _validateConfirmPassword,
                           ),
                           AppSpacing.gapLg,
                           AppButton(
@@ -271,14 +253,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       GestureDetector(
                         onTap: _isLoading
                             ? null
-                            : () {
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const LoginPage(),
-                                  ),
-                                );
-                              },
+                            : () => Navigator.of(context).pop(),
                         child: Text(
                           'Sign in',
                           style:

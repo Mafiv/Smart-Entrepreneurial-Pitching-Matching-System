@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/widgets/app_bottom_nav.dart';
 import '../bloc/messaging_bloc.dart';
 import 'notifications_page.dart';
 import 'conversations_page.dart';
@@ -14,29 +14,57 @@ class MessageCenterPage extends StatefulWidget {
   State<MessageCenterPage> createState() => _MessageCenterPageState();
 }
 
-class _MessageCenterPageState extends State<MessageCenterPage> {
-  int _tab = 0;
+class _MessageCenterPageState extends State<MessageCenterPage>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_onTabChanged);
     context.read<MessagingBloc>().add(const UnreadCountRequested());
     context.read<MessagingBloc>().add(const ConversationsRequested());
   }
 
+  void _onTabChanged() {
+    if (_tabController.indexIsChanging) return;
+    if (_tabController.index == 0) {
+      context.read<MessagingBloc>().add(const ConversationsRequested());
+    } else {
+      context.read<MessagingBloc>().add(const NotificationsRequested());
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabController.removeListener(_onTabChanged);
+    _tabController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final tabs = [
-      const ConversationsPage(),
-      const NotificationsPage(),
-    ];
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Messages'),
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorSize: TabBarIndicatorSize.label,
+          indicatorWeight: 3,
+          labelStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+          unselectedLabelColor: AppColors.mutedForeground,
+          tabs: const [
+            Tab(text: 'Chats'),
+            Tab(text: 'Notifications'),
+          ],
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh',
+            icon: const Icon(Icons.refresh_rounded),
             onPressed: () {
               context.read<MessagingBloc>().add(const UnreadCountRequested());
               context.read<MessagingBloc>().add(const ConversationsRequested());
@@ -45,20 +73,24 @@ class _MessageCenterPageState extends State<MessageCenterPage> {
           ),
           BlocBuilder<MessagingBloc, MessagingState>(
             builder: (context, state) => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              padding: const EdgeInsets.only(right: AppSpacing.md, left: 4),
+              child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color:
-                      Theme.of(context).colorScheme.primary.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(999),
+                  color: Theme.of(context).colorScheme.primary.withValues(
+                        alpha: 0.12,
+                      ),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
                 ),
-                child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.xs + 2,
+                  ),
                   child: Text(
-                    'Unread ${state.unreadCount}',
+                    '${state.unreadCount} unread',
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
                           fontWeight: FontWeight.w700,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                   ),
                 ),
@@ -67,39 +99,11 @@ class _MessageCenterPageState extends State<MessageCenterPage> {
           ),
         ],
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: AppSpacing.screenPadding,
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 220),
-            child: KeyedSubtree(
-              key: ValueKey<int>(_tab),
-              child: tabs[_tab],
-            ),
-          ),
-        ),
-      ),
-      bottomNavigationBar: AppBottomNav(
-        selectedIndex: _tab,
-        onDestinationSelected: (i) {
-          setState(() => _tab = i);
-          if (i == 0) {
-            context.read<MessagingBloc>().add(const ConversationsRequested());
-          } else {
-            context.read<MessagingBloc>().add(const NotificationsRequested());
-          }
-        },
-        destinations: const <AppBottomNavDestination>[
-          AppBottomNavDestination(
-            icon: Icons.chat_bubble_outline,
-            selectedIcon: Icons.chat_bubble,
-            label: 'Chats',
-          ),
-          AppBottomNavDestination(
-            icon: Icons.notifications_outlined,
-            selectedIcon: Icons.notifications,
-            label: 'Notifications',
-          ),
+      body: TabBarView(
+        controller: _tabController,
+        children: const [
+          ConversationsPage(),
+          NotificationsPage(),
         ],
       ),
     );

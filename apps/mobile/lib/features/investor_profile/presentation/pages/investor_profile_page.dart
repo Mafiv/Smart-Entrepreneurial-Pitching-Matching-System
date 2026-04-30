@@ -174,7 +174,7 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
               }
               if (state.status == InvestorProfileStatus.error) {
                 return ListView(
-                  padding: EdgeInsets.zero,
+                  padding: const EdgeInsets.only(bottom: 100),
                   children: [
                     Card(
                       child: Padding(
@@ -220,6 +220,7 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
               return Form(
                 key: _formKey,
                 child: ListView(
+                  padding: const EdgeInsets.only(bottom: 100),
                   children: [
                     Text(
                       'Investor workspace',
@@ -366,89 +367,105 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
                     ),
                     AppSpacing.gapXl,
                     Text(
-                      'Quick Tools',
-                      style: Theme.of(context).textTheme.titleMedium,
+                      'Quick tools',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
                     AppSpacing.gapSm,
-                    Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.mail_outline),
-                        title: const Text('Invitations'),
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => BlocProvider(
-                              create: (_) => sl<InvitationsBloc>(),
-                              child: const InvitationsPage(),
-                            ),
+                    Text(
+                      'Shortcuts to your investor workflow',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.mutedForeground,
                           ),
-                        ),
-                      ),
                     ),
-                    Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.calendar_month_outlined),
-                        title: const Text('Meetings'),
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => BlocProvider(
-                              create: (_) => sl<MeetingsBloc>(),
-                              child: const MeetingsPage(),
+                    AppSpacing.gapMd,
+                    GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      mainAxisSpacing: AppSpacing.md,
+                      crossAxisSpacing: AppSpacing.md,
+                      childAspectRatio: 1.22,
+                      children: [
+                        _InvestorQuickTool(
+                          icon: Icons.mail_outline_rounded,
+                          title: 'Invitations',
+                          subtitle: 'Requests & replies',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (_) => BlocProvider<InvitationsBloc>(
+                                create: (_) => sl<InvitationsBloc>(),
+                                child: const InvitationsPage(),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
-                    Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.flag_outlined),
-                        title: const Text('Milestones'),
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => BlocProvider(
-                              create: (_) => sl<MilestonesBloc>(),
-                              child: const MilestonesPage(),
+                        _InvestorQuickTool(
+                          icon: Icons.calendar_month_rounded,
+                          title: 'Meetings',
+                          subtitle: 'Schedule & notes',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (_) => BlocProvider<MeetingsBloc>(
+                                create: (_) => sl<MeetingsBloc>(),
+                                child: const MeetingsPage(),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
-                    Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.star_outline),
-                        title: const Text('Feedback'),
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => BlocProvider(
-                              create: (_) => sl<FeedbackBloc>(),
-                              child: const FeedbackPage(),
+                        _InvestorQuickTool(
+                          icon: Icons.flag_rounded,
+                          title: 'Milestones',
+                          subtitle: 'Track progress',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (_) => BlocProvider<MilestonesBloc>(
+                                create: (_) => sl<MilestonesBloc>(),
+                                child: const MilestonesPage(),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
-                    Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.folder_open_outlined),
-                        title: const Text('Documents'),
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => BlocProvider(
-                              create: (_) => sl<DocumentsBloc>(),
-                              child: const DocumentsPage(),
+                        _InvestorQuickTool(
+                          icon: Icons.star_rounded,
+                          title: 'Feedback',
+                          subtitle: 'Given & received',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (_) => BlocProvider<FeedbackBloc>(
+                                create: (_) => sl<FeedbackBloc>(),
+                                child: const FeedbackPage(),
+                              ),
                             ),
                           ),
                         ),
-                      ),
+                        _InvestorQuickTool(
+                          icon: Icons.folder_open_rounded,
+                          title: 'Documents',
+                          subtitle: 'Decks & files',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (_) => BlocProvider<DocumentsBloc>(
+                                create: (_) => sl<DocumentsBloc>(),
+                                child: const DocumentsPage(),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     AppSpacing.gapXl,
                     Text(
                       'Account',
-                      style: Theme.of(context).textTheme.titleMedium,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
                     AppSpacing.gapSm,
                     _logoutSection(),
@@ -456,6 +473,72 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
                 ),
               );
             },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _InvestorQuickTool extends StatelessWidget {
+  const _InvestorQuickTool({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: AppColors.card,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        side: const BorderSide(color: AppColors.border),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: AppSpacing.paddingMd,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Icon(icon, color: AppColors.primary, size: 22),
+                ),
+              ),
+              const Spacer(),
+              Text(
+                title,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              AppSpacing.gapXs,
+              Text(
+                subtitle,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppColors.mutedForeground,
+                  height: 1.25,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
         ),
       ),

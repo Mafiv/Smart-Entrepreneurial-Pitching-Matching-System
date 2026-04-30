@@ -45,6 +45,7 @@ class _EntrepreneurShellState extends State<EntrepreneurShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       body: IndexedStack(index: _index, children: _pages),
       bottomNavigationBar: AppBottomNav(
         selectedIndex: _index,

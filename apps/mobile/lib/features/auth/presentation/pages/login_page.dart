@@ -8,7 +8,6 @@ import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
 import 'registration_page.dart';
-import 'verify_email_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -93,16 +92,8 @@ class _LoginPageState extends State<LoginPage> {
           );
         }
 
-        if (state.needsEmailVerification && state.user != null) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => VerifyEmailPage(
-                email: state.user!.email ?? '',
-              ),
-            ),
-          );
-        }
+        // Email verification is shown by [AuthWrapper] when status is
+        // [AuthStatus.emailVerificationRequired]; do not replace the root route.
 
         if (state.isAuthenticated && state.user != null) {
           _navigateBasedOnRole(state.user!);
@@ -225,7 +216,7 @@ class _LoginPageState extends State<LoginPage> {
                         onTap: _isLoading
                             ? null
                             : () {
-                                Navigator.pushReplacement(
+                                Navigator.push<void>(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) =>

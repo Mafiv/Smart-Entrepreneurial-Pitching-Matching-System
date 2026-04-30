@@ -5,8 +5,7 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/widgets/app_button.dart';
-import '../../../../core/widgets/app_text_field.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../bloc/entrepreneur_profile_bloc.dart';
 
 class EntrepreneurProfilePage extends StatefulWidget {
@@ -119,7 +118,24 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Profile',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+            Text(
+              'Company & visibility',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.mutedForeground,
+                    fontWeight: FontWeight.w500,
+                  ),
+            ),
+          ],
+        ),
         actions: [
           IconButton(
             tooltip: 'Sign out',
@@ -157,6 +173,7 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage> {
               }
               if (state.status == EntrepreneurProfileStatus.error) {
                 return ListView(
+                  padding: const EdgeInsets.only(bottom: 100),
                   children: [
                     Card(
                       child: Padding(
@@ -197,6 +214,7 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage> {
 
               if (state.profile == null) {
                 return ListView(
+                  padding: const EdgeInsets.only(bottom: 100),
                   children: [
                     Card(
                       child: Padding(
@@ -245,6 +263,7 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage> {
     return Form(
       key: _formKey,
       child: ListView(
+        padding: const EdgeInsets.only(bottom: 100),
         children: [
           Text(
             'Tell investors about your venture',
@@ -256,11 +275,17 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage> {
           Text(
             'Create your entrepreneur profile',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                 ),
           ),
           AppSpacing.gapMd,
-          Card(
+          Material(
+            color: AppColors.card,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+              side: const BorderSide(color: AppColors.border),
+            ),
             child: Padding(
               padding: AppSpacing.paddingMd,
               child: Column(
@@ -317,6 +342,7 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage> {
     final profile = state.profile!;
     final theme = Theme.of(context);
     return ListView(
+      padding: const EdgeInsets.only(bottom: 100),
       children: [
         Container(
           padding: AppSpacing.paddingMd,
@@ -371,10 +397,18 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage> {
         AppSpacing.gapMd,
         Text(
           'Details',
-          style: theme.textTheme.titleMedium,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+          ),
         ),
         AppSpacing.gapMd,
-        Card(
+        Material(
+          color: AppColors.card,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+            side: const BorderSide(color: AppColors.border),
+          ),
           child: Padding(
             padding: AppSpacing.paddingMd,
             child: Column(
@@ -398,7 +432,9 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage> {
         AppSpacing.gapMd,
         Text(
           'Edit profile',
-          style: Theme.of(context).textTheme.titleMedium,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
         ),
         AppSpacing.gapXs,
         Text(
@@ -408,7 +444,13 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage> {
               ),
         ),
         AppSpacing.gapMd,
-        Card(
+        Material(
+          color: AppColors.card,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+            side: const BorderSide(color: AppColors.border),
+          ),
           child: Padding(
             padding: AppSpacing.paddingMd,
             child: Column(

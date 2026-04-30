@@ -5,6 +5,10 @@ class ApiConfig {
 
   /// When enabled, the app will bypass real HTTP calls in remote data-sources
   /// and return deterministic mock responses instead (useful for UI preview).
+  ///
+  /// **Mock email sign-in:** use an address whose local part (before `@`) is
+  /// `investor`, e.g. `investor@test.com`, with any password to open the investor
+  /// shell. Any other local part behaves as entrepreneur.
   static const bool useMockData = true;
 
   /// Artificial latency to better simulate real network calls in mock mode.

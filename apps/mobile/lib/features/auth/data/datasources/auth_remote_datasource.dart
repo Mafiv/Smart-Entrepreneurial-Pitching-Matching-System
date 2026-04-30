@@ -118,10 +118,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }) async {
     if (ApiConfig.useMockData) {
       await Future<void>.delayed(ApiConfig.mockLatency);
-      _mockCurrentUser ??= _buildMockSignedInUser(
-        email: email,
-        fullName: 'Demo Entrepreneur',
-        role: UserRole.entrepreneur,
+      final trimmedEmail = email.trim();
+      final role = _mockRoleFromSignInEmail(trimmedEmail);
+      _mockCurrentUser = _buildMockSignedInUser(
+        email: trimmedEmail,
+        fullName:
+            role == UserRole.investor ? 'Demo Investor' : 'Demo Entrepreneur',
+        role: role,
       );
       return _mockCurrentUser!;
     }
@@ -509,13 +512,37 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
+  /// Mock email/password login: treat `investor@...` (local part exactly
+  /// `investor`) as investor; otherwise entrepreneur.
+  static UserRole _mockRoleFromSignInEmail(String email) {
+    final lower = email.toLowerCase().trim();
+    final at = lower.indexOf('@');
+    if (at <= 0) return UserRole.entrepreneur;
+    var local = lower.substring(0, at);
+    final plus = local.indexOf('+');
+    if (plus >= 0) local = local.substring(0, plus);
+    if (local == 'investor') return UserRole.investor;
+    return UserRole.entrepreneur;
+  }
+
+  static String _mockStableUidForRole(UserRole role, String email) {
+    switch (role) {
+      case UserRole.investor:
+        return 'user_investor_001';
+      case UserRole.entrepreneur:
+        return 'user_entrepreneur_001';
+      case UserRole.admin:
+        return 'mock_auth_${email.hashCode.abs()}';
+    }
+  }
+
   UserModel _buildMockSignedInUser({
     required String email,
     required String fullName,
     required UserRole role,
   }) {
     final base = MockBackend.mockUser(
-      uid: 'mock_auth_${email.hashCode.abs()}',
+      uid: _mockStableUidForRole(role, email),
       email: email,
       displayName: fullName,
       role: role,
