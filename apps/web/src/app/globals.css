@@ -1,7 +1,6 @@
 @import "tailwindcss";
 /* System Trial: Global CSS variable adjustments */
 @import "tw-animate-css";
-@import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -157,6 +156,7 @@
 		opacity: 0;
 		transform: translateY(16px);
 	}
+
 	to {
 		opacity: 1;
 		transform: translateY(0);
@@ -167,16 +167,19 @@
 	0% {
 		background-position: -200% 0;
 	}
+
 	100% {
 		background-position: 200% 0;
 	}
 }
 
 @keyframes admin-float {
+
 	0%,
 	100% {
 		transform: translateY(0px);
 	}
+
 	50% {
 		transform: translateY(-4px);
 	}
@@ -187,6 +190,7 @@
 		transform: scale(1);
 		opacity: 0.5;
 	}
+
 	100% {
 		transform: scale(1.7);
 		opacity: 0;
@@ -194,35 +198,43 @@
 }
 
 @keyframes admin-gradient-shift {
+
 	0%,
 	100% {
 		background-position: 0% 50%;
 	}
+
 	50% {
 		background-position: 100% 50%;
 	}
 }
 
 /* Staggered fade-in for stat card grid items */
-.admin-stat-grid > * {
+.admin-stat-grid>* {
 	animation: admin-fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-.admin-stat-grid > *:nth-child(1) {
+
+.admin-stat-grid>*:nth-child(1) {
 	animation-delay: 0ms;
 }
-.admin-stat-grid > *:nth-child(2) {
+
+.admin-stat-grid>*:nth-child(2) {
 	animation-delay: 60ms;
 }
-.admin-stat-grid > *:nth-child(3) {
+
+.admin-stat-grid>*:nth-child(3) {
 	animation-delay: 120ms;
 }
-.admin-stat-grid > *:nth-child(4) {
+
+.admin-stat-grid>*:nth-child(4) {
 	animation-delay: 180ms;
 }
-.admin-stat-grid > *:nth-child(5) {
+
+.admin-stat-grid>*:nth-child(5) {
 	animation-delay: 240ms;
 }
-.admin-stat-grid > *:nth-child(6) {
+
+.admin-stat-grid>*:nth-child(6) {
 	animation-delay: 300ms;
 }
 
@@ -260,12 +272,10 @@
 	left: 0;
 	right: 0;
 	height: 2px;
-	background: linear-gradient(
-		90deg,
-		transparent,
-		var(--card-accent, currentColor),
-		transparent
-	);
+	background: linear-gradient(90deg,
+			transparent,
+			var(--card-accent, currentColor),
+			transparent);
 	opacity: 0;
 	transition: opacity 0.35s ease;
 }
@@ -340,11 +350,9 @@
 
 /* Page header gradient text */
 .admin-header-gradient {
-	background: linear-gradient(
-		135deg,
-		var(--foreground) 0%,
-		var(--muted-foreground) 100%
-	);
+	background: linear-gradient(135deg,
+			var(--foreground) 0%,
+			var(--muted-foreground) 100%);
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
 	background-clip: text;
@@ -363,12 +371,10 @@
 	inset: 0;
 	padding: 1px;
 	border-radius: 1.25rem;
-	background: linear-gradient(
-		135deg,
-		rgba(59, 130, 246, 0.3),
-		rgba(168, 85, 247, 0.3),
-		rgba(236, 72, 153, 0.3)
-	);
+	background: linear-gradient(135deg,
+			rgba(59, 130, 246, 0.3),
+			rgba(168, 85, 247, 0.3),
+			rgba(236, 72, 153, 0.3));
 	mask:
 		linear-gradient(#fff 0 0) content-box,
 		linear-gradient(#fff 0 0);
@@ -388,21 +394,17 @@
 }
 
 .admin-table-row:hover {
-	background: linear-gradient(
-		90deg,
-		transparent,
-		rgba(59, 130, 246, 0.03),
-		transparent
-	);
+	background: linear-gradient(90deg,
+			transparent,
+			rgba(59, 130, 246, 0.03),
+			transparent);
 }
 
 .dark .admin-table-row:hover {
-	background: linear-gradient(
-		90deg,
-		transparent,
-		rgba(59, 130, 246, 0.06),
-		transparent
-	);
+	background: linear-gradient(90deg,
+			transparent,
+			rgba(59, 130, 246, 0.06),
+			transparent);
 }
 
 /* Badge glow effect */
