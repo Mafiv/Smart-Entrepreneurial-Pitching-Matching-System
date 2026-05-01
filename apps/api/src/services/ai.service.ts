@@ -76,6 +76,12 @@ export interface ComputeMatchResponse {
 export interface ClassifyPitchResponse {
 	trust_score_percentage: number;
 	ai_flag: string;
+	authenticity?: {
+		is_gibberish: boolean;
+		language_quality: "professional" | "acceptable" | "poor" | "gibberish";
+		confidence: number;
+		gemini_note: string;
+	} | null;
 }
 
 const client = axios.create({
