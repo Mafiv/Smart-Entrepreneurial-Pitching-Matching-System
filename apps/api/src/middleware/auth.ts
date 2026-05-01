@@ -56,9 +56,23 @@ export const authenticate = async (
 			}
 		}
 
-		if (user && decodedToken.email_verified && !user.emailVerified) {
-			user.emailVerified = true;
-			await user.save();
+		if (user) {
+			let shouldSave = false;
+			if (decodedToken.email_verified && !user.emailVerified) {
+				user.emailVerified = true;
+				shouldSave = true;
+			}
+			if (decodedToken.phone_number) {
+				const phone = decodedToken.phone_number;
+				if (user.phoneNumber !== phone || !user.phoneVerified) {
+					user.phoneNumber = phone;
+					user.phoneVerified = true;
+					shouldSave = true;
+				}
+			}
+			if (shouldSave) {
+				await user.save();
+			}
 		}
 
 		req.user = user;

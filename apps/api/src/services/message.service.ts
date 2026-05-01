@@ -4,6 +4,7 @@ import { Message } from "../models/Message";
 import { MisconductReport } from "../models/MisconductReport";
 import { User } from "../models/User";
 import { emitToConversation } from "../socket";
+// import { redactObject, redactString } from "../utils/redaction";
 import { NotificationService } from "./notification.service";
 
 class MessageServiceError extends Error {
@@ -316,10 +317,13 @@ export class MessageService {
 			);
 		}
 
+		// Redact PII from message body before storing
+		const redactedBody = redactString(messageBody);
+
 		const message = await Message.create({
 			conversationId: payload.conversationId,
 			senderId: payload.senderId,
-			body: messageBody || "Attachment",
+			body: redactedBody || "Attachment",
 			type: payload.type || (payload.attachmentUrl ? "file" : "text"),
 			attachmentUrl: payload.attachmentUrl || null,
 			readBy: [{ userId: payload.senderId, readAt: new Date() }],
@@ -337,7 +341,7 @@ export class MessageService {
 				userId: recipientId,
 				type: "message_received",
 				title: "New message",
-				body: messageBody || "You received a new attachment",
+				body: redactedBody || "You received a new attachment",
 				metadata: {
 					conversationId: payload.conversationId,
 					messageId: message._id,

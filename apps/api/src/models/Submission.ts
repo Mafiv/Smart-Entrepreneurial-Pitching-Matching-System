@@ -20,6 +20,9 @@ export interface ISubmissionDocument {
 		| "financial_model"
 		| "product_demo"
 		| "customer_testimonials"
+		| "tin_certificate"
+		| "business_license"
+		| "moa_aoa"
 		| "other";
 	cloudinaryId?: string;
 	size?: number;
@@ -77,11 +80,11 @@ const documentSchema = new Schema<ISubmissionDocument>({
 		enum: [
 			"pitch_deck",
 			"financial_model",
-			"legal",
-			"business_plan",
-			"financial_statement",
-			"legal_doc",
-			"video",
+			"product_demo",
+			"customer_testimonials",
+			"tin_certificate",
+			"business_license",
+			"moa_aoa",
 			"other",
 		],
 		default: "other",

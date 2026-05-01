@@ -10,6 +10,7 @@ import helmet from "helmet";
 import { connectDB } from "./config/database";
 import { initFirebase } from "./config/firebase";
 import { openApiSpec } from "./config/openapi";
+import { redactionMiddleware } from "./middleware/redaction";
 import recommendationRoutes from "./recommendation/recommendation.routes";
 import adminRoutes from "./routes/admin.routes";
 import authRoutes from "./routes/auth.routes";
@@ -49,6 +50,15 @@ app.use(
 	helmet({
 		crossOriginOpenerPolicy: false, // Set this completely to false
 		crossOriginResourcePolicy: { policy: "cross-origin" },
+		contentSecurityPolicy: {
+			directives: {
+				defaultSrc: ["'self'"],
+				scriptSrc: ["'self'", "https://unpkg.com", "'unsafe-inline'"],
+				styleSrc: ["'self'", "https://unpkg.com", "'unsafe-inline'"],
+				imgSrc: ["'self'", "data:", "https:"],
+				connectSrc: ["'self'", "https://unpkg.com"],
+			},
+		},
 	}),
 );
 
@@ -102,6 +112,16 @@ app.use(
 app.use(mongoSanitize());
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));
+
+// PII redaction middleware for API responses
+app.use(
+	redactionMiddleware({
+		redactResponseBody: false, // Don't redact responses by default (users need their data)
+		redactRequestBody: true, // Redact request bodies in logs
+		redactQueryParams: true, // Redact query params in logs
+		excludePaths: ["^/health$", "^/api/docs"],
+	}),
+);
 
 const healthHandler = (_req: Request, res: Response) => {
 	res.status(200).json({ status: "ok" });

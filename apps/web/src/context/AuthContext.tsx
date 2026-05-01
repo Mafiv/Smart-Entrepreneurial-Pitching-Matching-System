@@ -4,7 +4,6 @@ import {
 	createUserWithEmailAndPassword,
 	signOut as firebaseSignOut,
 	onAuthStateChanged,
-	sendEmailVerification,
 	signInWithEmailAndPassword,
 	signInWithPopup,
 	type User,
@@ -35,6 +34,8 @@ export interface UserProfile {
 	status: "unverified" | "pending" | "verified" | "suspended";
 	kycRejectionReason?: string | null;
 	photoURL: string | null;
+	phoneNumber?: string | null;
+	phoneVerified?: boolean;
 	emailVerified: boolean;
 }
 
@@ -56,6 +57,14 @@ interface AuthContextType {
 	}) => Promise<UserProfile>;
 	signOut: () => Promise<void>;
 	resendVerificationEmail: () => Promise<void>;
+	requestEmailOtp: () => Promise<void>;
+	verifyEmailOtp: (code: string) => Promise<void>;
+	requestPasswordResetOtp: (email: string) => Promise<void>;
+	confirmPasswordReset: (options: {
+		email: string;
+		code: string;
+		newPassword: string;
+	}) => Promise<void>;
 	refreshUserProfile: () => Promise<void>;
 }
 
@@ -173,9 +182,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		);
 		await updateProfile(credential.user, { displayName: fullName });
 
-		// Send Firebase verification email
-		await sendEmailVerification(credential.user);
-
 		// Register in backend
 		const profile = await syncUserWithBackend(
 			credential.user,
@@ -186,6 +192,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		if (!profile) throw new Error("Failed to create profile in backend");
 
 		setUserProfile(profile);
+		await requestEmailOtp();
 		return profile;
 	};
 
@@ -240,11 +247,92 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		setUserProfile(null);
 	};
 
-	// Resend Firebase verification email
-	const resendVerificationEmail = async () => {
+	const requestEmailOtp = useCallback(async (): Promise<void> => {
 		if (!auth?.currentUser) throw new Error("No user logged in");
-		await sendEmailVerification(auth.currentUser);
+		const token = await auth.currentUser.getIdToken();
+		const res = await fetch(`${API_URL}/auth/otp/request`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
+			},
+			body: JSON.stringify({ channel: "email", purpose: "verify" }),
+		});
+
+		if (!res.ok) {
+			const data = await res.json().catch(() => null);
+			throw new Error(data?.message || "Failed to send OTP");
+		}
+	}, [API_URL]);
+
+	const verifyEmailOtp = useCallback(
+		async (code: string): Promise<void> => {
+			if (!auth?.currentUser) throw new Error("No user logged in");
+			const token = await auth.currentUser.getIdToken();
+			const res = await fetch(`${API_URL}/auth/otp/verify`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`,
+				},
+				body: JSON.stringify({
+					channel: "email",
+					purpose: "verify",
+					code,
+				}),
+			});
+
+			if (!res.ok) {
+				const data = await res.json().catch(() => null);
+				throw new Error(data?.message || "Failed to verify OTP");
+			}
+		},
+		[API_URL],
+	);
+
+	const resendVerificationEmail = async () => {
+		await requestEmailOtp();
 	};
+
+	const requestPasswordResetOtp = useCallback(
+		async (email: string): Promise<void> => {
+			const res = await fetch(`${API_URL}/auth/password-reset/request`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ email }),
+			});
+
+			if (!res.ok) {
+				const data = await res.json().catch(() => null);
+				throw new Error(data?.message || "Failed to send password reset OTP");
+			}
+		},
+		[API_URL],
+	);
+
+	const confirmPasswordReset = useCallback(
+		async (options: {
+			email: string;
+			code: string;
+			newPassword: string;
+		}): Promise<void> => {
+			const res = await fetch(`${API_URL}/auth/password-reset/confirm`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(options),
+			});
+
+			if (!res.ok) {
+				const data = await res.json().catch(() => null);
+				throw new Error(data?.message || "Failed to reset password");
+			}
+		},
+		[API_URL],
+	);
 
 	// Reload Firebase user and refresh profile from backend
 	const refreshUserProfile = useCallback(async () => {
@@ -269,6 +357,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				signInWithGoogle,
 				signOut,
 				resendVerificationEmail,
+				requestEmailOtp,
+				verifyEmailOtp,
+				requestPasswordResetOtp,
+				confirmPasswordReset,
 				refreshUserProfile,
 			}}
 		>
