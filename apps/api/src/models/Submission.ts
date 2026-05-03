@@ -61,6 +61,16 @@ export interface ISubmission extends Document {
 	documents: ISubmissionDocument[];
 	aiScore?: number;
 	aiAnalysis?: Record<string, unknown>;
+	aiSummary?: {
+		executiveSummary: string;
+		keyStrengths: string[];
+		keyRisks: string[];
+		investmentReadiness: string;
+		marketOpportunity: string;
+		generatedAt: string;
+		model: string;
+	};
+	voiceSummaryUrl?: string;
 	currentStep: number;
 	status: SubmissionStatus;
 	isAiOverride?: boolean;
@@ -164,6 +174,16 @@ const SubmissionSchema = new Schema<ISubmission>(
 		documents: [documentSchema],
 		aiScore: { type: Number, min: 0, max: 100 },
 		aiAnalysis: { type: Schema.Types.Mixed },
+		aiSummary: {
+			executiveSummary: { type: String, default: null },
+			keyStrengths: [{ type: String }],
+			keyRisks: [{ type: String }],
+			investmentReadiness: { type: String, default: null },
+			marketOpportunity: { type: String, default: null },
+			generatedAt: { type: String, default: null },
+			model: { type: String, default: null },
+		},
+		voiceSummaryUrl: { type: String, default: null },
 		currentStep: { type: Number, default: 1, min: 1, max: 6 },
 		currency: {
 			type: String,
