@@ -325,4 +325,31 @@ router.patch(
 	SubmissionController.updateStatusAdmin,
 );
 
+/**
+ * @openapi
+ * /api/submissions/{id}/generate-summary:
+ *   post:
+ *     tags: [Submissions]
+ *     summary: Admin (re)generate Gemini AI pitch summary
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: AI summary generated
+ *       404:
+ *         description: Submission not found
+ */
+router.post(
+	"/:id/generate-summary",
+	authenticate,
+	authorize("admin", "super_admin"),
+	SubmissionController.generateSummary,
+);
+
 export default router;
