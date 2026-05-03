@@ -15,6 +15,7 @@ export interface AiPitchSummary {
 }
 
 const GEMINI_MODEL = "gemini-2.5-flash";
+const GEMINI_TTS_MODEL = "gemini-2.5-flash-preview-tts";
 
 /**
  * GeminiSummaryService
@@ -237,10 +238,8 @@ Return ONLY a valid JSON object — no markdown fences, no explanation, nothing 
 		const ai = new GoogleGenAI({ apiKey });
 
 		const response = await ai.models.generateContent({
-			model: GEMINI_MODEL,
-			contents: `Read the following startup pitch summary aloud in a clear, professional, and engaging tone suitable for investors reviewing the pitch:
-
-"${executiveSummary}"`,
+			model: GEMINI_TTS_MODEL,
+			contents: `Read the following startup pitch summary aloud in a clear, professional, and engaging tone suitable for investors reviewing the pitch:\n\n"${executiveSummary}"`,
 			config: {
 				responseModalities: ["AUDIO"],
 				speechConfig: {
@@ -274,7 +273,9 @@ Return ONLY a valid JSON object — no markdown fences, no explanation, nothing 
 		};
 
 		// Store as a data URL — avoids needing Cloudinary for small audio
-		const dataUrl = `data:${mimeType || "audio/mp3"};base64,${data}`;
+		// Gemini TTS typically returns audio/L16 (raw PCM) or audio/mp3
+		const resolvedMime = mimeType || "audio/mp3";
+		const dataUrl = `data:${resolvedMime};base64,${data}`;
 
 		await Submission.findByIdAndUpdate(submissionId, {
 			voiceSummaryUrl: dataUrl,
