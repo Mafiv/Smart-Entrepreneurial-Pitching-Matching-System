@@ -41,28 +41,8 @@ const router = Router();
  *     responses:
  *       201:
  *         description: Draft created
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 submission:
- *                   type: object
  *       403:
  *         description: User is not verified
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post(
 	"/",
@@ -83,24 +63,6 @@ router.post(
  *     responses:
  *       200:
  *         description: Submission list fetched
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 submissions:
- *                   type: array
- *                   items:
- *                     type: object
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get(
 	"/",
@@ -138,24 +100,6 @@ router.get(
  *     responses:
  *       200:
  *         description: Feed fetched
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 submissions:
- *                   type: array
- *                   items:
- *                     type: object
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get(
 	"/feed/browse",
@@ -188,23 +132,6 @@ router.get(
  *     responses:
  *       200:
  *         description: Admin submissions fetched
- *         content:
- *           application/json:
- *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/PaginatedResponse'
- *                 - type: object
- *                   properties:
- *                     submissions:
- *                       type: array
- *                       items:
- *                         type: object
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get(
 	"/admin/all",
@@ -230,28 +157,8 @@ router.get(
  *     responses:
  *       200:
  *         description: Submission fetched
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 submission:
- *                   type: object
  *       404:
  *         description: Submission not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get("/:id", authenticate, SubmissionController.getOne);
 
@@ -292,28 +199,8 @@ router.get("/:id", authenticate, SubmissionController.getOne);
  *     responses:
  *       200:
  *         description: Draft updated
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 submission:
- *                   type: object
  *       400:
  *         description: Validation or status error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.patch(
 	"/:id",
@@ -339,31 +226,9 @@ router.patch(
  *           type: string
  *     responses:
  *       200:
- *         description: Pitch submitted for review
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 message:
- *                   type: string
- *                 submission:
- *                   type: object
+ *         description: Pitch submitted
  *       400:
  *         description: Incomplete or invalid draft
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post(
 	"/:id/submit",
@@ -389,22 +254,6 @@ router.post(
  *     responses:
  *       200:
  *         description: Completeness result
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 completeness:
- *                   type: object
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get(
 	"/:id/completeness",
@@ -430,28 +279,8 @@ router.get(
  *     responses:
  *       200:
  *         description: Draft deleted
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 message:
- *                   type: string
  *       404:
  *         description: Draft not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.delete(
 	"/:id",
@@ -488,36 +317,6 @@ router.delete(
  *     responses:
  *       200:
  *         description: Status updated
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 message:
- *                   type: string
- *                 submission:
- *                   type: object
- *       400:
- *         description: Invalid status value
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       404:
- *         description: Submission not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.patch(
 	"/:id/status",

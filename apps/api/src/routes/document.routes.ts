@@ -44,34 +44,10 @@ router.use(authenticate);
  *     responses:
  *       201:
  *         description: Document uploaded
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 document:
- *                   type: object
  *       400:
  *         description: Validation error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post(
 	"/",
@@ -104,22 +80,6 @@ router.post(
  *     responses:
  *       201:
  *         description: Document uploaded
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 document:
- *                   type: object
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post(
 	"/upload",
@@ -154,24 +114,6 @@ router.post(
  *     responses:
  *       201:
  *         description: Documents uploaded
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 documents:
- *                   type: array
- *                   items:
- *                     type: object
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post(
 	"/upload-multiple",
@@ -191,24 +133,6 @@ router.post(
  *     responses:
  *       200:
  *         description: Documents list
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 documents:
- *                   type: array
- *                   items:
- *                     type: object
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get(
 	"/",
@@ -289,28 +213,8 @@ router.get(
  *     responses:
  *       200:
  *         description: Document deleted
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 message:
- *                   type: string
  *       404:
  *         description: Not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.delete(
 	"/:id",
@@ -333,6 +237,36 @@ router.delete(
  *     responses:
  *       200:
  *         description: Document status successfully overridden
+ */
+router.post(
+	"/:id/override",
+	authorize("admin", "super_admin"),
+	DocumentController.overrideStatus,
+);
+
+/**
+ * @openapi
+ * /api/documents/conflicts/check:
+ *   get:
+ *     tags: [Documents]
+ *     summary: UC-13 - Check for document conflicts across user's documents
+ *     description: Cross-references data extracted from different documents, detects conflicts (e.g., mismatched business names), and returns conflict report.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: submissionId
+ *         schema:
+ *           type: string
+ *         description: Optional submission ID to limit conflict check
+ *       - in: query
+ *         name: documentIds
+ *         schema:
+ *           type: string
+ *         description: Comma-separated list of document IDs to check
+ *     responses:
+ *       200:
+ *         description: Conflict check completed
  *         content:
  *           application/json:
  *             schema:
@@ -340,26 +274,174 @@ router.delete(
  *               properties:
  *                 status:
  *                   type: string
- *                   example: success
- *                 message:
- *                   type: string
+ *                 hasConflicts:
+ *                   type: boolean
+ *                 summary:
+ *                   type: object
+ *                   properties:
+ *                     total:
+ *                       type: number
+ *                     critical:
+ *                       type: number
+ *                     high:
+ *                       type: number
+ *                     medium:
+ *                       type: number
+ *                     low:
+ *                       type: number
+ *                 conflicts:
+ *                   type: array
+ *       401:
+ *         description: Unauthorized
+ */
+router.get(
+	"/conflicts/check",
+	authorize("entrepreneur", "investor", "admin"),
+	DocumentController.checkConflicts,
+);
+
+/**
+ * @openapi
+ * /api/documents/{id}/entities:
+ *   get:
+ *     tags: [Documents]
+ *     summary: UC-13 - Get extracted entities for a specific document
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Entities fetched
  *       404:
- *         description: Document not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *         description: Not found
+ */
+router.get(
+	"/:id/entities",
+	authorize("entrepreneur", "investor", "admin"),
+	DocumentController.getDocumentEntities,
+);
+
+/**
+ * @openapi
+ * /api/documents/{id}/conflicts:
+ *   get:
+ *     tags: [Documents]
+ *     summary: UC-13 - Get conflict status for a specific document
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Conflict status fetched
+ *       404:
+ *         description: Not found
+ */
+router.get(
+	"/:id/conflicts",
+	authorize("entrepreneur", "investor", "admin"),
+	DocumentController.getConflictStatus,
+);
+
+/**
+ * @openapi
+ * /api/documents/{id}/conflicts/override:
+ *   post:
+ *     tags: [Documents]
+ *     summary: UC-13 - Admin override for conflict status (Human resolution)
+ *     description: Allows administrator to override detected conflicts and approve document for submission.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               note:
+ *                 type: string
+ *                 description: Admin note for override reason
+ *     responses:
+ *       200:
+ *         description: Conflict status overridden
+ *       403:
+ *         description: Forbidden - Admin only
+ *       404:
+ *         description: Not found
  */
 router.post(
-	"/:id/override",
+	"/:id/conflicts/override",
 	authorize("admin", "super_admin"),
-	DocumentController.overrideStatus,
+	DocumentController.overrideConflictStatus,
+);
+
+/**
+ * @openapi
+ * /api/documents/conflicts/multi-entity:
+ *   get:
+ *     tags: [Documents]
+ *     summary: UC-3.7 - Check for multi-entity conflicts
+ *     description: Detects when documents appear to belong to different legal entities (e.g., different business names or TINs across documents).
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: submissionId
+ *         schema:
+ *           type: string
+ *         description: Optional submission ID to limit conflict check
+ *       - in: query
+ *         name: documentIds
+ *         schema:
+ *           type: string
+ *         description: Comma-separated list of document IDs to check
+ *     responses:
+ *       200:
+ *         description: Multi-entity conflict check completed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                 hasMultiEntityConflict:
+ *                   type: boolean
+ *                 multiEntityConflicts:
+ *                   type: array
+ *                 summary:
+ *                   type: object
+ *                   properties:
+ *                     total:
+ *                       type: number
+ *                     critical:
+ *                       type: number
+ *                     high:
+ *                       type: number
+ *                 message:
+ *                   type: string
+ *       401:
+ *         description: Unauthorized
+ */
+router.get(
+	"/conflicts/multi-entity",
+	authorize("entrepreneur", "investor", "admin"),
+	DocumentController.checkMultiEntityConflicts,
 );
 
 export default router;

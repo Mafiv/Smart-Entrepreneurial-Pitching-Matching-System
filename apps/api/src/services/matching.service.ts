@@ -587,38 +587,95 @@ export class MatchingService {
 		}
 
 		const previousStatus = match.status;
-		match.status = payload.status;
+
+		// If investor says "accepted", we set it to "requested" for entrepreneur approval
+		const targetStatus: MatchStatus =
+			payload.status === "accepted" ? "requested" : "declined";
+
+		match.status = targetStatus;
 		await match.save();
 
-		if (payload.status === "accepted") {
-			await Submission.findByIdAndUpdate(match.submissionId, {
-				$set: { status: "matched" },
+		if (targetStatus === "requested") {
+			// Notify entrepreneur about the investment request
+			await NotificationService.createNotification({
+				userId: match.entrepreneurId.toString(),
+				type: "match_found",
+				title: "Investment Request Received",
+				body: "An investor has requested to invest in your project. Please review and approve the request.",
+				metadata: {
+					matchId: match._id,
+					submissionId: match.submissionId,
+				},
 			});
 
-			if (shouldAutoSendInvitation(previousStatus, payload.status)) {
+			// Optional: auto-send invitation to start conversation
+			if (shouldAutoSendInvitation(previousStatus, "accepted")) {
 				try {
 					await InvitationService.sendInvitation({
 						matchId: match._id.toString(),
 						senderId: payload.investorId,
 						message:
-							"Thanks for accepting this match. I would like to connect and discuss next steps.",
+							"I am interested in investing in your project and would like to discuss the next steps.",
 						expiresInDays: 14,
 					});
 				} catch (error) {
-					if (
-						!InvitationService.isServiceError(error) ||
-						(error.statusCode !== 409 && error.statusCode !== 400)
-					) {
-						console.error("Auto-invitation creation failed", error);
-					}
+					console.error("Auto-invitation creation failed:", error);
 				}
 			}
+		}
+
+		return match;
+	}
+
+	static async approveInvestmentRequest(payload: {
+		matchId: string;
+		entrepreneurId: string;
+		approved: boolean;
+	}) {
+		const match = await MatchResult.findOne({
+			_id: payload.matchId,
+			entrepreneurId: payload.entrepreneurId,
+		});
+
+		if (!match) {
+			throw MatchingService.createError("Match request not found", 404);
+		}
+
+		if (match.status !== "requested") {
+			throw MatchingService.createError(
+				"Match is not in a requested state",
+				400,
+			);
+		}
+
+		if (payload.approved) {
+			match.status = "accepted";
+			await match.save();
+
+			// side effects for acceptance
+			await Submission.findByIdAndUpdate(match.submissionId, {
+				$set: { status: "matched" },
+			});
 
 			await NotificationService.createNotification({
-				userId: match.entrepreneurId.toString(),
+				userId: match.investorId.toString(),
+				type: "match_found", // Reuse match_found or create new type
+				title: "Investment Request Approved",
+				body: "The entrepreneur has approved your investment request. You can now create milestones and manage funding.",
+				metadata: {
+					matchId: match._id,
+					submissionId: match.submissionId,
+				},
+			});
+		} else {
+			match.status = "declined";
+			await match.save();
+
+			await NotificationService.createNotification({
+				userId: match.investorId.toString(),
 				type: "match_found",
-				title: "Match accepted",
-				body: "An investor accepted your match. You can now send an invitation.",
+				title: "Investment Request Declined",
+				body: "The entrepreneur has declined your investment request.",
 				metadata: {
 					matchId: match._id,
 					submissionId: match.submissionId,
@@ -626,12 +683,62 @@ export class MatchingService {
 			});
 		}
 
-		if (payload.status === "declined") {
+		return match;
+	}
+
+	static async respondToSubmission(payload: {
+		submissionId: string;
+		investorId: string;
+		status: Extract<MatchStatus, "accepted" | "declined">;
+	}) {
+		let match = await MatchResult.findOne({
+			submissionId: payload.submissionId,
+			investorId: payload.investorId,
+		});
+
+		if (match) {
+			// If match already exists, reuse updateMatchStatus logic
+			return MatchingService.updateMatchStatus({
+				matchId: match._id.toString(),
+				investorId: payload.investorId,
+				status: payload.status,
+			});
+		}
+
+		// Create a new match record directly
+		const submission = await Submission.findById(payload.submissionId);
+		if (!submission) {
+			throw MatchingService.createError("Submission not found", 404);
+		}
+
+		match = await MatchResult.create({
+			submissionId: submission._id,
+			entrepreneurId: submission.entrepreneurId,
+			investorId: payload.investorId,
+			score: 0.5, // Placeholder score for manual engagement
+			status: payload.status === "accepted" ? "requested" : "declined",
+			matchedAt: new Date(),
+		});
+
+		// Apply same side-effects as updateMatchStatus
+		if (match.status === "requested") {
+			try {
+				await InvitationService.sendInvitation({
+					matchId: match._id.toString(),
+					senderId: payload.investorId,
+					message:
+						"I discovered your project in the feed and would like to request to invest.",
+					expiresInDays: 14,
+				});
+			} catch (error) {
+				console.error("Auto-invitation creation failed:", error);
+			}
+
 			await NotificationService.createNotification({
 				userId: match.entrepreneurId.toString(),
-				type: "milestone_updated",
-				title: "Match declined",
-				body: "An investor declined your match. We will continue searching.",
+				type: "match_found",
+				title: "Investment Request Received",
+				body: "An investor discovered your project in the feed and requested to invest. Please review and approve.",
 				metadata: {
 					matchId: match._id,
 					submissionId: match.submissionId,

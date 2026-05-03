@@ -59,49 +59,12 @@ const upload = multer({
  *                 format: binary
  *               type:
  *                 type: string
- *                 enum: [pitch_deck, financial_model, legal, other]
+ *                 enum: [pitch_deck, financial_model, product_demo, customer_testimonials, tin_certificate, business_license, moa_aoa, other]
  *     responses:
  *       200:
  *         description: File uploaded successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 message:
- *                   type: string
- *                 file:
- *                   type: object
- *                   properties:
- *                     name:
- *                       type: string
- *                     url:
- *                       type: string
- *                     cloudinaryId:
- *                       type: string
- *                     type:
- *                       type: string
- *                     size:
- *                       type: integer
- *                     format:
- *                       type: string
- *                     resourceType:
- *                       type: string
  *       400:
  *         description: No file provided
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post(
 	"/",
@@ -118,7 +81,7 @@ router.post(
 			const docType = (req.body.type as string) || "other";
 			const isVideo = req.file.mimetype.startsWith("video/");
 			const resourceType = isVideo ? "video" : "auto";
-			const folder = `sepms/submissions/${req.user!._id}/${docType}`;
+			const folder = `sepms/submissions/${req.user?._id}/${docType}`;
 
 			const result = await new Promise<UploadApiResponse>((resolve, reject) => {
 				const uploadStream = cloudinary.uploader.upload_stream(
@@ -138,13 +101,16 @@ router.post(
 							"ppt",
 						],
 						chunk_size: 6000000,
+						use_filename: true,
+						unique_filename: false,
 					},
 					(error, result) => {
 						if (error) reject(error);
 						else resolve(result as UploadApiResponse);
 					},
 				);
-				uploadStream.end(req.file!.buffer);
+				uploadStream.on("error", reject);
+				uploadStream.end(req.file?.buffer);
 			});
 
 			res.status(200).json({
@@ -187,24 +153,6 @@ router.post(
  *     responses:
  *       200:
  *         description: File deleted successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 message:
- *                   type: string
- *                 result:
- *                   type: object
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.delete(
 	"/:publicId",

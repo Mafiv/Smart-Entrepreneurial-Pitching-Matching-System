@@ -7,23 +7,26 @@ import express, {
 import mongoSanitize from "express-mongo-sanitize";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
-import swaggerUi from "swagger-ui-express";
 import { connectDB } from "./config/database";
 import { initFirebase } from "./config/firebase";
 import { openApiSpec } from "./config/openapi";
+import { redactionMiddleware } from "./middleware/redaction";
 import recommendationRoutes from "./recommendation/recommendation.routes";
 import adminRoutes from "./routes/admin.routes";
 import authRoutes from "./routes/auth.routes";
 import documentRoutes from "./routes/document.routes";
 import entrepreneurRoutes from "./routes/entrepreneur.routes";
 import feedbackRoutes from "./routes/feedback.routes";
+import financeRoutes from "./routes/finance.routes";
 import investorRoutes from "./routes/investor.routes";
 import invitationRoutes from "./routes/invitation.routes";
 import matchingRoutes from "./routes/matching.routes";
 import meetingRoutes from "./routes/meeting.routes";
 import messageRoutes from "./routes/message.routes";
 import milestoneRoutes from "./routes/milestone.routes";
+import paymentRoutes from "./routes/payment.routes";
 import submissionRoutes from "./routes/submission.routes";
+import transactionRoutes from "./routes/transaction.routes";
 import uploadRoutes from "./routes/upload.routes";
 import userRoutes from "./routes/user.routes";
 
@@ -47,6 +50,15 @@ app.use(
 	helmet({
 		crossOriginOpenerPolicy: false, // Set this completely to false
 		crossOriginResourcePolicy: { policy: "cross-origin" },
+		contentSecurityPolicy: {
+			directives: {
+				defaultSrc: ["'self'"],
+				scriptSrc: ["'self'", "https://unpkg.com", "'unsafe-inline'"],
+				styleSrc: ["'self'", "https://unpkg.com", "'unsafe-inline'"],
+				imgSrc: ["'self'", "data:", "https:"],
+				connectSrc: ["'self'", "https://unpkg.com"],
+			},
+		},
 	}),
 );
 
@@ -100,6 +112,16 @@ app.use(
 app.use(mongoSanitize());
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));
+
+// PII redaction middleware for API responses
+app.use(
+	redactionMiddleware({
+		redactResponseBody: false, // Don't redact responses by default (users need their data)
+		redactRequestBody: true, // Redact request bodies in logs
+		redactQueryParams: true, // Redact query params in logs
+		excludePaths: ["^/health$", "^/api/docs"],
+	}),
+);
 
 const healthHandler = (_req: Request, res: Response) => {
 	res.status(200).json({ status: "ok" });
@@ -159,11 +181,14 @@ app.use("/api/investor", investorRoutes);
 app.use("/api/matching", matchingRoutes);
 app.use("/api/recommendation", recommendationRoutes);
 app.use("/api/milestones", milestoneRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/transactions", transactionRoutes);
 app.use("/api/invitations", invitationRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/meetings", meetingRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/finance", financeRoutes);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {

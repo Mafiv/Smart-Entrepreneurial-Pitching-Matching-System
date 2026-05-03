@@ -20,6 +20,9 @@ export interface ISubmissionDocument {
 		| "financial_model"
 		| "product_demo"
 		| "customer_testimonials"
+		| "tin_certificate"
+		| "business_license"
+		| "moa_aoa"
 		| "other";
 	cloudinaryId?: string;
 	size?: number;
@@ -60,6 +63,8 @@ export interface ISubmission extends Document {
 	aiAnalysis?: Record<string, unknown>;
 	currentStep: number;
 	status: SubmissionStatus;
+	isAiOverride?: boolean;
+	aiOverrideReason?: string;
 	reviewNotes?: string;
 	submittedAt?: Date;
 	closedAt?: Date;
@@ -75,11 +80,11 @@ const documentSchema = new Schema<ISubmissionDocument>({
 		enum: [
 			"pitch_deck",
 			"financial_model",
-			"legal",
-			"business_plan",
-			"financial_statement",
-			"legal_doc",
-			"video",
+			"product_demo",
+			"customer_testimonials",
+			"tin_certificate",
+			"business_license",
+			"moa_aoa",
 			"other",
 		],
 		default: "other",
@@ -179,6 +184,14 @@ const SubmissionSchema = new Schema<ISubmission>(
 				"closed",
 			] satisfies SubmissionStatus[],
 			default: "draft",
+		},
+		isAiOverride: {
+			type: Boolean,
+			default: false,
+		},
+		aiOverrideReason: {
+			type: String,
+			default: null,
 		},
 		reviewNotes: {
 			type: String,

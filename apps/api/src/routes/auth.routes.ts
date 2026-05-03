@@ -1,4 +1,5 @@
 import { type Request, type Response, Router } from "express";
+import { firebaseAuth } from "../config/firebase";
 import {
 	authenticate,
 	authorize,
@@ -6,6 +7,14 @@ import {
 } from "../middleware/auth";
 import { AdminInvite } from "../models/AdminInvite";
 import { User } from "../models/User";
+import {
+	createOtp,
+	OtpError,
+	otpCooldownSeconds,
+	otpExpiryMinutes,
+	verifyOtp,
+} from "../services/otp.service";
+import { sendOtpEmail } from "../services/sendgrid.service";
 
 const SUPER_ADMIN_EMAIL = "abdisileshi123@gmail.com";
 
@@ -24,9 +33,6 @@ const router = Router();
  *   post:
  *     tags: [Auth]
  *     summary: Register or link authenticated Firebase user
- *     description: >
- *       Creates a new user from the Firebase JWT, or links a Google sign-in
- *       to an existing email-based account. Returns the user object in all cases.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -38,67 +44,27 @@ const router = Router();
  *             properties:
  *               fullName:
  *                 type: string
- *                 example: "John Doe"
  *               role:
  *                 type: string
  *                 enum: [entrepreneur, investor]
- *                 example: entrepreneur
  *     responses:
  *       200:
- *         description: Existing account found or linked to new provider
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 message:
- *                   type: string
- *                   example: User already registered
- *                 user:
- *                   $ref: '#/components/schemas/UserObject'
+ *         description: Existing account found or linked
  *       201:
- *         description: New user registered successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 message:
- *                   type: string
- *                   example: User registered successfully
- *                 user:
- *                   $ref: '#/components/schemas/UserObject'
- *       401:
- *         description: Missing or invalid Firebase token
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Registration failed
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *         description: User registered successfully
  */
 router.post(
 	"/register",
 	authenticate,
 	async (req: Request, res: Response): Promise<void> => {
 		try {
-			console.log("📋 POST /register — firebaseUid:", req.firebaseUser!.uid);
-			console.log("📋 POST /register — email:", req.firebaseUser!.email);
+			console.log("📋 POST /register — firebaseUid:", req.firebaseUser?.uid);
+			console.log("📋 POST /register — email:", req.firebaseUser?.email);
 			console.log("📋 POST /register — body.role:", req.body.role);
 
 			// 1. Check for existing user by Firebase UID
 			const existingByUid = await User.findOne({
-				firebaseUid: req.firebaseUser!.uid,
+				firebaseUid: req.firebaseUser?.uid,
 			});
 
 			if (existingByUid) {
@@ -114,6 +80,8 @@ router.post(
 						adminLevel: existingByUid.adminLevel || null,
 						status: existingByUid.status,
 						photoURL: existingByUid.photoURL,
+						phoneNumber: existingByUid.phoneNumber || null,
+						phoneVerified: existingByUid.phoneVerified || false,
 						emailVerified: existingByUid.emailVerified,
 					},
 				});
@@ -122,18 +90,18 @@ router.post(
 
 			// 2. Check for existing user by email (handles Google sign-in for users
 			//    originally created with email/password — different Firebase UID, same email)
-			const email = req.firebaseUser!.email;
+			const email = req.firebaseUser?.email;
 			if (email) {
 				const existingByEmail = await User.findOne({ email });
 
 				if (existingByEmail) {
 					// Link the new Firebase UID to the existing account so future
 					// lookups by UID succeed immediately
-					existingByEmail.firebaseUid = req.firebaseUser!.uid;
-					if (req.firebaseUser!.picture && !existingByEmail.photoURL) {
-						existingByEmail.photoURL = req.firebaseUser!.picture;
+					existingByEmail.firebaseUid = req.firebaseUser?.uid;
+					if (req.firebaseUser?.picture && !existingByEmail.photoURL) {
+						existingByEmail.photoURL = req.firebaseUser?.picture;
 					}
-					if (req.firebaseUser!.email_verified) {
+					if (req.firebaseUser?.email_verified) {
 						existingByEmail.emailVerified = true;
 					}
 					await existingByEmail.save();
@@ -150,6 +118,8 @@ router.post(
 							adminLevel: existingByEmail.adminLevel || null,
 							status: existingByEmail.status,
 							photoURL: existingByEmail.photoURL,
+							phoneNumber: existingByEmail.phoneNumber || null,
+							phoneVerified: existingByEmail.phoneVerified || false,
 							emailVerified: existingByEmail.emailVerified,
 						},
 					});
@@ -159,7 +129,7 @@ router.post(
 
 			// 3. Brand-new user — create with the requested role
 			const isSuperAdminEmail =
-				req.firebaseUser!.email?.toLowerCase() ===
+				req.firebaseUser?.email?.toLowerCase() ===
 				SUPER_ADMIN_EMAIL.toLowerCase();
 
 			const requestedRole = req.body.role as
@@ -174,16 +144,16 @@ router.post(
 			const initialStatus = isSuperAdminEmail ? "verified" : "unverified";
 
 			const newUser = await User.create({
-				firebaseUid: req.firebaseUser!.uid,
-				fullName: req.body.fullName || req.firebaseUser!.name || "New User",
-				email: req.firebaseUser!.email,
+				firebaseUid: req.firebaseUser?.uid,
+				fullName: req.body.fullName || req.firebaseUser?.name || "New User",
+				email: req.firebaseUser?.email,
 				role: assignedRole,
 				adminLevel: isSuperAdminEmail ? "super_admin" : undefined,
 				status: initialStatus,
-				photoURL: req.firebaseUser!.picture || null,
+				photoURL: req.firebaseUser?.picture || null,
 				emailVerified: isSuperAdminEmail
 					? true
-					: req.firebaseUser!.email_verified || false,
+					: req.firebaseUser?.email_verified || false,
 			});
 
 			res.status(201).json({
@@ -198,6 +168,8 @@ router.post(
 					adminLevel: newUser.adminLevel || null,
 					status: newUser.status,
 					photoURL: newUser.photoURL,
+					phoneNumber: newUser.phoneNumber || null,
+					phoneVerified: newUser.phoneVerified || false,
 					emailVerified: newUser.emailVerified,
 				},
 			});
@@ -214,60 +186,13 @@ router.post(
  *   get:
  *     tags: [Auth]
  *     summary: Get authenticated user profile
- *     description: >
- *       Returns the full profile of the currently authenticated user based
- *       on the Firebase JWT. Used by the frontend on every page load to
- *       hydrate session state (role, status, KYC, etc.).
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: User profile fetched successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               required: [status, user]
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 user:
- *                   $ref: '#/components/schemas/UserObject'
- *             example:
- *               status: success
- *               user:
- *                 _id: "65f4cbf24f8d64a8d1f918a2"
- *                 uid: "firebase-uid-abc123"
- *                 email: "john@example.com"
- *                 displayName: "John Doe"
- *                 role: entrepreneur
- *                 adminLevel: null
- *                 status: verified
- *                 photoURL: "https://res.cloudinary.com/demo/avatar.jpg"
- *                 emailVerified: true
- *                 kycRejectionReason: null
- *       401:
- *         description: Missing or invalid Firebase token
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *         description: User profile fetched
  *       404:
- *         description: User profile not found — registration incomplete
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               status: error
- *               message: "User profile not found. Please complete registration."
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *         description: User profile not found
  */
 router.get(
 	"/me",
@@ -316,6 +241,8 @@ router.get(
 					adminLevel: req.user.adminLevel || null,
 					status: req.user.status,
 					photoURL: req.user.photoURL,
+					phoneNumber: req.user.phoneNumber || null,
+					phoneVerified: req.user.phoneVerified || false,
 					emailVerified: req.user.emailVerified,
 					kycRejectionReason: req.user.kycRejectionReason || null,
 				},
@@ -331,11 +258,451 @@ router.get(
 
 /**
  * @openapi
+ * /api/auth/otp/request:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Request an email OTP for verification
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [channel, purpose]
+ *             properties:
+ *               channel:
+ *                 type: string
+ *                 enum: [email]
+ *               purpose:
+ *                 type: string
+ *                 enum: [verify]
+ *     responses:
+ *       200:
+ *         description: OTP sent
+ *       400:
+ *         description: Invalid request
+ *       429:
+ *         description: OTP throttled
+ */
+router.post(
+	"/otp/request",
+	authenticate,
+	async (req: Request, res: Response): Promise<void> => {
+		try {
+			if (!req.user) {
+				res.status(401).json({ status: "error", message: "User not found" });
+				return;
+			}
+
+			const { channel, purpose } = req.body as {
+				channel: string;
+				purpose: string;
+			};
+
+			if (channel !== "email" || purpose !== "verify") {
+				res.status(400).json({
+					status: "error",
+					message: "Only email verification OTP is supported on this endpoint",
+				});
+				return;
+			}
+
+			const { code, expiresAt } = await createOtp({
+				identifier: req.user.email,
+				channel: "email",
+				purpose: "verify",
+				userId: req.user._id.toString(),
+				requestedIp: req.ip,
+				userAgent: req.headers["user-agent"] || undefined,
+			});
+
+			await sendOtpEmail({
+				to: req.user.email,
+				code,
+				expiresInMinutes: otpExpiryMinutes,
+				purpose: "verify",
+			});
+
+			res.status(200).json({
+				status: "success",
+				message: "OTP sent",
+				expiresAt,
+				cooldownSeconds: otpCooldownSeconds,
+			});
+		} catch (error) {
+			if (error instanceof OtpError) {
+				res
+					.status(error.status)
+					.json({ status: "error", message: error.message });
+				return;
+			}
+			console.error("OTP request error:", error);
+			res.status(500).json({
+				status: "error",
+				message: "Failed to send OTP",
+			});
+		}
+	},
+);
+
+/**
+ * @openapi
+ * /api/auth/otp/verify:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Verify an email OTP and mark the account as verified
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [channel, purpose, code]
+ *             properties:
+ *               channel:
+ *                 type: string
+ *                 enum: [email]
+ *               purpose:
+ *                 type: string
+ *                 enum: [verify]
+ *               code:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: OTP verified
+ *       400:
+ *         description: Invalid or expired OTP
+ */
+router.post(
+	"/otp/verify",
+	authenticate,
+	async (req: Request, res: Response): Promise<void> => {
+		try {
+			if (!req.user) {
+				res.status(401).json({ status: "error", message: "User not found" });
+				return;
+			}
+
+			const { channel, purpose, code } = req.body as {
+				channel: string;
+				purpose: string;
+				code: string;
+			};
+
+			if (channel !== "email" || purpose !== "verify") {
+				res.status(400).json({
+					status: "error",
+					message: "Only email verification OTP is supported on this endpoint",
+				});
+				return;
+			}
+
+			if (!code || code.trim().length < 4) {
+				res.status(400).json({ status: "error", message: "OTP code required" });
+				return;
+			}
+
+			await verifyOtp({
+				identifier: req.user.email,
+				channel: "email",
+				purpose: "verify",
+				code,
+			});
+
+			req.user.emailVerified = true;
+			await req.user.save();
+			await firebaseAuth().updateUser(req.user.firebaseUid, {
+				emailVerified: true,
+			});
+
+			res.status(200).json({
+				status: "success",
+				message: "Email verified",
+				user: {
+					_id: req.user._id,
+					uid: req.user.firebaseUid,
+					email: req.user.email,
+					displayName: req.user.fullName,
+					role: req.user.role,
+					adminLevel: req.user.adminLevel || null,
+					status: req.user.status,
+					photoURL: req.user.photoURL,
+					phoneNumber: req.user.phoneNumber || null,
+					phoneVerified: req.user.phoneVerified || false,
+					emailVerified: req.user.emailVerified,
+					kycRejectionReason: req.user.kycRejectionReason || null,
+				},
+			});
+		} catch (error) {
+			if (error instanceof OtpError) {
+				res
+					.status(error.status)
+					.json({ status: "error", message: error.message });
+				return;
+			}
+			console.error("OTP verify error:", error);
+			res.status(500).json({
+				status: "error",
+				message: "Failed to verify OTP",
+			});
+		}
+	},
+);
+
+/**
+ * @openapi
+ * /api/auth/phone/verify:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Confirm a Firebase SMS verification and sync phone details
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Phone verified
+ *       400:
+ *         description: Phone verification missing
+ */
+router.post(
+	"/phone/verify",
+	authenticate,
+	async (req: Request, res: Response): Promise<void> => {
+		try {
+			if (!req.user) {
+				res.status(401).json({ status: "error", message: "User not found" });
+				return;
+			}
+
+			const phoneNumber = req.firebaseUser?.phone_number;
+			if (!phoneNumber) {
+				res.status(400).json({
+					status: "error",
+					message: "Phone number is not verified in Firebase",
+				});
+				return;
+			}
+
+			req.user.phoneNumber = phoneNumber;
+			req.user.phoneVerified = true;
+			await req.user.save();
+
+			res.status(200).json({
+				status: "success",
+				message: "Phone verified",
+				user: {
+					_id: req.user._id,
+					uid: req.user.firebaseUid,
+					email: req.user.email,
+					displayName: req.user.fullName,
+					role: req.user.role,
+					adminLevel: req.user.adminLevel || null,
+					status: req.user.status,
+					photoURL: req.user.photoURL,
+					phoneNumber: req.user.phoneNumber || null,
+					phoneVerified: req.user.phoneVerified || false,
+					emailVerified: req.user.emailVerified,
+					kycRejectionReason: req.user.kycRejectionReason || null,
+				},
+			});
+		} catch (error) {
+			console.error("Phone verify error:", error);
+			res.status(500).json({
+				status: "error",
+				message: "Failed to verify phone",
+			});
+		}
+	},
+);
+
+/**
+ * @openapi
+ * /api/auth/password-reset/request:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Request an email OTP for password reset
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: OTP sent if account exists
+ *       429:
+ *         description: OTP throttled
+ */
+router.post(
+	"/password-reset/request",
+	async (req: Request, res: Response): Promise<void> => {
+		try {
+			const { email } = req.body as { email?: string };
+			if (!email) {
+				res.status(400).json({
+					status: "error",
+					message: "Email is required",
+				});
+				return;
+			}
+
+			const user = await User.findOne({ email: email.toLowerCase() });
+			if (!user) {
+				res.status(200).json({
+					status: "success",
+					message: "If an account exists, an OTP has been sent",
+					cooldownSeconds: otpCooldownSeconds,
+				});
+				return;
+			}
+
+			const { code, expiresAt } = await createOtp({
+				identifier: user.email,
+				channel: "email",
+				purpose: "password_reset",
+				userId: user._id.toString(),
+				requestedIp: req.ip,
+				userAgent: req.headers["user-agent"] || undefined,
+			});
+
+			await sendOtpEmail({
+				to: user.email,
+				code,
+				expiresInMinutes: otpExpiryMinutes,
+				purpose: "password_reset",
+			});
+
+			res.status(200).json({
+				status: "success",
+				message: "If an account exists, an OTP has been sent",
+				expiresAt,
+				cooldownSeconds: otpCooldownSeconds,
+			});
+		} catch (error) {
+			if (error instanceof OtpError) {
+				res
+					.status(error.status)
+					.json({ status: "error", message: error.message });
+				return;
+			}
+			console.error("Password reset OTP error:", error);
+			res.status(500).json({
+				status: "error",
+				message: "Failed to send OTP",
+			});
+		}
+	},
+);
+
+/**
+ * @openapi
+ * /api/auth/password-reset/confirm:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Confirm password reset using email OTP
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, code, newPassword]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               code:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *                 minLength: 6
+ *     responses:
+ *       200:
+ *         description: Password reset
+ *       400:
+ *         description: Invalid OTP or password
+ */
+router.post(
+	"/password-reset/confirm",
+	async (req: Request, res: Response): Promise<void> => {
+		try {
+			const { email, code, newPassword } = req.body as {
+				email?: string;
+				code?: string;
+				newPassword?: string;
+			};
+
+			if (!email || !code || !newPassword) {
+				res.status(400).json({
+					status: "error",
+					message: "Email, code, and new password are required",
+				});
+				return;
+			}
+
+			if (newPassword.length < 6) {
+				res.status(400).json({
+					status: "error",
+					message: "Password must be at least 6 characters",
+				});
+				return;
+			}
+
+			await verifyOtp({
+				identifier: email,
+				channel: "email",
+				purpose: "password_reset",
+				code,
+			});
+
+			const user = await User.findOne({ email: email.toLowerCase() });
+			if (!user) {
+				res.status(404).json({
+					status: "error",
+					message: "User not found",
+				});
+				return;
+			}
+
+			const firebaseUser = await firebaseAuth().getUserByEmail(user.email);
+			await firebaseAuth().updateUser(firebaseUser.uid, {
+				password: newPassword,
+			});
+
+			res.status(200).json({
+				status: "success",
+				message: "Password reset successfully",
+			});
+		} catch (error) {
+			if (error instanceof OtpError) {
+				res
+					.status(error.status)
+					.json({ status: "error", message: error.message });
+				return;
+			}
+			console.error("Password reset confirm error:", error);
+			res.status(500).json({
+				status: "error",
+				message: "Failed to reset password",
+			});
+		}
+	},
+);
+
+/**
+ * @openapi
  * /api/auth/role:
  *   patch:
  *     tags: [Auth]
  *     summary: Update authenticated user role
- *     description: Updates the role for the currently authenticated user. Resets status to "pending".
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -349,47 +716,11 @@ router.get(
  *               role:
  *                 type: string
  *                 enum: [admin, entrepreneur, investor]
- *                 example: investor
  *     responses:
  *       200:
  *         description: Role updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 message:
- *                   type: string
- *                   example: Role updated successfully
- *                 user:
- *                   $ref: '#/components/schemas/UserObject'
  *       400:
  *         description: Invalid role supplied
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       401:
- *         description: Missing or invalid Firebase token
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       404:
- *         description: User not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.patch(
 	"/role",
@@ -408,7 +739,7 @@ router.patch(
 			}
 
 			const updatedUser = await User.findOneAndUpdate(
-				{ firebaseUid: req.firebaseUser!.uid },
+				{ firebaseUid: req.firebaseUser?.uid },
 				{ role, status: "pending" },
 				{ new: true },
 			);
@@ -431,6 +762,8 @@ router.patch(
 					adminLevel: updatedUser.adminLevel || null,
 					status: updatedUser.status,
 					photoURL: updatedUser.photoURL,
+					phoneNumber: updatedUser.phoneNumber || null,
+					phoneVerified: updatedUser.phoneVerified || false,
 					emailVerified: updatedUser.emailVerified,
 				},
 			});
@@ -449,64 +782,11 @@ router.patch(
  *   get:
  *     tags: [Auth]
  *     summary: Admin list all users with summary stats
- *     description: Returns a paginated user list with role/status filters and aggregate counts.
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: role
- *         schema:
- *           type: string
- *           enum: [all, entrepreneur, investor, admin]
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: [all, unverified, pending, verified, suspended]
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           default: 1
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 20
  *     responses:
  *       200:
- *         description: Paginated user list with stats
- *         content:
- *           application/json:
- *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/PaginatedResponse'
- *                 - type: object
- *                   properties:
- *                     users:
- *                       type: array
- *                       items:
- *                         $ref: '#/components/schemas/AdminUserSummary'
- *                     stats:
- *                       $ref: '#/components/schemas/UserStats'
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       403:
- *         description: Forbidden — admin role required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *         description: Users and stats fetched
  */
 router.get(
 	"/admin/users",
@@ -525,7 +805,8 @@ router.get(
 			if (role && role !== "all") filter.role = role;
 			if (statusFilter && statusFilter !== "all") filter.status = statusFilter;
 
-			const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
+			const skip =
+				(parseInt(page as string, 10) - 1) * parseInt(limit as string, 10);
 			const total = await User.countDocuments(filter);
 			const users = await User.find(filter)
 				.select(
@@ -533,7 +814,7 @@ router.get(
 				)
 				.sort({ createdAt: -1 })
 				.skip(skip)
-				.limit(parseInt(limit as string));
+				.limit(parseInt(limit as string, 10));
 
 			const stats = {
 				total: await User.countDocuments(),
@@ -549,8 +830,8 @@ router.get(
 				status: "success",
 				count: users.length,
 				total,
-				page: parseInt(page as string),
-				totalPages: Math.ceil(total / parseInt(limit as string)),
+				page: parseInt(page as string, 10),
+				totalPages: Math.ceil(total / parseInt(limit as string, 10)),
 				users,
 				stats,
 			});
@@ -568,8 +849,7 @@ router.get(
  * /api/auth/admin/users/{id}/status:
  *   patch:
  *     tags: [Auth]
- *     summary: Admin update a user's verification status
- *     description: Changes KYC/verification status. Optionally records a rejection reason.
+ *     summary: Admin update a user verification status
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -578,7 +858,6 @@ router.get(
  *         required: true
  *         schema:
  *           type: string
- *         description: MongoDB user ID
  *     requestBody:
  *       required: true
  *       content:
@@ -592,47 +871,9 @@ router.get(
  *                 enum: [unverified, pending, verified, suspended]
  *               reason:
  *                 type: string
- *                 description: Rejection reason (used when setting status to unverified)
  *     responses:
  *       200:
  *         description: User status updated
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 message:
- *                   type: string
- *                   example: User status updated
- *                 user:
- *                   $ref: '#/components/schemas/UserObject'
- *       400:
- *         description: Invalid status value
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       403:
- *         description: Forbidden — cannot modify super admin
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       404:
- *         description: User not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.patch(
 	"/admin/users/:id/status",
@@ -719,42 +960,17 @@ router.patch(
  *   get:
  *     tags: [Auth]
  *     summary: Super admin list all admins
- *     description: Returns all users with role "admin", sorted by level then creation date.
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Admin users fetched
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 admins:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/AdminUserSummary'
- *       403:
- *         description: Forbidden — super admin only
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get(
 	"/admin/admins",
 	authenticate,
 	authorizeSuperAdmin,
-	async (req: Request, res: Response): Promise<void> => {
+	async (_req: Request, res: Response): Promise<void> => {
 		try {
 			const admins = await User.find({ role: "admin" })
 				.select("fullName email adminLevel status photoURL createdAt")
@@ -779,7 +995,6 @@ router.get(
  *   post:
  *     tags: [Auth]
  *     summary: Super admin generate an admin invite link
- *     description: Creates a 7-day invite token. Optionally pre-fills email and name.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -791,41 +1006,11 @@ router.get(
  *             properties:
  *               email:
  *                 type: string
- *                 format: email
  *               fullName:
  *                 type: string
  *     responses:
  *       201:
  *         description: Invite link generated
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 message:
- *                   type: string
- *                   example: Invite link generated
- *                 inviteLink:
- *                   type: string
- *                   example: https://sepms.vercel.app/admin-invite/abc123
- *                 expiresAt:
- *                   type: string
- *                   format: date-time
- *       403:
- *         description: Forbidden — super admin only
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post(
 	"/admin/admins/invite",
@@ -835,7 +1020,7 @@ router.post(
 		try {
 			const { email, fullName } = req.body;
 
-			const crypto = await import("crypto");
+			const crypto = await import("node:crypto");
 			const token = crypto.randomBytes(24).toString("hex");
 
 			const expiresAt = new Date();
@@ -873,7 +1058,6 @@ router.post(
  *   get:
  *     tags: [Auth]
  *     summary: Validate an admin invite token
- *     description: Checks if an invite token is valid and not expired. No auth required.
  *     parameters:
  *       - in: path
  *         name: token
@@ -883,28 +1067,8 @@ router.post(
  *     responses:
  *       200:
  *         description: Invite token is valid
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 invite:
- *                   $ref: '#/components/schemas/AdminInviteInfo'
  *       404:
  *         description: Invite token invalid or expired
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get(
 	"/admin/invite/:token",
@@ -948,7 +1112,6 @@ router.get(
  *   post:
  *     tags: [Auth]
  *     summary: Accept an admin invite token
- *     description: Consumes the invite, promotes user to admin role with verified status.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -960,37 +1123,8 @@ router.get(
  *     responses:
  *       200:
  *         description: Invite accepted and admin privileges assigned
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 message:
- *                   type: string
- *                   example: You are now an admin!
- *                 user:
- *                   $ref: '#/components/schemas/UserObject'
- *       400:
- *         description: Already a super admin
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Invite token invalid or expired
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post(
 	"/admin/invite/:token/accept",
@@ -1015,14 +1149,14 @@ router.post(
 
 			if (!user) {
 				user = await User.create({
-					firebaseUid: req.firebaseUser!.uid,
-					email: req.firebaseUser!.email || invite.email || "",
-					fullName: req.firebaseUser!.name || invite.fullName || "Admin",
-					photoURL: req.firebaseUser!.picture || null,
+					firebaseUid: req.firebaseUser?.uid,
+					email: req.firebaseUser?.email || invite.email || "",
+					fullName: req.firebaseUser?.name || invite.fullName || "Admin",
+					photoURL: req.firebaseUser?.picture || null,
 					role: "admin",
 					adminLevel: "admin",
 					status: "verified",
-					emailVerified: req.firebaseUser!.email_verified || false,
+					emailVerified: req.firebaseUser?.email_verified || false,
 				});
 			} else {
 				if (user.role === "admin" && user.adminLevel === "super_admin") {
@@ -1073,7 +1207,6 @@ router.post(
  *   delete:
  *     tags: [Auth]
  *     summary: Super admin remove admin privileges
- *     description: Demotes a regular admin back to entrepreneur. Cannot target super admins.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -1085,41 +1218,8 @@ router.post(
  *     responses:
  *       200:
  *         description: Admin privileges removed
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 message:
- *                   type: string
- *                   example: Jane Doe has been removed as admin
- *       400:
- *         description: User is not an admin
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       403:
- *         description: Cannot remove super admin privileges
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       404:
- *         description: User not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *         description: Forbidden for super-admin target
  */
 router.delete(
 	"/admin/admins/:id",
@@ -1175,7 +1275,6 @@ router.delete(
  *   post:
  *     tags: [Auth]
  *     summary: Super admin promote an existing user to admin by email
- *     description: Finds an existing user by email and promotes them to admin role.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -1188,48 +1287,13 @@ router.delete(
  *             properties:
  *               email:
  *                 type: string
- *                 format: email
- *                 example: jane@example.com
  *     responses:
  *       200:
  *         description: User promoted to admin
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 message:
- *                   type: string
- *                   example: Jane Doe has been promoted to admin.
- *                 user:
- *                   $ref: '#/components/schemas/UserObject'
  *       400:
- *         description: User is already an admin or email missing
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       403:
- *         description: Forbidden — super admin only
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *         description: User is already an admin
  *       404:
- *         description: No user found with this email
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *         description: User not found
  */
 router.post(
 	"/admin/admins/add-by-email",
