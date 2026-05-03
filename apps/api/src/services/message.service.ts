@@ -63,10 +63,19 @@ export class MessageService {
 			payload.otherUserId,
 		);
 
-		let conversation = await Conversation.findOne({
+		// If a submissionId is provided, scope the lookup to that specific pitch.
+		// This ensures investor A accepting 5 pitches from entrepreneur B gets
+		// 5 separate conversations — one per pitch — not one shared thread.
+		const filter: Record<string, unknown> = {
 			participants: { $all: participants, $size: participants.length },
 			isArchived: false,
-		});
+		};
+
+		if (payload.submissionId) {
+			filter.submissionId = payload.submissionId;
+		}
+
+		let conversation = await Conversation.findOne(filter);
 
 		if (!conversation) {
 			conversation = await Conversation.create({
