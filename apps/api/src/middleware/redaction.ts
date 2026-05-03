@@ -95,12 +95,12 @@ export function redactionMiddleware(options: RedactionMiddlewareOptions = {}) {
 
 		// Redact request body for logging
 		if (opts.redactRequestBody && req.body) {
-			req.body = redactObject(req.body, opts.redactionOptions);
+			req.redactedBody = redactObject(req.body, opts.redactionOptions);
 		}
 
 		// Redact query parameters for logging
 		if (opts.redactQueryParams && req.query) {
-			req.query = redactObject(req.query, opts.redactionOptions);
+			req.redactedQuery = redactObject(req.query, opts.redactionOptions);
 		}
 
 		next();

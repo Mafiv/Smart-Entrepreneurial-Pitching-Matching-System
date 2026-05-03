@@ -55,6 +55,7 @@ export default function SignInPage() {
 			const token = (await auth?.currentUser?.getIdToken()) ?? "";
 			router.push(await getRedirect(profile.role, token));
 		} catch (err: unknown) {
+			console.error("Firebase Email Sign-In Error:", err);
 			const message = err instanceof Error ? err.message : "Failed to sign in";
 			toast.error(message);
 		} finally {
@@ -70,6 +71,7 @@ export default function SignInPage() {
 			const token = (await auth?.currentUser?.getIdToken()) ?? "";
 			router.push(await getRedirect(profile.role, token));
 		} catch (err: unknown) {
+			console.error("Firebase Google Sign-In Error:", err);
 			const message =
 				err instanceof Error ? err.message : "Failed to sign in with Google";
 			toast.error(message);

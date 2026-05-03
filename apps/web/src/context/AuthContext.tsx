@@ -200,14 +200,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		email: string,
 		password: string,
 	): Promise<UserProfile> => {
-		if (!auth) throw new Error("Firebase not initialized");
-		const credential = await signInWithEmailAndPassword(auth, email, password);
-		const profile = await fetchUserProfile(credential.user);
+		try {
+			if (!auth) throw new Error("Firebase not initialized");
+			const credential = await signInWithEmailAndPassword(
+				auth,
+				email,
+				password,
+			);
+			const profile = await fetchUserProfile(credential.user);
 
-		if (!profile) throw new Error("Failed to fetch user profile");
+			if (!profile) throw new Error("Failed to fetch user profile");
 
-		setUserProfile(profile);
-		return profile;
+			setUserProfile(profile);
+			return profile;
+		} catch (error) {
+			console.error("AuthContext signIn error:", error);
+			throw error;
+		}
 	};
 
 	const signInWithGoogle = async (additionalData?: {
@@ -215,29 +224,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		companyName?: string;
 		fundName?: string;
 	}): Promise<UserProfile> => {
-		if (!auth || !googleProvider) throw new Error("Firebase not initialized");
-		const credential = await signInWithPopup(auth, googleProvider);
+		try {
+			if (!auth || !googleProvider) throw new Error("Firebase not initialized");
+			const credential = await signInWithPopup(auth, googleProvider);
 
-		let profile = await fetchUserProfile(credential.user);
+			let profile = await fetchUserProfile(credential.user);
 
-		if (!profile) {
-			profile = await syncUserWithBackend(
-				credential.user,
-				true,
-				additionalData,
-			);
+			if (!profile) {
+				profile = await syncUserWithBackend(
+					credential.user,
+					true,
+					additionalData,
+				);
+			}
+
+			if (!profile) throw new Error("Failed to authenticate with backend");
+
+			console.log("🔑 signInWithGoogle — profile:", {
+				role: profile.role,
+				email: profile.email,
+				uid: profile.uid,
+			});
+
+			setUserProfile(profile);
+			return profile;
+		} catch (error) {
+			console.error("AuthContext signInWithGoogle error:", error);
+			throw error;
 		}
-
-		if (!profile) throw new Error("Failed to authenticate with backend");
-
-		console.log("🔑 signInWithGoogle — profile:", {
-			role: profile.role,
-			email: profile.email,
-			uid: profile.uid,
-		});
-
-		setUserProfile(profile);
-		return profile;
 	};
 
 	const signOut = async () => {
