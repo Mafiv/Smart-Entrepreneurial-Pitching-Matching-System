@@ -88,6 +88,12 @@ export default function AdminPitchViewPage() {
 	const [trustScore, setTrustScore] = useState<{
 		score: number;
 		flag: string;
+		authenticity?: {
+			is_gibberish: boolean;
+			language_quality: string;
+			confidence: number;
+			gemini_note: string;
+		} | null;
 	} | null>(null);
 
 	const api = (
@@ -131,6 +137,7 @@ export default function AdminPitchViewPage() {
 						setTrustScore({
 							score: classData.trust_score_percentage,
 							flag: classData.ai_flag,
+							authenticity: classData.authenticity ?? null,
 						});
 					}
 				} catch {
@@ -235,7 +242,7 @@ export default function AdminPitchViewPage() {
 							<div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-primary/20 bg-primary/5">
 								<Sparkles className="h-4 w-4 text-primary" />
 								<span className="text-sm font-bold text-primary">
-									AI Score: {pitch.aiScore}%
+									{/* AI Score: {pitch.aiScore}% */}
 								</span>
 							</div>
 						)}
@@ -254,17 +261,17 @@ export default function AdminPitchViewPage() {
 					</div>
 				</div>
 
-				{/* AI Trust Score Banner */}
+				{/* AI Intelligence Report — scikit-learn quality score + Gemini authenticity */}
 				{trustScore && (
 					<div
-						className={`mb-8 overflow-hidden rounded-2xl shadow-sm border flex items-center justify-between gap-6 relative ${
+						className={`mb-8 overflow-hidden rounded-2xl shadow-sm border relative ${
 							trustScore.flag === "Flagged: Suspect Content"
 								? "border-destructive/30 bg-gradient-to-r from-destructive/10 to-transparent"
 								: "border-emerald-500/20 bg-gradient-to-r from-emerald-500/10 to-transparent"
 						}`}
 					>
 						<div
-							className="absolute left-0 top-0 bottom-0 w-1.5 opacity-80 backdrop-blur-sm shadow-inner"
+							className="absolute left-0 top-0 bottom-0 w-1.5 opacity-80"
 							style={{
 								backgroundColor:
 									trustScore.flag === "Flagged: Suspect Content"
@@ -273,47 +280,96 @@ export default function AdminPitchViewPage() {
 							}}
 						/>
 
-						<div className="p-5 sm:p-6 flex items-center gap-5 w-full">
-							<div
-								className={`flex flex-col items-center justify-center h-16 w-16 rounded-2xl border-2 shrink-0 shadow-sm bg-background/50 backdrop-blur-md ${
-									trustScore.flag === "Flagged: Suspect Content"
-										? "border-destructive/40 text-destructive"
-										: "border-emerald-500/40 text-emerald-600"
-								}`}
-							>
-								<span className="text-lg font-bold tracking-tighter">
-									{trustScore.score.toFixed(0)}%
-								</span>
-							</div>
-							<div className="flex-1">
-								<div className="flex items-center gap-3 mb-1">
-									<h3 className="text-base font-bold text-foreground">
-										AI Intelligence Report
-									</h3>
-									{trustScore.flag === "Flagged: Suspect Content" && (
-										<Badge
-											variant="destructive"
-											className="shrink-0 uppercase text-[10px] tracking-widest animate-pulse"
-										>
-											Action Required
-										</Badge>
-									)}
-								</div>
-								<p
-									className={`text-sm font-semibold tracking-wide ${
+						<div className="p-5 sm:p-6 flex flex-col gap-4 w-full">
+							{/* Row 1: scikit-learn quality score */}
+							<div className="flex items-start gap-5">
+								<div
+									className={`flex flex-col items-center justify-center h-16 w-16 rounded-2xl border-2 shrink-0 shadow-sm bg-background/50 ${
 										trustScore.flag === "Flagged: Suspect Content"
-											? "text-destructive"
-											: "text-emerald-600"
+											? "border-destructive/40 text-destructive"
+											: "border-emerald-500/40 text-emerald-600"
 									}`}
 								>
-									{trustScore.flag}
-								</p>
-								<p className="text-xs text-muted-foreground mt-1.5 font-medium max-w-2xl">
-									This evaluation is generated automatically by analyzing the
-									linguistic patterns, semantic density, and overall structural
-									coherence of the submitted pitch text.
-								</p>
+									<span className="text-lg font-bold tracking-tighter">
+										{trustScore.score.toFixed(0)}%
+									</span>
+									<span className="text-[9px] text-muted-foreground font-medium">
+										quality
+									</span>
+								</div>
+								<div className="flex-1">
+									<div className="flex items-center gap-3 mb-1">
+										<h3 className="text-base font-bold text-foreground">
+											AI Intelligence Report
+										</h3>
+										{trustScore.flag === "Flagged: Suspect Content" && (
+											<Badge
+												variant="destructive"
+												className="shrink-0 uppercase text-[10px] tracking-widest animate-pulse"
+											>
+												Action Required
+											</Badge>
+										)}
+									</div>
+									<p
+										className={`text-sm font-semibold ${
+											trustScore.flag === "Flagged: Suspect Content"
+												? "text-destructive"
+												: "text-emerald-600"
+										}`}
+									>
+										{trustScore.flag}
+									</p>
+									<p className="text-xs text-muted-foreground mt-1 max-w-2xl">
+										Quality score from TF-IDF + Logistic Regression trained on
+										500+ funded startup pitches (Crunchbase dataset).
+									</p>
+								</div>
 							</div>
+
+							{/* Row 2: Gemini authenticity result */}
+							{trustScore.authenticity && (
+								<div className="border-t border-border/40 pt-4 flex flex-col sm:flex-row sm:items-center gap-3">
+									<div className="flex items-center gap-2 shrink-0 flex-wrap">
+										<div
+											className={`h-2 w-2 rounded-full shrink-0 ${
+												trustScore.authenticity.is_gibberish
+													? "bg-destructive animate-pulse"
+													: trustScore.authenticity.language_quality ===
+															"professional"
+														? "bg-emerald-500"
+														: trustScore.authenticity.language_quality ===
+																"acceptable"
+															? "bg-amber-500"
+															: "bg-destructive"
+											}`}
+										/>
+										<span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+											Gemini Authenticity
+										</span>
+										<Badge
+											variant={
+												trustScore.authenticity.is_gibberish
+													? "destructive"
+													: trustScore.authenticity.language_quality ===
+															"professional"
+														? "default"
+														: "secondary"
+											}
+											className="text-[10px] capitalize"
+										>
+											{trustScore.authenticity.language_quality}
+										</Badge>
+										<span className="text-xs text-muted-foreground">
+											{Math.round(trustScore.authenticity.confidence * 100)}%
+											confidence
+										</span>
+									</div>
+									<p className="text-xs text-muted-foreground italic flex-1">
+										"{trustScore.authenticity.gemini_note}"
+									</p>
+								</div>
+							)}
 						</div>
 					</div>
 				)}
