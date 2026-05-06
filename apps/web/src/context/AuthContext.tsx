@@ -176,26 +176,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	): Promise<UserProfile> => {
 		if (!auth) throw new Error("Firebase not initialized");
 
+		console.log(
+			"🚀 signUp — starting for email:",
+			email,
+			"role:",
+			additionalData?.role,
+		);
+
 		let firebaseUser: User;
 		let isNewFirebaseUser = true;
 
 		try {
 			// Try to create a new Firebase user
+			console.log("🔑 signUp — attempting createUserWithEmailAndPassword...");
 			const credential = await createUserWithEmailAndPassword(
 				auth,
 				email,
 				password,
 			);
 			firebaseUser = credential.user;
+			console.log(
+				"✅ signUp — Firebase user created successfully, uid:",
+				firebaseUser.uid,
+			);
 			await updateProfile(firebaseUser, { displayName: fullName });
+			console.log("✅ signUp — profile updated with displayName:", fullName);
 		} catch (error: unknown) {
-			// Handle orphaned Firebase users: the email exists in Firebase Auth
-			// but may not exist in our MongoDB backend (e.g. a previous signup
-			// where the backend registration failed or the user navigated away).
-			const firebaseError = error as { code?: string };
+			const firebaseError = error as { code?: string; message?: string };
+			console.log(
+				"⚠️ signUp — createUser failed, error code:",
+				firebaseError.code,
+				"message:",
+				firebaseError.message,
+			);
+
 			if (firebaseError.code === "auth/email-already-in-use") {
+				console.log(
+					"🔍 signUp — email already in Firebase Auth, attempting recovery...",
+				);
 				try {
 					// Attempt to sign in with the provided credentials
+					console.log("🔑 signUp — trying signInWithEmailAndPassword...");
 					const credential = await signInWithEmailAndPassword(
 						auth,
 						email,
@@ -203,28 +224,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 					);
 					firebaseUser = credential.user;
 					isNewFirebaseUser = false;
+					console.log(
+						"✅ signUp — signed in to existing Firebase user, uid:",
+						firebaseUser.uid,
+					);
 
 					// Check whether the user already has a backend profile
+					console.log(
+						"🔍 signUp — checking if user exists in MongoDB backend...",
+					);
 					const existingProfile = await fetchUserProfile(firebaseUser);
+
 					if (existingProfile) {
+						console.log(
+							"❌ signUp — user exists in BOTH Firebase and MongoDB:",
+							{
+								uid: existingProfile.uid,
+								email: existingProfile.email,
+								role: existingProfile.role,
+								status: existingProfile.status,
+							},
+						);
 						// User fully exists in both Firebase and backend — they should sign in instead
 						await firebaseSignOut(auth);
 						throw new Error(
 							"An account with this email already exists. Please sign in instead.",
 						);
 					}
+
+					console.log(
+						"🔧 signUp — user exists in Firebase but NOT in MongoDB — will register in backend now",
+					);
 					// User exists in Firebase but NOT in backend — we'll register them below
 				} catch (signInError: unknown) {
 					const signInFirebaseError = signInError as {
 						code?: string;
 						message?: string;
 					};
+					console.log(
+						"⚠️ signUp — recovery sign-in failed, code:",
+						signInFirebaseError.code,
+						"message:",
+						signInFirebaseError.message,
+					);
+
 					// If sign-in failed because of wrong password, the user has a real
 					// Firebase account with a different password
 					if (
 						signInFirebaseError.code === "auth/wrong-password" ||
 						signInFirebaseError.code === "auth/invalid-credential"
 					) {
+						console.log(
+							"❌ signUp — password mismatch for existing Firebase user",
+						);
 						throw new Error(
 							"An account with this email already exists but the password does not match. Please sign in or reset your password.",
 						);
@@ -241,21 +293,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		}
 
 		// Register in backend (works for both new Firebase users and orphaned ones)
+		console.log(
+			"📡 signUp — calling syncUserWithBackend, isNewFirebaseUser:",
+			isNewFirebaseUser,
+		);
 		const profile = await syncUserWithBackend(
 			firebaseUser,
 			true,
 			additionalData,
 		);
 
-		if (!profile) throw new Error("Failed to create profile in backend");
+		if (!profile) {
+			console.log("❌ signUp — syncUserWithBackend returned null");
+			throw new Error("Failed to create profile in backend");
+		}
+
+		console.log("✅ signUp — backend profile created/fetched:", {
+			_id: profile._id,
+			uid: profile.uid,
+			email: profile.email,
+			role: profile.role,
+			status: profile.status,
+		});
 
 		setUserProfile(profile);
 
 		// Only request email OTP for newly created Firebase accounts
 		if (isNewFirebaseUser) {
+			console.log("📧 signUp — requesting email OTP for new user...");
 			await requestEmailOtp();
+		} else {
+			console.log("⏭️ signUp — skipping OTP (orphaned user recovery)");
 		}
 
+		console.log("🎉 signUp — completed successfully");
 		return profile;
 	};
 

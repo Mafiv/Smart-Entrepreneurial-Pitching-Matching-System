@@ -61,6 +61,14 @@ router.post(
 			console.log("📋 POST /register — firebaseUid:", req.firebaseUser?.uid);
 			console.log("📋 POST /register — email:", req.firebaseUser?.email);
 			console.log("📋 POST /register — body.role:", req.body.role);
+			console.log(
+				"📋 POST /register — sign_in_provider:",
+				req.firebaseUser?.firebase?.sign_in_provider,
+			);
+			console.log(
+				"📋 POST /register — email_verified:",
+				req.firebaseUser?.email_verified,
+			);
 
 			// 1. Check for existing user by Firebase UID
 			const existingByUid = await User.findOne({
@@ -101,7 +109,14 @@ router.post(
 					if (req.firebaseUser?.picture && !existingByEmail.photoURL) {
 						existingByEmail.photoURL = req.firebaseUser?.picture;
 					}
-					if (req.firebaseUser?.email_verified) {
+					// Only auto-verify email for OAuth providers (e.g. Google),
+					// NOT for email/password — our OTP is the source of truth.
+					const signInProvider = req.firebaseUser?.firebase?.sign_in_provider;
+					if (
+						signInProvider &&
+						signInProvider !== "password" &&
+						req.firebaseUser?.email_verified
+					) {
 						existingByEmail.emailVerified = true;
 					}
 					await existingByEmail.save();
@@ -143,6 +158,9 @@ router.post(
 					: "entrepreneur";
 			const initialStatus = isSuperAdminEmail ? "verified" : "unverified";
 
+			const regSignInProvider = req.firebaseUser?.firebase?.sign_in_provider;
+			const isRegOAuth = regSignInProvider && regSignInProvider !== "password";
+
 			const newUser = await User.create({
 				firebaseUid: req.firebaseUser?.uid,
 				fullName: req.body.fullName || req.firebaseUser?.name || "New User",
@@ -151,9 +169,13 @@ router.post(
 				adminLevel: isSuperAdminEmail ? "super_admin" : undefined,
 				status: initialStatus,
 				photoURL: req.firebaseUser?.picture || null,
+				// For email/password signups, always start unverified — our OTP is the source of truth.
+				// For OAuth (Google) signups, trust the provider's email_verified claim.
 				emailVerified: isSuperAdminEmail
 					? true
-					: req.firebaseUser?.email_verified || false,
+					: isRegOAuth && req.firebaseUser?.email_verified
+						? true
+						: false,
 			});
 
 			res.status(201).json({
