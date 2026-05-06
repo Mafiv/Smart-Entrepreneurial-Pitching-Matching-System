@@ -166,19 +166,79 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		additionalData?: { role: string; companyName?: string; fundName?: string },
 	): Promise<UserProfile> => {
 		if (!auth) throw new Error("Firebase not initialized");
-		const credential = await createUserWithEmailAndPassword(
-			auth,
-			email,
-			password,
-		);
-		await updateProfile(credential.user, { displayName: fullName });
 
-		// Send Firebase verification email
-		await sendEmailVerification(credential.user);
+		let firebaseUser: User;
+		let isNewFirebaseUser = true;
 
-		// Register in backend
+		try {
+			// Try to create a new Firebase user
+			const credential = await createUserWithEmailAndPassword(
+				auth,
+				email,
+				password,
+			);
+			firebaseUser = credential.user;
+			await updateProfile(firebaseUser, { displayName: fullName });
+		} catch (error: unknown) {
+			// Handle orphaned Firebase users: the email exists in Firebase Auth
+			// but may not exist in our MongoDB backend (e.g. a previous signup
+			// where the backend registration failed or the user navigated away).
+			const firebaseError = error as { code?: string };
+			if (firebaseError.code === "auth/email-already-in-use") {
+				try {
+					// Attempt to sign in with the provided credentials
+					const credential = await signInWithEmailAndPassword(
+						auth,
+						email,
+						password,
+					);
+					firebaseUser = credential.user;
+					isNewFirebaseUser = false;
+
+					// Check whether the user already has a backend profile
+					const existingProfile = await fetchUserProfile(firebaseUser);
+					if (existingProfile) {
+						// User fully exists in both Firebase and backend — they should sign in instead
+						await firebaseSignOut(auth);
+						throw new Error(
+							"An account with this email already exists. Please sign in instead.",
+						);
+					}
+					// User exists in Firebase but NOT in backend — we'll register them below
+				} catch (signInError: unknown) {
+					const signInFirebaseError = signInError as {
+						code?: string;
+						message?: string;
+					};
+					// If sign-in failed because of wrong password, the user has a real
+					// Firebase account with a different password
+					if (
+						signInFirebaseError.code === "auth/wrong-password" ||
+						signInFirebaseError.code === "auth/invalid-credential"
+					) {
+						throw new Error(
+							"An account with this email already exists but the password does not match. Please sign in or reset your password.",
+						);
+					}
+					// Re-throw if it's our own "already exists" error from above
+					if (signInFirebaseError.message?.includes("already exists")) {
+						throw signInError;
+					}
+					throw error; // fallback: throw original error
+				}
+			} else {
+				throw error;
+			}
+		}
+
+		// Send Firebase verification email (only for brand-new accounts)
+		if (isNewFirebaseUser) {
+			await sendEmailVerification(firebaseUser);
+		}
+
+		// Register in backend (works for both new Firebase users and orphaned ones)
 		const profile = await syncUserWithBackend(
-			credential.user,
+			firebaseUser,
 			true,
 			additionalData,
 		);
