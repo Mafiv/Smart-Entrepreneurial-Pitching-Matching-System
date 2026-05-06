@@ -216,7 +216,7 @@ router.patch("/users/:userId/status", AdminUserController.updateUserStatus);
  *         application/json:
  *           schema:
  *             type: object
- *             required: [active]
+ *             required: [isActive]
  *             properties:
  *               isActive:
  *                 type: boolean
