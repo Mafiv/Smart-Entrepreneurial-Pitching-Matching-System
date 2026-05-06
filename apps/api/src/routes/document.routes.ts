@@ -44,6 +44,18 @@ router.use(authenticate);
  *     responses:
  *       201:
  *         description: Document uploaded
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [status, message, document]
+ *               properties:
+ *                 status: { type: string, enum: [success] }
+ *                 message:
+ *                   type: string
+ *                   example: Document uploaded successfully
+ *                 document:
+ *                   type: object
  *       400:
  *         description: Validation error
  *       401:
@@ -80,6 +92,16 @@ router.post(
  *     responses:
  *       201:
  *         description: Document uploaded
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [status, message, document]
+ *               properties:
+ *                 status: { type: string, enum: [success] }
+ *                 message: { type: string }
+ *                 document:
+ *                   type: object
  */
 router.post(
 	"/upload",
@@ -114,6 +136,18 @@ router.post(
  *     responses:
  *       201:
  *         description: Documents uploaded
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [status, message, documents]
+ *               properties:
+ *                 status: { type: string, enum: [success] }
+ *                 message: { type: string }
+ *                 documents:
+ *                   type: array
+ *                   items:
+ *                     type: object
  */
 router.post(
 	"/upload-multiple",
@@ -133,6 +167,17 @@ router.post(
  *     responses:
  *       200:
  *         description: Documents list
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [status, documents]
+ *               properties:
+ *                 status: { type: string, enum: [success] }
+ *                 documents:
+ *                   type: array
+ *                   items:
+ *                     type: object
  */
 router.get(
 	"/",
@@ -157,6 +202,15 @@ router.get(
  *     responses:
  *       200:
  *         description: Document fetched
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [status, document]
+ *               properties:
+ *                 status: { type: string, enum: [success] }
+ *                 document:
+ *                   type: object
  *       404:
  *         description: Not found
  */
@@ -213,6 +267,16 @@ router.get(
  *     responses:
  *       200:
  *         description: Document deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [status, message]
+ *               properties:
+ *                 status: { type: string, enum: [success] }
+ *                 message:
+ *                   type: string
+ *                   example: Document deleted
  *       404:
  *         description: Not found
  */
@@ -237,6 +301,18 @@ router.delete(
  *     responses:
  *       200:
  *         description: Document status successfully overridden
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [status, message, document]
+ *               properties:
+ *                 status: { type: string, enum: [success] }
+ *                 message:
+ *                   type: string
+ *                   example: Document status forcibly verified via Admin override.
+ *                 document:
+ *                   type: object
  */
 router.post(
 	"/:id/override",
@@ -317,6 +393,17 @@ router.get(
  *     responses:
  *       200:
  *         description: Entities fetched
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [status, entities]
+ *               properties:
+ *                 status: { type: string, enum: [success] }
+ *                 entities:
+ *                   type: array
+ *                   items:
+ *                     type: object
  *       404:
  *         description: Not found
  */
@@ -343,6 +430,28 @@ router.get(
  *     responses:
  *       200:
  *         description: Conflict status fetched
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [status, conflictStatus]
+ *               properties:
+ *                 status: { type: string, enum: [success] }
+ *                 conflictStatus:
+ *                   type: object
+ *                   properties:
+ *                     documentId: { type: string }
+ *                     documentStatus: { type: string }
+ *                     conflictCheckStatus: { type: string, nullable: true }
+ *                     conflictsDetected:
+ *                       type: array
+ *                       nullable: true
+ *                       items:
+ *                         type: object
+ *                     processedAt:
+ *                       type: string
+ *                       format: date-time
+ *                       nullable: true
  *       404:
  *         description: Not found
  */
@@ -379,6 +488,18 @@ router.get(
  *     responses:
  *       200:
  *         description: Conflict status overridden
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [status, message, document]
+ *               properties:
+ *                 status: { type: string, enum: [success] }
+ *                 message:
+ *                   type: string
+ *                   example: Document conflict status overridden by admin.
+ *                 document:
+ *                   type: object
  *       403:
  *         description: Forbidden - Admin only
  *       404:
