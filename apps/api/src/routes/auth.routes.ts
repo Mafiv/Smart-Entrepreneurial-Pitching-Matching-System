@@ -105,7 +105,7 @@ router.post(
 				if (existingByEmail) {
 					// Link the new Firebase UID to the existing account so future
 					// lookups by UID succeed immediately
-					existingByEmail.firebaseUid = req.firebaseUser?.uid;
+					existingByEmail.firebaseUid = req.firebaseUser!.uid;
 					if (req.firebaseUser?.picture && !existingByEmail.photoURL) {
 						existingByEmail.photoURL = req.firebaseUser?.picture;
 					}
