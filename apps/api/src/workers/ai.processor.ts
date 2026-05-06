@@ -1,3 +1,4 @@
+import { GeminiSummaryService } from "../services/gemini-summary.service";
 import { MatchingService } from "../services/matching.service";
 
 const aiQueue = new Set<string>();
@@ -22,9 +23,20 @@ export const processSubmissionAI = async (
 		console.error(
 			`AI processing error for submission ${submissionId}: ${message}`,
 		);
-	} finally {
-		aiQueue.delete(submissionId);
 	}
+
+	// Generate Gemini AI summary (text + voice) — non-blocking
+	try {
+		await GeminiSummaryService.generateAndSave(submissionId);
+	} catch (error) {
+		const message =
+			error instanceof Error ? error.message : "Summary generation failed";
+		console.error(
+			`[AI:SUMMARY] Error for submission ${submissionId}: ${message}`,
+		);
+	}
+
+	aiQueue.delete(submissionId);
 };
 
 export const enqueueSubmissionAnalysis = (submissionId: string): void => {

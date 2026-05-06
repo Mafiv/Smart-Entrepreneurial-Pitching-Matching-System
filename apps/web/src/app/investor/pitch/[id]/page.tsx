@@ -22,6 +22,7 @@ import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import AiPitchSummary from "@/components/AiPitchSummary";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ScheduleMeetingModal, {
@@ -217,6 +218,16 @@ interface Submission {
 	};
 	documents: SubmissionDoc[];
 	aiScore?: number;
+	aiSummary?: {
+		executiveSummary: string;
+		keyStrengths: string[];
+		keyRisks: string[];
+		investmentReadiness: string;
+		marketOpportunity: string;
+		generatedAt: string;
+		model: string;
+	} | null;
+	voiceSummaryUrl?: string | null;
 	entrepreneurId?: {
 		_id: string;
 		fullName: string;
@@ -534,6 +545,15 @@ export default function InvestorPitchViewPage() {
 						</CardContent>
 					</Card>
 				)}
+
+				{/* Gemini AI Pitch Summary */}
+				<div className="mb-8">
+					<AiPitchSummary
+						submissionId={pitchId}
+						aiSummary={pitch.aiSummary}
+						voiceSummaryUrl={pitch.voiceSummaryUrl}
+					/>
+				</div>
 
 				<div className="grid gap-6 md:grid-cols-3">
 					<div className="md:col-span-2 space-y-6">

@@ -59,7 +59,7 @@ const upload = multer({
  *                 format: binary
  *               type:
  *                 type: string
- *                 enum: [pitch_deck, financial_model, legal, other]
+ *                 enum: [pitch_deck, financial_model, product_demo, customer_testimonials, tin_certificate, business_license, moa_aoa, other]
  *     responses:
  *       200:
  *         description: File uploaded successfully
@@ -101,12 +101,15 @@ router.post(
 							"ppt",
 						],
 						chunk_size: 6000000,
+						use_filename: true,
+						unique_filename: false,
 					},
 					(error, result) => {
 						if (error) reject(error);
 						else resolve(result as UploadApiResponse);
 					},
 				);
+				uploadStream.on("error", reject);
 				uploadStream.end(req.file?.buffer);
 			});
 
