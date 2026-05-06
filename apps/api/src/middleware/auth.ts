@@ -58,7 +58,20 @@ export const authenticate = async (
 
 		if (user) {
 			let shouldSave = false;
-			if (decodedToken.email_verified && !user.emailVerified) {
+			// Only auto-sync email_verified for OAuth providers (Google, etc.)
+			// where the provider has genuinely verified the email.
+			// For email/password users, our OTP verification is the source of truth.
+			const signInProvider = decodedToken.firebase?.sign_in_provider;
+			const isOAuthProvider = signInProvider && signInProvider !== "password";
+			if (
+				isOAuthProvider &&
+				decodedToken.email_verified &&
+				!user.emailVerified
+			) {
+				console.log(
+					"🔑 auth middleware — auto-verifying email for OAuth provider:",
+					signInProvider,
+				);
 				user.emailVerified = true;
 				shouldSave = true;
 			}
