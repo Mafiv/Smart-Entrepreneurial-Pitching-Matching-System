@@ -151,8 +151,16 @@ const swaggerDefinition = {
 
 const routesTs = path.resolve(process.cwd(), "src/routes/*.ts");
 const routesJs = path.resolve(process.cwd(), "dist/routes/*.js");
+const recommendationRoutesTs = path.resolve(
+	process.cwd(),
+	"src/recommendation/*.routes.ts",
+);
+const recommendationRoutesJs = path.resolve(
+	process.cwd(),
+	"dist/recommendation/*.routes.js",
+);
 
 export const openApiSpec = swaggerJsdoc({
 	swaggerDefinition,
-	apis: [routesTs, routesJs],
+	apis: [routesTs, routesJs, recommendationRoutesTs, recommendationRoutesJs],
 });
