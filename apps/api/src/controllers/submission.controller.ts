@@ -281,4 +281,32 @@ export class SubmissionController {
 			handleSubmissionError(res, error, "Failed to generate AI summary");
 		}
 	}
+
+	/**
+	 * GET /submissions/:id/summary-status
+	 * Lightweight polling endpoint — returns only summary status and data.
+	 */
+	static async getSummaryStatus(req: Request, res: Response): Promise<void> {
+		try {
+			if (!req.user) {
+				res.status(401).json({ status: "error", message: "Unauthorized" });
+				return;
+			}
+
+			const submission = await SubmissionService.getOneForUser(
+				req.params.id,
+				req.user,
+			);
+
+			res.status(200).json({
+				status: "success",
+				summaryStatus: submission.summaryStatus || null,
+				summaryError: submission.summaryError || null,
+				aiSummary: submission.aiSummary || null,
+				voiceSummaryUrl: submission.voiceSummaryUrl || null,
+			});
+		} catch (error) {
+			handleSubmissionError(res, error, "Failed to fetch summary status");
+		}
+	}
 }

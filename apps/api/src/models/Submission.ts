@@ -71,6 +71,8 @@ export interface ISubmission extends Document {
 		model: string;
 	};
 	voiceSummaryUrl?: string;
+	summaryStatus?: "pending" | "generating" | "completed" | "failed";
+	summaryError?: string;
 	currentStep: number;
 	status: SubmissionStatus;
 	isAiOverride?: boolean;
@@ -184,6 +186,12 @@ const SubmissionSchema = new Schema<ISubmission>(
 			model: { type: String, default: null },
 		},
 		voiceSummaryUrl: { type: String, default: null },
+		summaryStatus: {
+			type: String,
+			enum: ["pending", "generating", "completed", "failed"],
+			default: null,
+		},
+		summaryError: { type: String, default: null },
 		currentStep: { type: Number, default: 1, min: 1, max: 6 },
 		currency: {
 			type: String,
