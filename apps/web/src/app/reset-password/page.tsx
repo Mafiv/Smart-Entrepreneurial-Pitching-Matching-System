@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,20 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
 
 export default function ResetPasswordPage() {
+	return (
+		<Suspense
+			fallback={
+				<div className="flex min-h-screen w-full items-center justify-center bg-background">
+					<p className="text-muted-foreground">Loading...</p>
+				</div>
+			}
+		>
+			<ResetPasswordContent />
+		</Suspense>
+	);
+}
+
+function ResetPasswordContent() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const { confirmPasswordReset } = useAuth();

@@ -57,6 +57,15 @@ interface MilestoneSummary {
 	submissionId: { title: string };
 }
 
+interface LedgerEntry {
+	_id: string;
+	occurredAt: string;
+	description: string;
+	type: string;
+	status: string;
+	amount: number;
+}
+
 interface PendingChapa {
 	_id: string;
 	tx_ref: string;
@@ -70,7 +79,7 @@ interface AdminFinanceData {
 	totalEscrowHeld: number;
 	totalDisbursed: number;
 	totalFees: number;
-	ledger: unknown[];
+	ledger: LedgerEntry[];
 	awaitingDisbursement: MilestoneSummary[];
 	pendingChapa: PendingChapa[];
 }
