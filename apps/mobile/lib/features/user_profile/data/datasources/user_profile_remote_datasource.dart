@@ -44,7 +44,17 @@ class UserProfileRemoteDataSourceImpl implements UserProfileRemoteDataSource {
 
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
-        return UserProfileModel.fromJson(data);
+        final user = data['user'];
+        final profile = data['profile'];
+        if (user is! Map<String, dynamic> || profile is! Map<String, dynamic>) {
+          throw const ServerFailure(message: 'Invalid profile response');
+        }
+        return UserProfileModel.fromJson({
+          ...user,
+          'roleProfile': profile,
+          'status': user['status'],
+          'role': user['role'],
+        });
       }
 
       throw ServerFailure(
@@ -63,7 +73,10 @@ class UserProfileRemoteDataSourceImpl implements UserProfileRemoteDataSource {
           message: 'Session expired or not authorized. Please sign in again.',
         );
       }
-      throw ServerFailure(message: e.message ?? 'Could not reach the server');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Could not reach the server');
     }
   }
 }

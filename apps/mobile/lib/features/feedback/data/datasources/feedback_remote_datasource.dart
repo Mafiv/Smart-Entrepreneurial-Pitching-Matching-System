@@ -68,7 +68,10 @@ class FeedbackRemoteDataSourceImpl implements FeedbackRemoteDataSource {
       }
       throw const ServerFailure(message: 'Failed to submit feedback');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to submit feedback');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to submit feedback');
     }
   }
 
@@ -93,7 +96,10 @@ class FeedbackRemoteDataSourceImpl implements FeedbackRemoteDataSource {
       }
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to load feedback');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to load feedback');
     }
   }
 
@@ -118,7 +124,10 @@ class FeedbackRemoteDataSourceImpl implements FeedbackRemoteDataSource {
       }
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to load feedback');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to load feedback');
     }
   }
 
@@ -144,11 +153,17 @@ class FeedbackRemoteDataSourceImpl implements FeedbackRemoteDataSource {
     try {
       final res = await _dio.get(ApiConfig.feedbackSummary);
       if (res.statusCode == 200) {
-        return (res.data as Map).cast<String, dynamic>();
+        final data = (res.data as Map).cast<String, dynamic>();
+        final summary = data['summary'];
+        if (summary is Map<String, dynamic>) return summary;
+        throw const ServerFailure(message: 'Invalid summary response');
       }
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to load summary');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to load summary');
     }
   }
 }

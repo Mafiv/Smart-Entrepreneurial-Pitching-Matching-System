@@ -232,13 +232,22 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       return;
     }
     try {
-      final user = _firebaseAuth.currentUser;
-      if (user == null) {
+      if (_firebaseAuth.currentUser == null) {
         throw const AuthFailure(message: 'No user logged in');
       }
-      await user.sendEmailVerification();
-    } on FirebaseAuthException catch (e) {
-      throw AuthFailure.fromFirebaseCode(e.code);
+      final response = await _dioClient.post(
+        '/auth/otp/request',
+        data: {'channel': 'email', 'purpose': 'verify'},
+      );
+      if (response.statusCode == 200) return;
+      throw AuthFailure(
+        message: 'Failed to request verification OTP',
+      );
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw AuthFailure(message: msg ?? e.message ?? 'Failed to request OTP');
     } catch (e) {
       if (e is AuthFailure) rethrow;
       throw AuthFailure(message: e.toString());
@@ -285,10 +294,20 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       return;
     }
     try {
-      await _firebaseAuth.sendPasswordResetEmail(email: email);
-    } on FirebaseAuthException catch (e) {
-      throw AuthFailure.fromFirebaseCode(e.code);
+      final response = await _dioClient.post(
+        '/auth/password-reset/request',
+        data: {'email': email},
+      );
+      if (response.statusCode == 200) return;
+      throw const AuthFailure(message: 'Failed to request password reset');
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw AuthFailure(
+          message: msg ?? e.message ?? 'Failed to request password reset');
     } catch (e) {
+      if (e is AuthFailure) rethrow;
       throw AuthFailure(message: e.toString());
     }
   }
@@ -315,51 +334,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           name: 'auth_remote_datasource');
 
       if (response.statusCode == 200) {
-        // Backend may return the user under different keys. Be tolerant
-        // and try to locate a user object in common places.
         final resp = response.data;
         developer.log('Response type: ${resp.runtimeType}',
             name: 'auth_remote_datasource');
         if (resp is Map<String, dynamic>) {
           if (resp['user'] is Map<String, dynamic>) {
             return UserModel.fromJson(resp['user'] as Map<String, dynamic>);
-          }
-
-          // Handle case where backend returns a list of users instead of a single user
-          if (resp['user'] is List && (resp['user'] as List).isNotEmpty) {
-            final userList = resp['user'] as List;
-            if (userList.first is Map) {
-              developer.log('User is a list, extracting first element',
-                  name: 'auth_remote_datasource');
-              return UserModel.fromJson(
-                  Map<String, dynamic>.from(userList.first as Map));
-            }
-          }
-
-          if (resp.containsKey('data') &&
-              resp['data'] is Map<String, dynamic>) {
-            final data = resp['data'] as Map<String, dynamic>;
-            if (data['user'] is Map<String, dynamic>) {
-              return UserModel.fromJson(data['user'] as Map<String, dynamic>);
-            }
-            // Handle nested user list in data
-            if (data['user'] is List && (data['user'] as List).isNotEmpty) {
-              final userList = data['user'] as List;
-              if (userList.first is Map) {
-                developer.log('data.user is a list, extracting first element',
-                    name: 'auth_remote_datasource');
-                return UserModel.fromJson(
-                    Map<String, dynamic>.from(userList.first as Map));
-              }
-            }
-            if (data.containsKey('uid') || data.containsKey('email')) {
-              return UserModel.fromJson(Map<String, dynamic>.from(data));
-            }
-          }
-
-          // In some implementations the user object is returned at top-level.
-          if (resp.containsKey('uid') || resp.containsKey('email')) {
-            return UserModel.fromJson(Map<String, dynamic>.from(resp));
           }
         }
 
@@ -399,7 +379,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         );
       }
       throw ServerFailure(
-        message: e.message ?? 'Could not reach the server',
+        message: e.response?.data is Map<String, dynamic>
+            ? ((e.response!.data as Map<String, dynamic>)['message'] as String?) ??
+                (e.message ?? 'Could not reach the server')
+            : (e.message ?? 'Could not reach the server'),
       );
     } catch (e) {
       developer.log('Unexpected error in _fetchUserProfile',
@@ -449,48 +432,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         developer.log('Register response type: ${resp.runtimeType}',
             name: 'auth_remote_datasource');
         if (resp is Map<String, dynamic>) {
-          // Look for common keys where the backend may place the user object.
           if (resp['user'] is Map<String, dynamic>) {
             return UserModel.fromJson(resp['user'] as Map<String, dynamic>);
-          }
-
-          // Handle case where user is returned as a list
-          if (resp['user'] is List && (resp['user'] as List).isNotEmpty) {
-            final userList = resp['user'] as List;
-            if (userList.first is Map) {
-              developer.log(
-                  'Register: user is a list, extracting first element',
-                  name: 'auth_remote_datasource');
-              return UserModel.fromJson(
-                  Map<String, dynamic>.from(userList.first as Map));
-            }
-          }
-
-          if (resp.containsKey('data') &&
-              resp['data'] is Map<String, dynamic>) {
-            final data = resp['data'] as Map<String, dynamic>;
-            if (data['user'] is Map<String, dynamic>) {
-              return UserModel.fromJson(data['user'] as Map<String, dynamic>);
-            }
-            // Handle nested user list in data
-            if (data['user'] is List && (data['user'] as List).isNotEmpty) {
-              final userList = data['user'] as List;
-              if (userList.first is Map) {
-                developer.log(
-                    'Register data.user is a list, extracting first element',
-                    name: 'auth_remote_datasource');
-                return UserModel.fromJson(
-                    Map<String, dynamic>.from(userList.first as Map));
-              }
-            }
-            if (data.containsKey('uid') || data.containsKey('email')) {
-              return UserModel.fromJson(Map<String, dynamic>.from(data));
-            }
-          }
-
-          // If backend returned the created user at top-level, accept it.
-          if (resp.containsKey('uid') || resp.containsKey('email')) {
-            return UserModel.fromJson(Map<String, dynamic>.from(resp));
           }
 
           // Some backends return only a message/status; surface that message.
@@ -506,6 +449,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       throw const AuthFailure(message: 'Failed to register with backend');
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw AuthFailure(message: msg ?? e.message ?? 'Failed to register');
     } catch (e) {
       if (e is AuthFailure) rethrow;
       throw AuthFailure(message: 'Failed to register: $e');

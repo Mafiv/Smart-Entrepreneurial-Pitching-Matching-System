@@ -63,7 +63,10 @@ class InvitationsRemoteDataSourceImpl implements InvitationsRemoteDataSource {
       if (status == 401 || status == 403) {
         throw const AuthFailure(message: 'Not authorized');
       }
-      throw ServerFailure(message: e.message ?? 'Failed to send invitation');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to send invitation');
     }
   }
 }

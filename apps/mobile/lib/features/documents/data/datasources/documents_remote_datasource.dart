@@ -62,7 +62,10 @@ class DocumentsRemoteDataSourceImpl implements DocumentsRemoteDataSource {
       }
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to list documents');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to list documents');
     }
   }
 
@@ -113,7 +116,10 @@ class DocumentsRemoteDataSourceImpl implements DocumentsRemoteDataSource {
       if (status == 401 || status == 403) {
         throw const AuthFailure(message: 'Not authorized');
       }
-      throw ServerFailure(message: e.message ?? 'Upload failed');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Upload failed');
     }
   }
 
@@ -129,7 +135,10 @@ class DocumentsRemoteDataSourceImpl implements DocumentsRemoteDataSource {
       if (res.statusCode == 200) return;
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Delete failed');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Delete failed');
     }
   }
 
@@ -152,11 +161,17 @@ class DocumentsRemoteDataSourceImpl implements DocumentsRemoteDataSource {
     try {
       final res = await _dio.get(ApiConfig.documentValidation(id));
       if (res.statusCode == 200) {
-        return (res.data as Map).cast<String, dynamic>();
+        final data = (res.data as Map).cast<String, dynamic>();
+        final validation = data['validation'];
+        if (validation is Map<String, dynamic>) return validation;
+        throw const ServerFailure(message: 'Invalid validation response');
       }
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to load status');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to load status');
     }
   }
 }

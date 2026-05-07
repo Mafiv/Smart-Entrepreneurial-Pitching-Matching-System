@@ -26,43 +26,40 @@ class ApiConfig {
   static String get authMe => Urls.authMe;
 
   /// User endpoints
-  static String get usersMe => Urls.updateUserProfile;
-  static String get usersMeProfile => Urls.updateUserProfile;
-  static String get usersMeAvatar => Urls.updateUserProfile;
+  static String get usersMe => '/users/me';
+  static String get usersMeProfile => '/users/me/profile';
+  static String get usersMeAvatar => '/users/me/avatar';
 
   /// Entrepreneur endpoints
-  static String get entrepreneurProfile => Urls.updateUserProfile;
-  static String get entrepreneurProfileCheck => Urls.getUserProfile;
+  static String get entrepreneurProfile => '/entrepreneur/profile';
+  static String get entrepreneurProfileCheck => '/entrepreneur/profile/check';
 
   /// Investor endpoints
-  static String get investorProfile => Urls.updateInvestorProfile;
-  static String get investorSavedPitches => Urls.getInvestorPortfolio;
+  static String get investorProfile => '/investor/profile';
+  static String get investorSavedPitches => '/investor/saved-pitches';
 
   /// Pitch/Submission endpoints
-  static String get submissions => Urls.listPitches;
-  static String get submissionsFeedBrowse => Urls.listPitches;
-  static String submissionById(String id) => Urls.buildUrl(Urls.getPitch, id);
-  static String submissionSubmit(String id) =>
-      Urls.buildUrl(Urls.submitPitch, id);
-  static String submissionCompleteness(String id) =>
-      Urls.buildUrl(Urls.getPitch, id);
+  static String get submissions => '/submissions';
+  static String get submissionsFeedBrowse => '/submissions/feed/browse';
+  static String submissionById(String id) => '/submissions/$id';
+  static String submissionSubmit(String id) => '/submissions/$id/submit';
+  static String submissionCompleteness(String id) => '/submissions/$id/completeness';
 
   /// Matching endpoints
   static String matchingRun(String submissionId) =>
-      Urls.buildUrl(Urls.createMatch, submissionId);
+      '/matching/submissions/$submissionId/run';
   static String matchingResults(String submissionId) =>
-      Urls.buildUrl(Urls.getMatch, submissionId);
-  static String get matchingInvestorQueue => Urls.getRecommendedPitches;
-  static String matchingStatus(String matchId) =>
-      Urls.buildUrl(Urls.updateMatchStatus, matchId);
+      '/matching/submissions/$submissionId';
+  static String get matchingInvestorQueue => '/matching/me/investor';
+  static String matchingStatus(String matchId) => '/matching/$matchId/status';
 
   /// Invitation endpoints
-  static String get invitations => Urls.createMatch;
-  static String get invitationsMe => Urls.listMatches;
+  static String get invitations => '/invitations';
+  static String get invitationsMe => '/invitations/me';
   static String invitationRespond(String invitationId) =>
-      Urls.buildUrl(Urls.getMatch, invitationId);
+      '/invitations/$invitationId/respond';
   static String invitationCancel(String invitationId) =>
-      Urls.buildUrl(Urls.getMatch, invitationId);
+      '/invitations/$invitationId/cancel';
 
   /// Upload/Document endpoints
   static String get upload => Urls.uploadFile;
@@ -77,20 +74,20 @@ class ApiConfig {
   /// Communication endpoints
   static String get meetings => Urls.listMeetings;
   static String meetingStatus(String meetingId) =>
-      Urls.buildUrl(Urls.updateMeetingStatus, meetingId);
+      '/meetings/$meetingId/status';
   static String get conversations => Urls.listConversations;
   static String conversationById(String conversationId) =>
-      Urls.buildUrl(Urls.getConversationMessages, conversationId);
+      '/messages/conversations/$conversationId';
   static String conversationMessages(String conversationId) =>
-      Urls.buildUrl(Urls.getConversationMessages, conversationId);
+      '/messages/conversations/$conversationId/messages';
   static String conversationRead(String conversationId) =>
-      Urls.buildUrl(Urls.getConversationMessages, conversationId);
+      '/messages/conversations/$conversationId/read';
   static String conversationReport(String conversationId) =>
-      Urls.buildUrl(Urls.getConversationMessages, conversationId);
-  static String get unreadCount => Urls.listNotifications;
-  static String get notifications => Urls.listNotifications;
+      '/messages/conversations/$conversationId/report';
+  static String get unreadCount => '/messages/unread-count';
+  static String get notifications => '/messages/notifications';
   static String notificationRead(String notificationId) =>
-      Urls.buildUrl(Urls.markNotificationRead, notificationId);
+      '/messages/notifications/$notificationId/read';
 
   /// Feedback endpoints
   static String get feedback => Urls.submitFeedback;
@@ -103,9 +100,9 @@ class ApiConfig {
   static String milestoneById(String id) =>
       Urls.buildUrl(Urls.updateMilestone, id);
   static String milestoneEvidence(String id) =>
-      Urls.buildUrl(Urls.addMilestoneEvidence, id);
+      '/milestones/$id/evidence';
   static String milestoneVerify(String id) =>
-      Urls.buildUrl(Urls.verifyMilestone, id);
+      '/milestones/$id/verify';
 
   /// Connection timeouts
   static const Duration connectTimeout = Duration(seconds: 30);

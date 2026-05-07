@@ -76,12 +76,8 @@ class InvitationsManageRemoteDataSourceImpl
         },
       );
       if (res.statusCode == 200) {
-        final data = res.data;
-        final list = data is Map<String, dynamic>
-            ? ((data['invitations'] as List?) ??
-                (data['data'] as List?) ??
-                const [])
-            : (data as List? ?? const []);
+        final data = res.data as Map<String, dynamic>;
+        final list = (data['invitations'] as List?) ?? const [];
         return list
             .whereType<Map>()
             .map((e) => InvitationModel.fromJson(e.cast<String, dynamic>()))
@@ -89,7 +85,10 @@ class InvitationsManageRemoteDataSourceImpl
       }
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to load invitations');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to load invitations');
     }
   }
 
@@ -149,7 +148,10 @@ class InvitationsManageRemoteDataSourceImpl
       }
       throw const ServerFailure(message: 'Failed to respond');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to respond');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to respond');
     }
   }
 
@@ -191,7 +193,10 @@ class InvitationsManageRemoteDataSourceImpl
       }
       throw const ServerFailure(message: 'Failed to cancel');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to cancel');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to cancel');
     }
   }
 }

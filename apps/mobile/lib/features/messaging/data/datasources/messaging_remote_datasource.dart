@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 
 import '../../../../core/config/api_config.dart';
-import '../../../../core/config/urls.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/mock/mock_backend.dart';
 import '../../../../core/network/dio_client.dart';
@@ -46,12 +45,10 @@ class MessagingRemoteDataSourceImpl implements MessagingRemoteDataSource {
       return MockBackend.listConversations();
     }
     try {
-      final res = await _dio.get(Urls.listConversations);
+      final res = await _dio.get(ApiConfig.conversations);
       if (res.statusCode == 200) {
         final data = res.data as Map<String, dynamic>;
-        final list = (data['conversations'] as List?) ??
-            (data['data'] as List?) ??
-            const [];
+        final list = (data['conversations'] as List?) ?? const [];
         return list
             .whereType<Map>()
             .map((e) => ConversationModel.fromJson(e.cast<String, dynamic>()))
@@ -59,7 +56,10 @@ class MessagingRemoteDataSourceImpl implements MessagingRemoteDataSource {
       }
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to load conversations');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to load conversations');
     }
   }
 
@@ -79,7 +79,7 @@ class MessagingRemoteDataSourceImpl implements MessagingRemoteDataSource {
     }
     try {
       final res = await _dio.post(
-        Urls.listConversations,
+        ApiConfig.conversations,
         data: {
           'otherUserId': otherUserId,
           if (matchResultId != null && matchResultId.isNotEmpty)
@@ -90,13 +90,18 @@ class MessagingRemoteDataSourceImpl implements MessagingRemoteDataSource {
       );
       if (res.statusCode == 200) {
         final data = res.data as Map<String, dynamic>;
-        final conv =
-            (data['conversation'] as Map?)?.cast<String, dynamic>() ?? data;
+        final conv = (data['conversation'] as Map?)?.cast<String, dynamic>();
+        if (conv == null) {
+          throw const ServerFailure(message: 'Invalid conversation response');
+        }
         return ConversationModel.fromJson(conv);
       }
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to open conversation');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to open conversation');
     }
   }
 
@@ -112,7 +117,7 @@ class MessagingRemoteDataSourceImpl implements MessagingRemoteDataSource {
     }
     try {
       final res = await _dio.get(
-        Urls.buildUrl(Urls.getConversationMessages, conversationId),
+        ApiConfig.conversationMessages(conversationId),
         queryParameters: {
           if (page != null) 'page': page,
           if (limit != null) 'limit': limit,
@@ -120,8 +125,7 @@ class MessagingRemoteDataSourceImpl implements MessagingRemoteDataSource {
       );
       if (res.statusCode == 200) {
         final data = res.data as Map<String, dynamic>;
-        final list =
-            (data['messages'] as List?) ?? (data['data'] as List?) ?? const [];
+        final list = (data['messages'] as List?) ?? const [];
         return list
             .whereType<Map>()
             .map((e) => MessageModel.fromJson(e.cast<String, dynamic>()))
@@ -129,7 +133,10 @@ class MessagingRemoteDataSourceImpl implements MessagingRemoteDataSource {
       }
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to load messages');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to load messages');
     }
   }
 
@@ -151,7 +158,7 @@ class MessagingRemoteDataSourceImpl implements MessagingRemoteDataSource {
     }
     try {
       final res = await _dio.post(
-        Urls.buildUrl(Urls.getConversationMessages, conversationId),
+        ApiConfig.conversationMessages(conversationId),
         data: {
           'body': body,
           'type': type,
@@ -161,14 +168,18 @@ class MessagingRemoteDataSourceImpl implements MessagingRemoteDataSource {
       );
       if (res.statusCode == 201 || res.statusCode == 200) {
         final data = res.data as Map<String, dynamic>;
-        final msg = (data['data'] as Map?)?.cast<String, dynamic>() ??
-            (data['message'] as Map?)?.cast<String, dynamic>() ??
-            data;
+        final msg = (data['data'] as Map?)?.cast<String, dynamic>();
+        if (msg == null) {
+          throw const ServerFailure(message: 'Invalid message response');
+        }
         return MessageModel.fromJson(msg);
       }
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to send message');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to send message');
     }
   }
 
@@ -180,12 +191,14 @@ class MessagingRemoteDataSourceImpl implements MessagingRemoteDataSource {
       return;
     }
     try {
-      final res = await _dio
-          .post(Urls.buildUrl(Urls.getConversationMessages, conversationId));
+      final res = await _dio.post(ApiConfig.conversationRead(conversationId));
       if (res.statusCode == 200) return;
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to mark read');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to mark read');
     }
   }
 
@@ -196,17 +209,20 @@ class MessagingRemoteDataSourceImpl implements MessagingRemoteDataSource {
       return MockBackend.unreadCount();
     }
     try {
-      final res = await _dio.get(Urls.listNotifications);
+      final res = await _dio.get(ApiConfig.unreadCount);
       if (res.statusCode == 200) {
         final data = res.data as Map<String, dynamic>;
-        final v = data['unreadCount'] ?? data['count'] ?? 0;
+        final v = data['unreadCount'] ?? 0;
         if (v is int) return v;
         if (v is num) return v.toInt();
         return 0;
       }
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to load unread count');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to load unread count');
     }
   }
 
@@ -217,12 +233,10 @@ class MessagingRemoteDataSourceImpl implements MessagingRemoteDataSource {
       return MockBackend.listNotifications();
     }
     try {
-      final res = await _dio.get(Urls.listNotifications);
+      final res = await _dio.get(ApiConfig.notifications);
       if (res.statusCode == 200) {
         final data = res.data as Map<String, dynamic>;
-        final list = (data['notifications'] as List?) ??
-            (data['data'] as List?) ??
-            const [];
+        final list = (data['notifications'] as List?) ?? const [];
         return list
             .whereType<Map>()
             .map((e) => NotificationModel.fromJson(e.cast<String, dynamic>()))
@@ -230,7 +244,10 @@ class MessagingRemoteDataSourceImpl implements MessagingRemoteDataSource {
       }
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to load notifications');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to load notifications');
     }
   }
 
@@ -242,13 +259,15 @@ class MessagingRemoteDataSourceImpl implements MessagingRemoteDataSource {
       return;
     }
     try {
-      final res = await _dio
-          .patch(Urls.buildUrl(Urls.markNotificationRead, notificationId));
+      final res = await _dio.patch(ApiConfig.notificationRead(notificationId));
       if (res.statusCode == 200) return;
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
       throw ServerFailure(
-          message: e.message ?? 'Failed to mark notification read');
+          message: msg ?? e.message ?? 'Failed to mark notification read');
     }
   }
 }

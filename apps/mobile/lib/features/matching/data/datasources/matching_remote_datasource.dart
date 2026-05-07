@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 
 import '../../../../core/config/api_config.dart';
-import '../../../../core/config/urls.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/mock/mock_backend.dart';
 import '../../../../core/network/dio_client.dart';
@@ -27,7 +26,7 @@ class MatchingRemoteDataSourceImpl implements MatchingRemoteDataSource {
     }
     try {
       final res = await _dio.post(
-        Urls.buildUrl(Urls.createMatch, submissionId),
+        ApiConfig.matchingRun(submissionId),
         data: {
           if (limit != null) 'limit': limit,
           if (minScore != null) 'minScore': minScore,
@@ -36,7 +35,10 @@ class MatchingRemoteDataSourceImpl implements MatchingRemoteDataSource {
       if (res.statusCode == 200) return;
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to run matching');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to run matching');
     }
   }
 
@@ -47,13 +49,10 @@ class MatchingRemoteDataSourceImpl implements MatchingRemoteDataSource {
       return MockBackend.matchResults(submissionId);
     }
     try {
-      final res = await _dio.get(Urls.buildUrl(Urls.getMatch, submissionId));
+      final res = await _dio.get(ApiConfig.matchingResults(submissionId));
       if (res.statusCode == 200) {
         final data = res.data as Map<String, dynamic>;
-        final list = (data['matches'] as List?) ??
-            (data['results'] as List?) ??
-            (data['data'] as List?) ??
-            const [];
+        final list = (data['matches'] as List?) ?? const [];
         return list
             .whereType<Map>()
             .map((e) => MatchResultModel.fromJson(e.cast<String, dynamic>()))
@@ -61,7 +60,10 @@ class MatchingRemoteDataSourceImpl implements MatchingRemoteDataSource {
       }
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to load match results');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to load match results');
     }
   }
 }

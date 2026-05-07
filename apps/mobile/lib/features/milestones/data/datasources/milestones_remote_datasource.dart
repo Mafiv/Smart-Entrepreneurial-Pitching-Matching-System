@@ -100,7 +100,10 @@ class MilestonesRemoteDataSourceImpl implements MilestonesRemoteDataSource {
       }
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to load milestones');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to load milestones');
     }
   }
 
@@ -135,12 +138,18 @@ class MilestonesRemoteDataSourceImpl implements MilestonesRemoteDataSource {
       final res = await _dio.post(ApiConfig.milestones, data: payload);
       if (res.statusCode == 201 || res.statusCode == 200) {
         final data = res.data as Map<String, dynamic>;
-        final m = (data['milestone'] as Map?)?.cast<String, dynamic>() ?? data;
+        final m = (data['milestone'] as Map?)?.cast<String, dynamic>();
+        if (m == null) {
+          throw const ServerFailure(message: 'Invalid milestone response');
+        }
         return MilestoneModel.fromJson(m);
       }
       throw const ServerFailure(message: 'Failed to create milestone');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to create milestone');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to create milestone');
     }
   }
 
@@ -164,15 +173,21 @@ class MilestonesRemoteDataSourceImpl implements MilestonesRemoteDataSource {
       return MilestoneModel.fromJson(created);
     }
     try {
-      final res = await _dio.patch(ApiConfig.milestoneById(milestoneId), data: payload);
+      final res = await _dio.put(ApiConfig.milestoneById(milestoneId), data: payload);
       if (res.statusCode == 200) {
         final data = res.data as Map<String, dynamic>;
-        final m = (data['milestone'] as Map?)?.cast<String, dynamic>() ?? data;
+        final m = (data['milestone'] as Map?)?.cast<String, dynamic>();
+        if (m == null) {
+          throw const ServerFailure(message: 'Invalid milestone response');
+        }
         return MilestoneModel.fromJson(m);
       }
       throw const ServerFailure(message: 'Failed to update milestone');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to update milestone');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to update milestone');
     }
   }
 
@@ -197,7 +212,10 @@ class MilestonesRemoteDataSourceImpl implements MilestonesRemoteDataSource {
       if (res.statusCode == 200) return;
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to submit evidence');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to submit evidence');
     }
   }
 
@@ -228,7 +246,10 @@ class MilestonesRemoteDataSourceImpl implements MilestonesRemoteDataSource {
       if (res.statusCode == 200) return;
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to verify milestone');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to verify milestone');
     }
   }
 }

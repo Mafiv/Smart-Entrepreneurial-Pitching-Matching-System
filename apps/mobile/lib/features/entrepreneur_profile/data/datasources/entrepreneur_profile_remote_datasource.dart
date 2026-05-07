@@ -77,10 +77,10 @@ class EntrepreneurProfileRemoteDataSourceImpl
       final res = await _dio.get(ApiConfig.entrepreneurProfile);
       if (res.statusCode == 200) {
         final data = res.data as Map<String, dynamic>;
-        final profile = (data['data'] as Map?)?.cast<String, dynamic>() ??
-            (data['profile'] as Map?)?.cast<String, dynamic>() ??
-            (data['entrepreneurProfile'] as Map?)?.cast<String, dynamic>() ??
-            data;
+        final profile = (data['data'] as Map?)?.cast<String, dynamic>();
+        if (profile == null) {
+          throw const ServerFailure(message: 'Invalid profile response');
+        }
         return EntrepreneurProfileModel.fromJson(profile);
       }
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
@@ -92,7 +92,10 @@ class EntrepreneurProfileRemoteDataSourceImpl
       if (status == 404) {
         throw const ServerFailure(message: 'Profile not found');
       }
-      throw ServerFailure(message: e.message ?? 'Failed to load profile');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to load profile');
     }
   }
 
@@ -131,9 +134,10 @@ class EntrepreneurProfileRemoteDataSourceImpl
       );
       if (res.statusCode == 201 || res.statusCode == 200) {
         final data = res.data as Map<String, dynamic>;
-        final profile = (data['data'] as Map?)?.cast<String, dynamic>() ??
-            (data['profile'] as Map?)?.cast<String, dynamic>() ??
-            data;
+        final profile = (data['data'] as Map?)?.cast<String, dynamic>();
+        if (profile == null) {
+          throw const ServerFailure(message: 'Invalid profile response');
+        }
         return EntrepreneurProfileModel.fromJson(profile);
       }
       throw const ServerFailure(message: 'Failed to create profile');
@@ -142,7 +146,10 @@ class EntrepreneurProfileRemoteDataSourceImpl
       if (status == 401 || status == 403) {
         throw const AuthFailure(message: 'Not authorized');
       }
-      throw ServerFailure(message: e.message ?? 'Failed to create profile');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to create profile');
     }
   }
 
@@ -162,9 +169,10 @@ class EntrepreneurProfileRemoteDataSourceImpl
       );
       if (res.statusCode == 200) {
         final data = res.data as Map<String, dynamic>;
-        final profile = (data['data'] as Map?)?.cast<String, dynamic>() ??
-            (data['profile'] as Map?)?.cast<String, dynamic>() ??
-            data;
+        final profile = (data['data'] as Map?)?.cast<String, dynamic>();
+        if (profile == null) {
+          throw const ServerFailure(message: 'Invalid profile response');
+        }
         return EntrepreneurProfileModel.fromJson(profile);
       }
       throw const ServerFailure(message: 'Failed to update profile');
@@ -173,7 +181,10 @@ class EntrepreneurProfileRemoteDataSourceImpl
       if (status == 401 || status == 403) {
         throw const AuthFailure(message: 'Not authorized');
       }
-      throw ServerFailure(message: e.message ?? 'Failed to update profile');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to update profile');
     }
   }
 }

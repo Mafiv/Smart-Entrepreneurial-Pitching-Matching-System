@@ -41,10 +41,10 @@ class InvestorProfileRemoteDataSourceImpl implements InvestorProfileRemoteDataSo
       final res = await _dio.get(ApiConfig.investorProfile);
       if (res.statusCode == 200) {
         final data = res.data as Map<String, dynamic>;
-        final profile = (data['data'] as Map?)?.cast<String, dynamic>() ??
-            (data['profile'] as Map?)?.cast<String, dynamic>() ??
-            (data['investorProfile'] as Map?)?.cast<String, dynamic>() ??
-            data;
+        final profile = (data['data'] as Map?)?.cast<String, dynamic>();
+        if (profile == null) {
+          throw const ServerFailure(message: 'Invalid profile response');
+        }
         return InvestorProfileModel.fromJson(profile);
       }
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
@@ -56,7 +56,10 @@ class InvestorProfileRemoteDataSourceImpl implements InvestorProfileRemoteDataSo
       if (status == 404) {
         throw const ServerFailure(message: 'Profile not found');
       }
-      throw ServerFailure(message: e.message ?? 'Failed to load profile');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to load profile');
     }
   }
 
@@ -77,14 +80,18 @@ class InvestorProfileRemoteDataSourceImpl implements InvestorProfileRemoteDataSo
       final res = await _dio.post(ApiConfig.investorProfile, data: payload);
       if (res.statusCode == 201 || res.statusCode == 200) {
         final data = res.data as Map<String, dynamic>;
-        final profile = (data['data'] as Map?)?.cast<String, dynamic>() ??
-            (data['profile'] as Map?)?.cast<String, dynamic>() ??
-            data;
+        final profile = (data['data'] as Map?)?.cast<String, dynamic>();
+        if (profile == null) {
+          throw const ServerFailure(message: 'Invalid profile response');
+        }
         return InvestorProfileModel.fromJson(profile);
       }
       throw const ServerFailure(message: 'Failed to create profile');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to create profile');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to create profile');
     }
   }
 
@@ -101,14 +108,18 @@ class InvestorProfileRemoteDataSourceImpl implements InvestorProfileRemoteDataSo
       final res = await _dio.put(ApiConfig.investorProfile, data: payload);
       if (res.statusCode == 200) {
         final data = res.data as Map<String, dynamic>;
-        final profile = (data['data'] as Map?)?.cast<String, dynamic>() ??
-            (data['profile'] as Map?)?.cast<String, dynamic>() ??
-            data;
+        final profile = (data['data'] as Map?)?.cast<String, dynamic>();
+        if (profile == null) {
+          throw const ServerFailure(message: 'Invalid profile response');
+        }
         return InvestorProfileModel.fromJson(profile);
       }
       throw const ServerFailure(message: 'Failed to update profile');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to update profile');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to update profile');
     }
   }
 }

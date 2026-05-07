@@ -43,10 +43,7 @@ class FeedRemoteDataSourceImpl implements FeedRemoteDataSource {
       );
       if (res.statusCode == 200) {
         final data = res.data as Map<String, dynamic>;
-        final list = (data['submissions'] as List?) ??
-            (data['items'] as List?) ??
-            (data['data'] as List?) ??
-            const [];
+        final list = (data['submissions'] as List?) ?? const [];
         return list
             .whereType<Map>()
             .map((e) => SubmissionModel.fromJson(e.cast<String, dynamic>()))
@@ -54,7 +51,10 @@ class FeedRemoteDataSourceImpl implements FeedRemoteDataSource {
       }
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to load feed');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to load feed');
     }
   }
 
@@ -68,12 +68,18 @@ class FeedRemoteDataSourceImpl implements FeedRemoteDataSource {
       final res = await _dio.get(ApiConfig.submissionById(id));
       if (res.statusCode == 200) {
         final data = res.data as Map<String, dynamic>;
-        final s = (data['submission'] as Map?)?.cast<String, dynamic>() ?? data;
+        final s = (data['submission'] as Map?)?.cast<String, dynamic>();
+        if (s == null) {
+          throw const ServerFailure(message: 'Invalid submission response');
+        }
         return SubmissionModel.fromJson(s);
       }
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to load pitch');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to load pitch');
     }
   }
 }

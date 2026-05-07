@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 
 import '../../../../core/config/api_config.dart';
-import '../../../../core/config/urls.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/mock/mock_backend.dart';
 import '../../../../core/network/dio_client.dart';
@@ -32,7 +31,7 @@ class SubmissionsRemoteDataSourceImpl implements SubmissionsRemoteDataSource {
       return MockBackend.listMySubmissions(_mockEntrepreneurId);
     }
     try {
-      final res = await _dio.get(Urls.listPitches);
+      final res = await _dio.get(ApiConfig.submissions);
       if (res.statusCode == 200) {
         final data = res.data as Map<String, dynamic>;
         final list = (data['submissions'] as List?) ??
@@ -50,7 +49,10 @@ class SubmissionsRemoteDataSourceImpl implements SubmissionsRemoteDataSource {
       if (status == 401 || status == 403) {
         throw const AuthFailure(message: 'Not authorized');
       }
-      throw ServerFailure(message: e.message ?? 'Failed to load submissions');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to load submissions');
     }
   }
 
@@ -68,7 +70,7 @@ class SubmissionsRemoteDataSourceImpl implements SubmissionsRemoteDataSource {
     }
     try {
       final res = await _dio.post(
-        Urls.createPitch,
+        ApiConfig.submissions,
         data: {
           if (title != null && title.isNotEmpty) 'title': title,
           if (sector != null && sector.isNotEmpty) 'sector': sector,
@@ -86,7 +88,10 @@ class SubmissionsRemoteDataSourceImpl implements SubmissionsRemoteDataSource {
       if (status == 403) {
         throw const AuthFailure(message: 'User is not verified');
       }
-      throw ServerFailure(message: e.message ?? 'Failed to create draft');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to create draft');
     }
   }
 
@@ -97,7 +102,7 @@ class SubmissionsRemoteDataSourceImpl implements SubmissionsRemoteDataSource {
       return MockBackend.getSubmissionById(id);
     }
     try {
-      final res = await _dio.get(Urls.buildUrl(Urls.getPitch, id));
+      final res = await _dio.get(ApiConfig.submissionById(id));
       if (res.statusCode == 200) {
         final data = res.data as Map<String, dynamic>;
         final s = (data['submission'] as Map?)?.cast<String, dynamic>() ?? data;
@@ -108,7 +113,10 @@ class SubmissionsRemoteDataSourceImpl implements SubmissionsRemoteDataSource {
       final status = e.response?.statusCode;
       if (status == 404)
         throw const ServerFailure(message: 'Submission not found');
-      throw ServerFailure(message: e.message ?? 'Failed to load submission');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to load submission');
     }
   }
 
@@ -120,8 +128,7 @@ class SubmissionsRemoteDataSourceImpl implements SubmissionsRemoteDataSource {
       return MockBackend.updateDraft(id, patch);
     }
     try {
-      final res =
-          await _dio.patch(Urls.buildUrl(Urls.getPitch, id), data: patch);
+      final res = await _dio.patch(ApiConfig.submissionById(id), data: patch);
       if (res.statusCode == 200) {
         final data = res.data as Map<String, dynamic>;
         final s = (data['submission'] as Map?)?.cast<String, dynamic>() ?? data;
@@ -129,7 +136,10 @@ class SubmissionsRemoteDataSourceImpl implements SubmissionsRemoteDataSource {
       }
       throw const ServerFailure(message: 'Failed to update draft');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to update draft');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to update draft');
     }
   }
 
@@ -141,11 +151,14 @@ class SubmissionsRemoteDataSourceImpl implements SubmissionsRemoteDataSource {
       return;
     }
     try {
-      final res = await _dio.delete(Urls.buildUrl(Urls.getPitch, id));
+      final res = await _dio.delete(ApiConfig.submissionById(id));
       if (res.statusCode == 200) return;
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to delete draft');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to delete draft');
     }
   }
 
@@ -157,11 +170,14 @@ class SubmissionsRemoteDataSourceImpl implements SubmissionsRemoteDataSource {
       return;
     }
     try {
-      final res = await _dio.post(Urls.buildUrl(Urls.submitPitch, id));
+      final res = await _dio.post(ApiConfig.submissionSubmit(id));
       if (res.statusCode == 200) return;
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to submit pitch');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to submit pitch');
     }
   }
 
@@ -172,13 +188,16 @@ class SubmissionsRemoteDataSourceImpl implements SubmissionsRemoteDataSource {
       return MockBackend.completeness(id);
     }
     try {
-      final res = await _dio.get(Urls.buildUrl(Urls.getPitch, id));
+      final res = await _dio.get(ApiConfig.submissionCompleteness(id));
       if (res.statusCode == 200) {
         return (res.data as Map).cast<String, dynamic>();
       }
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to get completeness');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to get completeness');
     }
   }
 }

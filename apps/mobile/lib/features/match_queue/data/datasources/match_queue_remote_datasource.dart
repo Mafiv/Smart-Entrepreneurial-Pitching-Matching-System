@@ -28,10 +28,7 @@ class MatchQueueRemoteDataSourceImpl implements MatchQueueRemoteDataSource {
       );
       if (res.statusCode == 200) {
         final data = res.data as Map<String, dynamic>;
-        final list = (data['matches'] as List?) ??
-            (data['queue'] as List?) ??
-            (data['data'] as List?) ??
-            const [];
+        final list = (data['matches'] as List?) ?? const [];
         return list
             .whereType<Map>()
             .map((e) => MatchResultModel.fromJson(e.cast<String, dynamic>()))
@@ -39,7 +36,10 @@ class MatchQueueRemoteDataSourceImpl implements MatchQueueRemoteDataSource {
       }
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to load match queue');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to load match queue');
     }
   }
 
@@ -58,7 +58,11 @@ class MatchQueueRemoteDataSourceImpl implements MatchQueueRemoteDataSource {
       if (res.statusCode == 200) return;
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to update match status');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(
+          message: msg ?? e.message ?? 'Failed to update match status');
     }
   }
 }

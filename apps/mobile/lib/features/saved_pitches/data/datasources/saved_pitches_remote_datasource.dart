@@ -25,10 +25,7 @@ class SavedPitchesRemoteDataSourceImpl implements SavedPitchesRemoteDataSource {
       final res = await _dio.get(ApiConfig.investorSavedPitches);
       if (res.statusCode == 200) {
         final data = res.data as Map<String, dynamic>;
-        final list = (data['savedPitches'] as List?) ??
-            (data['pitches'] as List?) ??
-            (data['data'] as List?) ??
-            const [];
+        final list = (data['data'] as List?) ?? const [];
         return list
             .whereType<Map>()
             .map((e) => SubmissionModel.fromJson(e.cast<String, dynamic>()))
@@ -36,7 +33,11 @@ class SavedPitchesRemoteDataSourceImpl implements SavedPitchesRemoteDataSource {
       }
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to load saved pitches');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(
+          message: msg ?? e.message ?? 'Failed to load saved pitches');
     }
   }
 
@@ -52,7 +53,11 @@ class SavedPitchesRemoteDataSourceImpl implements SavedPitchesRemoteDataSource {
       if (res.statusCode == 200) return;
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to toggle saved pitch');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(
+          message: msg ?? e.message ?? 'Failed to toggle saved pitch');
     }
   }
 }

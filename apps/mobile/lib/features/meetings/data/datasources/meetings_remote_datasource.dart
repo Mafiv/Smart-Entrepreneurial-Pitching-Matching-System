@@ -43,7 +43,10 @@ class MeetingsRemoteDataSourceImpl implements MeetingsRemoteDataSource {
       }
       throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to load meetings');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to load meetings');
     }
   }
 
@@ -62,7 +65,10 @@ class MeetingsRemoteDataSourceImpl implements MeetingsRemoteDataSource {
       }
       throw const ServerFailure(message: 'Failed to schedule meeting');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to schedule meeting');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to schedule meeting');
     }
   }
 
@@ -84,7 +90,10 @@ class MeetingsRemoteDataSourceImpl implements MeetingsRemoteDataSource {
       }
       throw const ServerFailure(message: 'Failed to update meeting');
     } on DioException catch (e) {
-      throw ServerFailure(message: e.message ?? 'Failed to update meeting');
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to update meeting');
     }
   }
 }
