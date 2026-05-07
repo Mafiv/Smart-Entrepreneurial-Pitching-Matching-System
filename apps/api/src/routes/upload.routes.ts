@@ -63,6 +63,26 @@ const upload = multer({
  *     responses:
  *       200:
  *         description: File uploaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [status, message, file]
+ *               properties:
+ *                 status: { type: string, enum: [success] }
+ *                 message:
+ *                   type: string
+ *                   example: File uploaded successfully
+ *                 file:
+ *                   type: object
+ *                   properties:
+ *                     name: { type: string }
+ *                     url: { type: string }
+ *                     cloudinaryId: { type: string }
+ *                     type: { type: string }
+ *                     size: { type: integer }
+ *                     format: { type: string }
+ *                     resourceType: { type: string }
  *       400:
  *         description: No file provided
  */
@@ -153,6 +173,16 @@ router.post(
  *     responses:
  *       200:
  *         description: File deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [status, message, result]
+ *               properties:
+ *                 status: { type: string, enum: [success] }
+ *                 message: { type: string, example: File deleted }
+ *                 result:
+ *                   type: object
  */
 router.delete(
 	"/:publicId",

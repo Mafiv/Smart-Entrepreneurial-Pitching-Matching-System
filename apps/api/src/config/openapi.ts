@@ -30,6 +30,51 @@ const swaggerDefinition = {
 			},
 		},
 		schemas: {
+			AuthUser: {
+				type: "object",
+				required: ["_id", "uid", "email", "displayName", "role", "status"],
+				properties: {
+					_id: { type: "string" },
+					uid: { type: "string" },
+					email: { type: "string", format: "email" },
+					displayName: { type: "string" },
+					role: { type: "string", enum: ["admin", "entrepreneur", "investor"] },
+					adminLevel: { type: "string", nullable: true },
+					status: { type: "string" },
+					photoURL: { type: "string", nullable: true },
+					phoneNumber: { type: "string", nullable: true },
+					phoneVerified: { type: "boolean" },
+					emailVerified: { type: "boolean" },
+				},
+			},
+			AuthUserEnvelope: {
+				type: "object",
+				required: ["status", "message", "user"],
+				properties: {
+					status: { type: "string", enum: ["success"] },
+					message: { type: "string" },
+					user: { $ref: "#/components/schemas/AuthUser" },
+				},
+			},
+			AuthUserEnvelopeWithKycReason: {
+				type: "object",
+				required: ["status", "user"],
+				properties: {
+					status: { type: "string", enum: ["success"] },
+					message: { type: "string" },
+					user: {
+						allOf: [
+							{ $ref: "#/components/schemas/AuthUser" },
+							{
+								type: "object",
+								properties: {
+									kycRejectionReason: { type: "string", nullable: true },
+								},
+							},
+						],
+					},
+				},
+			},
 			DocumentType: {
 				type: "string",
 				enum: ["pitch_deck", "financial_model", "legal", "other"],
@@ -101,163 +146,21 @@ const swaggerDefinition = {
 				},
 			},
 		},
-		"/stats": {
-			get: {
-				tags: ["System"],
-				summary: "Service runtime stats",
-				responses: {
-					200: {
-						description: "Runtime metrics",
-						content: {
-							"application/json": {
-								schema: {
-									type: "object",
-									properties: {
-										status: { type: "string", example: "ok" },
-										uptimeSeconds: { type: "number", example: 123.45 },
-										timestamp: { type: "string", format: "date-time" },
-										nodeVersion: { type: "string", example: "v20.11.1" },
-										memory: {
-											type: "object",
-											properties: {
-												rss: { type: "integer" },
-												heapTotal: { type: "integer" },
-												heapUsed: { type: "integer" },
-												external: { type: "integer" },
-												arrayBuffers: { type: "integer" },
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		"/api/auth/register": {
-			post: {
-				tags: ["Auth"],
-				summary: "Register or link authenticated Firebase user",
-				security: [{ bearerAuth: [] }],
-				requestBody: {
-					required: false,
-					content: {
-						"application/json": {
-							schema: {
-								type: "object",
-								properties: {
-									fullName: { type: "string" },
-									role: { type: "string", enum: ["entrepreneur", "investor"] },
-								},
-							},
-						},
-					},
-				},
-				responses: {
-					200: { description: "User already exists or account linked" },
-					201: { description: "User created" },
-					500: { description: "Registration failed" },
-				},
-			},
-		},
-		"/api/auth/me": {
-			get: {
-				tags: ["Auth"],
-				summary: "Get authenticated user profile",
-				security: [{ bearerAuth: [] }],
-				responses: {
-					200: { description: "User profile fetched" },
-					404: { description: "User profile not found" },
-				},
-			},
-		},
-		"/api/auth/role": {
-			patch: {
-				tags: ["Auth"],
-				summary: "Update authenticated user role",
-				security: [{ bearerAuth: [] }],
-				requestBody: {
-					required: true,
-					content: {
-						"application/json": {
-							schema: {
-								type: "object",
-								required: ["role"],
-								properties: {
-									role: {
-										type: "string",
-										enum: ["admin", "entrepreneur", "investor"],
-									},
-								},
-							},
-						},
-					},
-				},
-				responses: {
-					200: { description: "Role updated" },
-					400: { description: "Invalid role" },
-					404: { description: "User not found" },
-				},
-			},
-		},
-		"/api/auth/admin/users": {
-			get: {
-				tags: ["Auth"],
-				summary: "Admin list users with stats",
-				security: [{ bearerAuth: [] }],
-				responses: {
-					200: { description: "Users and stats fetched" },
-					403: { description: "Forbidden" },
-				},
-			},
-		},
-		"/api/auth/admin/users/{id}/status": {
-			patch: {
-				tags: ["Auth"],
-				summary: "Admin update a user's verification status",
-				security: [{ bearerAuth: [] }],
-				parameters: [
-					{
-						in: "path",
-						name: "id",
-						required: true,
-						schema: { type: "string" },
-					},
-				],
-				requestBody: {
-					required: true,
-					content: {
-						"application/json": {
-							schema: {
-								type: "object",
-								required: ["status"],
-								properties: {
-									status: {
-										type: "string",
-										enum: ["unverified", "pending", "verified", "suspended"],
-									},
-									reason: { type: "string" },
-								},
-							},
-						},
-					},
-				},
-				responses: {
-					200: { description: "User status updated" },
-					400: { description: "Invalid status" },
-					403: { description: "Forbidden" },
-					404: { description: "User not found" },
-				},
-			},
-		},
 	},
 };
 
 const routesTs = path.resolve(process.cwd(), "src/routes/*.ts");
 const routesJs = path.resolve(process.cwd(), "dist/routes/*.js");
+const recommendationRoutesTs = path.resolve(
+	process.cwd(),
+	"src/recommendation/*.routes.ts",
+);
+const recommendationRoutesJs = path.resolve(
+	process.cwd(),
+	"dist/recommendation/*.routes.js",
+);
 
 export const openApiSpec = swaggerJsdoc({
 	swaggerDefinition,
-	apis: [routesTs, routesJs],
+	apis: [routesTs, routesJs, recommendationRoutesTs, recommendationRoutesJs],
 });

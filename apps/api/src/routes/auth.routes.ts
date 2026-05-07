@@ -50,8 +50,38 @@ const router = Router();
  *     responses:
  *       200:
  *         description: Existing account found or linked
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [status, message, user]
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   enum: [success]
+ *                 message:
+ *                   type: string
+ *                 user:
+ *                   type: object
+ *                   required: [_id, uid, email, displayName, role, status, emailVerified]
+ *                   properties:
+ *                     _id: { type: string }
+ *                     uid: { type: string }
+ *                     email: { type: string, format: email }
+ *                     displayName: { type: string }
+ *                     role: { type: string, enum: [admin, entrepreneur, investor] }
+ *                     adminLevel: { type: string, nullable: true }
+ *                     status: { type: string }
+ *                     photoURL: { type: string, nullable: true }
+ *                     phoneNumber: { type: string, nullable: true }
+ *                     phoneVerified: { type: boolean }
+ *                     emailVerified: { type: boolean }
  *       201:
  *         description: User registered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthUserEnvelope'
  */
 router.post(
 	"/register",
@@ -213,6 +243,10 @@ router.post(
  *     responses:
  *       200:
  *         description: User profile fetched
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthUserEnvelopeWithKycReason'
  *       404:
  *         description: User profile not found
  */
@@ -303,6 +337,16 @@ router.get(
  *     responses:
  *       200:
  *         description: OTP sent
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [status, message, expiresAt, cooldownSeconds]
+ *               properties:
+ *                 status: { type: string, enum: [success] }
+ *                 message: { type: string, example: OTP sent }
+ *                 expiresAt: { type: string, format: date-time }
+ *                 cooldownSeconds: { type: integer }
  *       400:
  *         description: Invalid request
  *       429:
@@ -396,6 +440,16 @@ router.post(
  *     responses:
  *       200:
  *         description: OTP verified
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/AuthUserEnvelopeWithKycReason'
+ *                 - type: object
+ *                   properties:
+ *                     message:
+ *                       type: string
+ *                       example: Email verified
  *       400:
  *         description: Invalid or expired OTP
  */
@@ -486,6 +540,16 @@ router.post(
  *     responses:
  *       200:
  *         description: Phone verified
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/AuthUserEnvelopeWithKycReason'
+ *                 - type: object
+ *                   properties:
+ *                     message:
+ *                       type: string
+ *                       example: Phone verified
  *       400:
  *         description: Phone verification missing
  */
@@ -560,6 +624,22 @@ router.post(
  *     responses:
  *       200:
  *         description: OTP sent if account exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [status, message, cooldownSeconds]
+ *               properties:
+ *                 status: { type: string, enum: [success] }
+ *                 message:
+ *                   type: string
+ *                   example: If an account exists, an OTP has been sent
+ *                 expiresAt:
+ *                   type: string
+ *                   format: date-time
+ *                   nullable: true
+ *                 cooldownSeconds:
+ *                   type: integer
  *       429:
  *         description: OTP throttled
  */
@@ -649,6 +729,16 @@ router.post(
  *     responses:
  *       200:
  *         description: Password reset
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [status, message]
+ *               properties:
+ *                 status: { type: string, enum: [success] }
+ *                 message:
+ *                   type: string
+ *                   example: Password reset successfully
  *       400:
  *         description: Invalid OTP or password
  */
@@ -741,6 +831,31 @@ router.post(
  *     responses:
  *       200:
  *         description: Role updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [status, message, user]
+ *               properties:
+ *                 status: { type: string, enum: [success] }
+ *                 message:
+ *                   type: string
+ *                   example: Role updated successfully
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     __id: { type: string }
+ *                     id: { type: string }
+ *                     uid: { type: string }
+ *                     email: { type: string, format: email }
+ *                     displayName: { type: string }
+ *                     role: { type: string, enum: [admin, entrepreneur, investor] }
+ *                     adminLevel: { type: string, nullable: true }
+ *                     status: { type: string }
+ *                     photoURL: { type: string, nullable: true }
+ *                     phoneNumber: { type: string, nullable: true }
+ *                     phoneVerified: { type: boolean }
+ *                     emailVerified: { type: boolean }
  *       400:
  *         description: Invalid role supplied
  */
@@ -809,6 +924,23 @@ router.patch(
  *     responses:
  *       200:
  *         description: Users and stats fetched
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [status, count, total, page, totalPages, users, stats]
+ *               properties:
+ *                 status: { type: string, enum: [success] }
+ *                 count: { type: integer }
+ *                 total: { type: integer }
+ *                 page: { type: integer }
+ *                 totalPages: { type: integer }
+ *                 users:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 stats:
+ *                   type: object
  */
 router.get(
 	"/admin/users",
@@ -896,6 +1028,24 @@ router.get(
  *     responses:
  *       200:
  *         description: User status updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [status, message, user]
+ *               properties:
+ *                 status: { type: string, enum: [success] }
+ *                 message: { type: string, example: User status updated }
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     _id: { type: string }
+ *                     id: { type: string }
+ *                     fullName: { type: string }
+ *                     email: { type: string, format: email }
+ *                     role: { type: string }
+ *                     status: { type: string }
+ *                     kycRejectionReason: { type: string, nullable: true }
  */
 router.patch(
 	"/admin/users/:id/status",
@@ -987,6 +1137,17 @@ router.patch(
  *     responses:
  *       200:
  *         description: Admin users fetched
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [status, admins]
+ *               properties:
+ *                 status: { type: string, enum: [success] }
+ *                 admins:
+ *                   type: array
+ *                   items:
+ *                     type: object
  */
 router.get(
 	"/admin/admins",
@@ -1033,6 +1194,16 @@ router.get(
  *     responses:
  *       201:
  *         description: Invite link generated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [status, message, inviteLink, expiresAt]
+ *               properties:
+ *                 status: { type: string, enum: [success] }
+ *                 message: { type: string, example: Invite link generated }
+ *                 inviteLink: { type: string }
+ *                 expiresAt: { type: string, format: date-time }
  */
 router.post(
 	"/admin/admins/invite",
@@ -1089,6 +1260,20 @@ router.post(
  *     responses:
  *       200:
  *         description: Invite token is valid
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [status, invite]
+ *               properties:
+ *                 status: { type: string, enum: [success] }
+ *                 invite:
+ *                   type: object
+ *                   properties:
+ *                     email: { type: string, nullable: true }
+ *                     fullName: { type: string, nullable: true }
+ *                     createdBy: { type: string }
+ *                     expiresAt: { type: string, format: date-time }
  *       404:
  *         description: Invite token invalid or expired
  */
@@ -1145,6 +1330,26 @@ router.get(
  *     responses:
  *       200:
  *         description: Invite accepted and admin privileges assigned
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [status, message, user]
+ *               properties:
+ *                 status: { type: string, enum: [success] }
+ *                 message: { type: string, example: You are now an admin! }
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     _id: { type: string }
+ *                     uid: { type: string }
+ *                     email: { type: string, format: email }
+ *                     displayName: { type: string }
+ *                     role: { type: string, enum: [admin] }
+ *                     adminLevel: { type: string, nullable: true }
+ *                     status: { type: string }
+ *                     photoURL: { type: string, nullable: true }
+ *                     emailVerified: { type: boolean }
  *       404:
  *         description: Invite token invalid or expired
  */
@@ -1240,6 +1445,14 @@ router.post(
  *     responses:
  *       200:
  *         description: Admin privileges removed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [status, message]
+ *               properties:
+ *                 status: { type: string, enum: [success] }
+ *                 message: { type: string }
  *       403:
  *         description: Forbidden for super-admin target
  */
@@ -1312,6 +1525,23 @@ router.delete(
  *     responses:
  *       200:
  *         description: User promoted to admin
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [status, message, user]
+ *               properties:
+ *                 status: { type: string, enum: [success] }
+ *                 message: { type: string }
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id: { type: string }
+ *                     fullName: { type: string }
+ *                     email: { type: string, format: email }
+ *                     role: { type: string, enum: [admin] }
+ *                     adminLevel: { type: string }
+ *                     status: { type: string }
  *       400:
  *         description: User is already an admin
  *       404:
