@@ -121,7 +121,7 @@ function VoicePlayer({ url }: { url: string }) {
 	};
 
 	return (
-		<div className="flex items-center gap-3 rounded-xl border bg-muted/30 px-4 py-3 mt-4">
+		<div className="flex items-center gap-3 rounded-xl border px-4 py-3 mt-4">
 			<Button
 				size="icon"
 				variant="ghost"
@@ -168,8 +168,8 @@ function VoicePlayer({ url }: { url: string }) {
 
 function GeneratingSkeleton() {
 	return (
-		<Card className="overflow-hidden rounded-2xl border-primary/20 shadow-lg shadow-primary/5">
-			<CardHeader className="bg-gradient-to-r from-primary/10 to-transparent pb-4 pt-6">
+		<Card className="overflow-hidden rounded-2xl border-primary/20 shadow-sm bg-card">
+			<CardHeader className="pb-4 pt-6">
 				<div className="flex items-center gap-2.5">
 					<div className="flex items-center justify-center h-8 w-8 rounded-lg bg-primary/10">
 						<Sparkles className="h-4.5 w-4.5 text-primary animate-pulse" />
@@ -266,7 +266,7 @@ export default function AiPitchSummary({
 }: AiPitchSummaryProps) {
 	const { user } = useAuth();
 	const [regenerating, setRegenerating] = useState(false);
-	const [expanded, setExpanded] = useState(true);
+	const [expanded, setExpanded] = useState(false);
 
 	// Local state that can be updated by polling
 	const [aiSummary, setAiSummary] = useState(initialAiSummary);
@@ -382,7 +382,7 @@ export default function AiPitchSummary({
 	// No summary yet — show an empty state
 	if (!aiSummary || !aiSummary.executiveSummary) {
 		return (
-			<Card className="overflow-hidden rounded-2xl border-primary/20 shadow-sm bg-gradient-to-br from-primary/[0.03] to-background">
+			<Card className="overflow-hidden rounded-2xl border-primary/20 shadow-sm bg-card">
 				<CardContent className="flex flex-col items-center justify-center py-10 gap-4">
 					<div className="flex items-center justify-center h-12 w-12 rounded-xl bg-primary/10">
 						<Sparkles className="h-6 w-6 text-primary" />
@@ -420,26 +420,55 @@ export default function AiPitchSummary({
 	const readinessLevel = getReadinessLevel(aiSummary.investmentReadiness);
 
 	return (
-		<Card className="overflow-hidden rounded-2xl border-primary/20 shadow-lg shadow-primary/5 bg-gradient-to-br from-primary/[0.03] to-background transition-all">
-			{/* Header */}
-			<CardHeader className="bg-gradient-to-r from-primary/10 to-transparent pb-4 pt-6 border-b border-primary/10">
-				<div className="flex items-center justify-between">
-					<CardTitle className="flex items-center gap-2.5 text-lg">
-						<div className="flex items-center justify-center h-8 w-8 rounded-lg bg-primary/10">
-							<Sparkles className="h-4.5 w-4.5 text-primary" />
+		<Card className="overflow-hidden rounded-2xl border-primary/20 shadow-sm bg-card transition-all">
+			{/* Compact clickable header */}
+			<button
+				type="button"
+				className="w-full text-left"
+				onClick={() => setExpanded((v) => !v)}
+				aria-expanded={expanded}
+			>
+				<div
+					className={`flex items-center justify-between px-6 py-4 ${expanded ? "border-b border-primary/10" : ""} hover:bg-accent/30 transition-colors cursor-pointer`}
+				>
+					<div className="flex items-center gap-3 min-w-0">
+						<div className="pitch-icon-badge bg-gradient-to-br from-violet-500 to-purple-600 text-white shrink-0">
+							<Sparkles className="h-4 w-4" />
 						</div>
-						<span className="admin-header-gradient font-bold">
-							Gemini AI Pitch Summary
-						</span>
-					</CardTitle>
+						<div className="min-w-0">
+							<span className="admin-header-gradient font-bold text-base">
+								Gemini AI Pitch Summary
+							</span>
+							{!expanded && (
+								<p className="text-xs text-muted-foreground mt-0.5 truncate max-w-md">
+									{aiSummary.executiveSummary.slice(0, 100)}…
+								</p>
+							)}
+						</div>
+					</div>
 
-					<div className="flex items-center gap-2">
-						{showRegenerate && (
+					<div className="flex items-center gap-2 shrink-0 ml-4">
+						{/* Readiness pill preview when collapsed */}
+						{!expanded && (
+							<Badge
+								variant="outline"
+								className={`text-[10px] px-2 py-0.5 ${readinessColor(readinessLevel)} hidden sm:flex`}
+							>
+								<div
+									className={`h-1.5 w-1.5 rounded-full mr-1.5 ${readinessDot(readinessLevel)}`}
+								/>
+								{readinessLevel} Readiness
+							</Badge>
+						)}
+						{showRegenerate && expanded && (
 							<Button
 								variant="outline"
 								size="sm"
 								className="gap-1.5 text-xs rounded-lg h-8"
-								onClick={handleRegenerate}
+								onClick={(e) => {
+									e.stopPropagation();
+									handleRegenerate();
+								}}
 								disabled={regenerating}
 							>
 								{regenerating ? (
@@ -450,22 +479,18 @@ export default function AiPitchSummary({
 								{regenerating ? "Generating..." : "Regenerate"}
 							</Button>
 						)}
-						<Button
-							variant="ghost"
-							size="icon"
-							className="h-8 w-8"
-							onClick={() => setExpanded((v) => !v)}
-							aria-label={expanded ? "Collapse summary" : "Expand summary"}
+						<div
+							className={`flex items-center justify-center h-7 w-7 rounded-lg border transition-colors ${expanded ? "bg-primary/10 border-primary/20" : "border-border"}`}
 						>
 							{expanded ? (
-								<ChevronUp className="h-4 w-4" />
+								<ChevronUp className="h-3.5 w-3.5 text-primary" />
 							) : (
-								<ChevronDown className="h-4 w-4" />
+								<ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
 							)}
-						</Button>
+						</div>
 					</div>
 				</div>
-			</CardHeader>
+			</button>
 
 			{expanded && (
 				<CardContent className="pt-6 space-y-6">
@@ -543,7 +568,7 @@ export default function AiPitchSummary({
 					</div>
 
 					{/* Market Opportunity */}
-					<div className="rounded-xl border bg-muted/20 p-4">
+					<div className="rounded-xl border p-4">
 						<div className="flex items-center gap-2 mb-2">
 							<Globe className="h-4 w-4 text-blue-500" />
 							<h4 className="text-sm font-bold text-foreground">
