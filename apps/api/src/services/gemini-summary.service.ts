@@ -279,6 +279,46 @@ Return ONLY a valid JSON object — no markdown fences, no explanation, nothing 
 	}
 
 	/**
+	 * Wrap raw PCM (signed 16-bit LE, mono) audio data in a WAV container.
+	 * Gemini TTS returns audio/L16;rate=24000 — raw PCM without headers.
+	 */
+	private static pcmToWav(
+		pcmBuffer: Buffer,
+		sampleRate = 24000,
+		channels = 1,
+		bitsPerSample = 16,
+	): Buffer {
+		const byteRate = (sampleRate * channels * bitsPerSample) / 8;
+		const blockAlign = (channels * bitsPerSample) / 8;
+		const dataSize = pcmBuffer.length;
+		const headerSize = 44;
+		const fileSize = headerSize + dataSize;
+
+		const header = Buffer.alloc(headerSize);
+
+		// RIFF header
+		header.write("RIFF", 0);
+		header.writeUInt32LE(fileSize - 8, 4);
+		header.write("WAVE", 8);
+
+		// fmt sub-chunk
+		header.write("fmt ", 12);
+		header.writeUInt32LE(16, 16); // Sub-chunk size (16 for PCM)
+		header.writeUInt16LE(1, 20); // Audio format (1 = PCM)
+		header.writeUInt16LE(channels, 22);
+		header.writeUInt32LE(sampleRate, 24);
+		header.writeUInt32LE(byteRate, 28);
+		header.writeUInt16LE(blockAlign, 32);
+		header.writeUInt16LE(bitsPerSample, 34);
+
+		// data sub-chunk
+		header.write("data", 36);
+		header.writeUInt32LE(dataSize, 40);
+
+		return Buffer.concat([header, pcmBuffer]);
+	}
+
+	/**
 	 * Generate a TTS voice narration of the executive summary using Gemini.
 	 * Uploads audio to Cloudinary if configured, otherwise falls back to
 	 * base64 data URL stored directly on the submission.
@@ -335,7 +375,27 @@ Return ONLY a valid JSON object — no markdown fences, no explanation, nothing 
 			mimeType: string;
 		};
 
-		const resolvedMime = mimeType || "audio/mp3";
+		// Gemini TTS typically returns raw PCM as audio/L16;rate=24000
+		const isRawPcm =
+			!mimeType ||
+			mimeType.includes("L16") ||
+			mimeType.includes("pcm") ||
+			mimeType.includes("raw");
+
+		// Parse sample rate from mimeType if present (e.g. "audio/L16;rate=24000")
+		let sampleRate = 24000;
+		const rateMatch = mimeType?.match(/rate=(\d+)/);
+		if (rateMatch) {
+			sampleRate = Number.parseInt(rateMatch[1], 10);
+		}
+
+		const rawBuffer = Buffer.from(data, "base64");
+
+		// Convert raw PCM to WAV so browsers and Cloudinary can handle it
+		const wavBuffer = isRawPcm
+			? GeminiSummaryService.pcmToWav(rawBuffer, sampleRate)
+			: rawBuffer;
+
 		let voiceUrl: string;
 
 		// Upload to Cloudinary if configured, otherwise fallback to base64 data URL
@@ -348,7 +408,7 @@ Return ONLY a valid JSON object — no markdown fences, no explanation, nothing 
 								resource_type: "video", // Cloudinary uses "video" for audio
 								folder: "sepms/voice-summaries",
 								public_id: `voice_${submissionId}`,
-								format: "mp3",
+								format: "wav",
 								overwrite: true,
 							},
 							(error, result) => {
@@ -356,8 +416,7 @@ Return ONLY a valid JSON object — no markdown fences, no explanation, nothing 
 								else resolve(result as { secure_url: string });
 							},
 						);
-						const buffer = Buffer.from(data, "base64");
-						stream.end(buffer);
+						stream.end(wavBuffer);
 					},
 				);
 				voiceUrl = uploadResult.secure_url;
@@ -369,11 +428,12 @@ Return ONLY a valid JSON object — no markdown fences, no explanation, nothing 
 					`[GEMINI:TTS] Cloudinary upload failed, falling back to data URL:`,
 					(uploadErr as Error).message,
 				);
-				voiceUrl = `data:${resolvedMime};base64,${data}`;
+				// Fallback: store as base64 data URL with correct WAV mime
+				voiceUrl = `data:audio/wav;base64,${wavBuffer.toString("base64")}`;
 			}
 		} else {
 			// Fallback: store as data URL
-			voiceUrl = `data:${resolvedMime};base64,${data}`;
+			voiceUrl = `data:audio/wav;base64,${wavBuffer.toString("base64")}`;
 		}
 
 		await Submission.findByIdAndUpdate(submissionId, {
