@@ -228,6 +228,7 @@ interface Submission {
 		model: string;
 	} | null;
 	voiceSummaryUrl?: string | null;
+	summaryStatus?: "pending" | "generating" | "completed" | "failed" | null;
 	entrepreneurId?: {
 		_id: string;
 		fullName: string;
@@ -552,6 +553,7 @@ export default function InvestorPitchViewPage() {
 						submissionId={pitchId}
 						aiSummary={pitch.aiSummary}
 						voiceSummaryUrl={pitch.voiceSummaryUrl}
+						summaryStatus={pitch.summaryStatus}
 					/>
 				</div>
 

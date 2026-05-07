@@ -14,6 +14,7 @@ import {
 	ShieldCheck,
 	Sparkles,
 	Volume2,
+	XCircle,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -32,10 +33,13 @@ interface AiSummaryData {
 	model: string;
 }
 
+type SummaryStatus = "pending" | "generating" | "completed" | "failed" | null;
+
 interface AiPitchSummaryProps {
 	submissionId: string;
 	aiSummary?: AiSummaryData | null;
 	voiceSummaryUrl?: string | null;
+	summaryStatus?: SummaryStatus;
 	/** If true, show the regenerate button (admin only) */
 	showRegenerate?: boolean;
 	/** Callback after regeneration to refresh parent state */
@@ -123,6 +127,7 @@ function VoicePlayer({ url }: { url: string }) {
 				variant="ghost"
 				className="h-9 w-9 rounded-full bg-primary/10 hover:bg-primary/20 text-primary shrink-0"
 				onClick={toggle}
+				aria-label={playing ? "Pause voice summary" : "Play voice summary"}
 			>
 				{playing ? (
 					<Pause className="h-4 w-4" />
@@ -138,7 +143,13 @@ function VoicePlayer({ url }: { url: string }) {
 						AI Voice Summary
 					</span>
 				</div>
-				<div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+				<div
+					className="h-1.5 w-full rounded-full bg-muted overflow-hidden"
+					role="progressbar"
+					aria-valuenow={Math.round(pct)}
+					aria-valuemin={0}
+					aria-valuemax={100}
+				>
 					<div
 						className="h-full rounded-full bg-primary transition-all duration-200"
 						style={{ width: `${pct}%` }}
@@ -153,35 +164,91 @@ function VoicePlayer({ url }: { url: string }) {
 	);
 }
 
-// ── Shimmer skeleton ────────────────────────────────────────────────────────
+// ── Generating skeleton with animated shimmer ───────────────────────────────
 
-function SummarySkeleton() {
+function GeneratingSkeleton() {
 	return (
 		<Card className="overflow-hidden rounded-2xl border-primary/20 shadow-lg shadow-primary/5">
 			<CardHeader className="bg-gradient-to-r from-primary/10 to-transparent pb-4 pt-6">
 				<div className="flex items-center gap-2.5">
-					<div className="h-5 w-5 rounded bg-primary/20 animate-pulse" />
-					<div className="h-5 w-40 rounded bg-primary/20 animate-pulse" />
+					<div className="flex items-center justify-center h-8 w-8 rounded-lg bg-primary/10">
+						<Sparkles className="h-4.5 w-4.5 text-primary animate-pulse" />
+					</div>
+					<span className="font-bold text-lg admin-header-gradient">
+						Gemini AI Pitch Summary
+					</span>
 				</div>
 			</CardHeader>
-			<CardContent className="space-y-6 pt-6">
-				<div className="space-y-2">
-					<div className="h-4 w-full rounded bg-muted animate-pulse" />
-					<div className="h-4 w-5/6 rounded bg-muted animate-pulse" />
-					<div className="h-4 w-4/6 rounded bg-muted animate-pulse" />
-				</div>
-				<div className="grid grid-cols-2 gap-4">
-					<div className="space-y-2">
-						<div className="h-3 w-20 rounded bg-muted animate-pulse" />
-						<div className="h-3 w-full rounded bg-muted animate-pulse" />
-						<div className="h-3 w-full rounded bg-muted animate-pulse" />
+			<CardContent className="py-10">
+				<div className="flex flex-col items-center gap-4">
+					<div className="relative flex items-center justify-center h-16 w-16">
+						{/* Rotating outer ring */}
+						<div className="absolute inset-0 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
+						<Sparkles className="h-7 w-7 text-primary animate-pulse" />
 					</div>
-					<div className="space-y-2">
-						<div className="h-3 w-20 rounded bg-muted animate-pulse" />
-						<div className="h-3 w-full rounded bg-muted animate-pulse" />
-						<div className="h-3 w-full rounded bg-muted animate-pulse" />
+					<div className="text-center">
+						<h3 className="text-sm font-bold text-foreground mb-1">
+							AI is analyzing your pitch...
+						</h3>
+						<p className="text-xs text-muted-foreground max-w-sm">
+							Gemini is generating an investor-grade summary with strengths,
+							risks, and market analysis. This usually takes 10–20 seconds.
+						</p>
+					</div>
+					{/* Animated progress dots */}
+					<div className="flex items-center gap-1.5 mt-1">
+						<div className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:0ms]" />
+						<div className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:150ms]" />
+						<div className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:300ms]" />
 					</div>
 				</div>
+			</CardContent>
+		</Card>
+	);
+}
+
+// ── Failed state ────────────────────────────────────────────────────────────
+
+function FailedState({
+	error,
+	onRetry,
+	retrying,
+}: {
+	error?: string | null;
+	onRetry?: () => void;
+	retrying: boolean;
+}) {
+	return (
+		<Card className="overflow-hidden rounded-2xl border-red-500/20 shadow-sm bg-gradient-to-br from-red-500/[0.03] to-background">
+			<CardContent className="flex flex-col items-center justify-center py-10 gap-4">
+				<div className="flex items-center justify-center h-12 w-12 rounded-xl bg-red-500/10">
+					<XCircle className="h-6 w-6 text-red-500" />
+				</div>
+				<div className="text-center">
+					<h3 className="text-sm font-bold text-foreground mb-1">
+						Summary Generation Failed
+					</h3>
+					<p className="text-xs text-muted-foreground max-w-sm">
+						{error ||
+							"The AI was unable to generate a summary. Please try again."}
+					</p>
+				</div>
+				{onRetry && (
+					<Button
+						size="sm"
+						variant="outline"
+						className="gap-1.5 rounded-lg border-red-500/30 text-red-600 hover:bg-red-500/10"
+						onClick={onRetry}
+						disabled={retrying}
+					>
+						{retrying ? (
+							<Loader2 className="h-3.5 w-3.5 animate-spin" />
+						) : (
+							<RefreshCw className="h-3.5 w-3.5" />
+						)}
+						{retrying ? "Retrying..." : "Retry Generation"}
+					</Button>
+				)}
 			</CardContent>
 		</Card>
 	);
@@ -191,8 +258,9 @@ function SummarySkeleton() {
 
 export default function AiPitchSummary({
 	submissionId,
-	aiSummary,
-	voiceSummaryUrl,
+	aiSummary: initialAiSummary,
+	voiceSummaryUrl: initialVoiceUrl,
+	summaryStatus: initialStatus,
 	showRegenerate = false,
 	onRegenerated,
 }: AiPitchSummaryProps) {
@@ -200,13 +268,71 @@ export default function AiPitchSummary({
 	const [regenerating, setRegenerating] = useState(false);
 	const [expanded, setExpanded] = useState(true);
 
+	// Local state that can be updated by polling
+	const [aiSummary, setAiSummary] = useState(initialAiSummary);
+	const [voiceSummaryUrl, setVoiceSummaryUrl] = useState(initialVoiceUrl);
+	const [status, setStatus] = useState<SummaryStatus>(initialStatus ?? null);
+
 	const api = (
 		process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
 	).replace(/\/+$/, "");
 
+	// ── Auto-poll when summary is generating ────────────────────────────────
+	useEffect(() => {
+		if (status !== "pending" && status !== "generating") return;
+		if (!user) return;
+
+		let cancelled = false;
+		const pollInterval = 4000; // Poll every 4 seconds
+
+		const poll = async () => {
+			try {
+				const token = await user.getIdToken();
+				const res = await fetch(
+					`${api}/submissions/${submissionId}/summary-status`,
+					{ headers: { Authorization: `Bearer ${token}` } },
+				);
+
+				if (!res.ok || cancelled) return;
+
+				const data = await res.json();
+				setStatus(data.summaryStatus);
+
+				if (data.summaryStatus === "completed" && data.aiSummary) {
+					setAiSummary(data.aiSummary);
+					setVoiceSummaryUrl(data.voiceSummaryUrl);
+					onRegenerated?.();
+				}
+			} catch {
+				// Silently ignore polling errors
+			}
+		};
+
+		const id = setInterval(poll, pollInterval);
+		// Also poll immediately
+		poll();
+
+		return () => {
+			cancelled = true;
+			clearInterval(id);
+		};
+	}, [status, user, api, submissionId, onRegenerated]);
+
+	// Sync props to local state when parent re-renders with new data
+	useEffect(() => {
+		if (initialAiSummary) setAiSummary(initialAiSummary);
+	}, [initialAiSummary]);
+	useEffect(() => {
+		if (initialVoiceUrl) setVoiceSummaryUrl(initialVoiceUrl);
+	}, [initialVoiceUrl]);
+	useEffect(() => {
+		if (initialStatus) setStatus(initialStatus);
+	}, [initialStatus]);
+
 	const handleRegenerate = async () => {
 		if (!user || regenerating) return;
 		setRegenerating(true);
+		setStatus("generating");
 		try {
 			const token = await user.getIdToken();
 			const res = await fetch(
@@ -217,20 +343,43 @@ export default function AiPitchSummary({
 				},
 			);
 			if (res.ok) {
+				const data = await res.json();
 				toast.success("AI summary regenerated successfully");
+				setAiSummary(data.summary);
+				setStatus("completed");
 				onRegenerated?.();
 			} else {
 				const data = await res.json();
 				toast.error(data.message || "Failed to regenerate summary");
+				setStatus("failed");
 			}
 		} catch {
 			toast.error("Network error");
+			setStatus("failed");
 		} finally {
 			setRegenerating(false);
 		}
 	};
 
-	// No summary yet — show an empty state (not a permanent skeleton)
+	// ── Render based on status ──────────────────────────────────────────────
+
+	// Actively generating → show animated skeleton
+	if (status === "pending" || status === "generating") {
+		return <GeneratingSkeleton />;
+	}
+
+	// Failed → show error with retry
+	if (status === "failed" && (!aiSummary || !aiSummary.executiveSummary)) {
+		return (
+			<FailedState
+				error={null}
+				onRetry={showRegenerate ? handleRegenerate : undefined}
+				retrying={regenerating}
+			/>
+		);
+	}
+
+	// No summary yet — show an empty state
 	if (!aiSummary || !aiSummary.executiveSummary) {
 		return (
 			<Card className="overflow-hidden rounded-2xl border-primary/20 shadow-sm bg-gradient-to-br from-primary/[0.03] to-background">
@@ -306,6 +455,7 @@ export default function AiPitchSummary({
 							size="icon"
 							className="h-8 w-8"
 							onClick={() => setExpanded((v) => !v)}
+							aria-label={expanded ? "Collapse summary" : "Expand summary"}
 						>
 							{expanded ? (
 								<ChevronUp className="h-4 w-4" />

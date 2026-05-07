@@ -352,4 +352,30 @@ router.post(
 	SubmissionController.generateSummary,
 );
 
+/**
+ * @openapi
+ * /api/submissions/{id}/summary-status:
+ *   get:
+ *     tags: [Submissions]
+ *     summary: Lightweight poll for AI summary generation status
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Summary status
+ *       404:
+ *         description: Submission not found
+ */
+router.get(
+	"/:id/summary-status",
+	authenticate,
+	SubmissionController.getSummaryStatus,
+);
+
 export default router;
