@@ -56,9 +56,9 @@ export const InvitationService = {
 			throw InvitationService.createError("Match not found", 404);
 		}
 
-		if (match.status !== "accepted") {
+		if (!["accepted", "requested"].includes(match.status)) {
 			throw InvitationService.createError(
-				"Invitation can only be sent after a match is accepted",
+				"Invitation can only be sent after a match is accepted or requested",
 				400,
 			);
 		}

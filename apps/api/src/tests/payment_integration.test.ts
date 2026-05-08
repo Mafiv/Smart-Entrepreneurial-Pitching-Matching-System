@@ -4,6 +4,15 @@ import { PendingPayment } from "../models/PendingPayment";
 import { TransactionLog } from "../models/TransactionLog";
 import { PaymentService } from "../services/payment.service";
 
+jest.mock("../utils/chapa", () => ({
+	chapa: {
+		initialize: jest.fn(async () => ({
+			data: { checkout_url: "https://checkout.test/chapa" },
+		})),
+		genTxRef: jest.fn(async () => "tx-mock-123"),
+	},
+}));
+
 describe("Chapa Payment Integration Service", () => {
 	const mockMilestoneId = new mongoose.Types.ObjectId();
 	const mockUserId = new mongoose.Types.ObjectId();
@@ -35,22 +44,34 @@ describe("Chapa Payment Integration Service", () => {
 			_id: mockMilestoneId,
 			amount: 5000,
 			currency: "ETB",
+			submissionId: mockProjectId,
+			matchResultId: new mongoose.Types.ObjectId(),
 		};
 
 		const spy = jest
 			.spyOn(Milestone, "findById")
 			.mockResolvedValue(mockMilestone as any);
+		const pendingSpy = jest
+			.spyOn(PendingPayment, "create")
+			.mockResolvedValue({} as any);
 
 		const result = await PaymentService.arrangePayment({
 			type: "milestone",
 			milestoneId: mockMilestoneId.toString(),
+			userId: mockUserId.toString(),
+			userEmail: "investor@example.com",
+			userFullName: "Investor Test",
+			userPhoneNumber: null,
 		});
 
 		expect(result.success).toBe(true);
 		expect(result.amount).toBe(5000);
 		expect(result.currency).toBe("ETB");
+		expect(result.checkout_url).toBe("https://checkout.test/chapa");
+		expect(result.tx_ref).toBe("tx-mock-123");
 
 		spy.mockRestore();
+		pendingSpy.mockRestore();
 	});
 
 	it("processes successful payment and updates milestone", async () => {

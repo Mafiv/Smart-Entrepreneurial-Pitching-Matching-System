@@ -256,8 +256,22 @@ export class PaymentService {
 	 * Adapts the arrange_payment logic from the sample.
 	 * Simplified for milestones: directly uses milestone amount.
 	 */
-	static async arrangePayment(payload: { type: string; milestoneId: string }) {
-		const { type, milestoneId } = payload;
+	static async arrangePayment(payload: {
+		type: string;
+		milestoneId: string;
+		userId: string;
+		userEmail: string;
+		userFullName: string;
+		userPhoneNumber?: string | null;
+	}) {
+		const {
+			type,
+			milestoneId,
+			userId,
+			userEmail,
+			userFullName,
+			userPhoneNumber,
+		} = payload;
 
 		if (type !== "milestone") {
 			throw PaymentService.createError(
@@ -266,16 +280,71 @@ export class PaymentService {
 			);
 		}
 
+		if (!chapa) {
+			throw PaymentService.createError(
+				"Payment provider is not configured",
+				503,
+			);
+		}
+
 		const milestone = await Milestone.findById(milestoneId);
 		if (!milestone) {
 			throw PaymentService.createError("Milestone not found", 404);
 		}
 
+		const tx_ref = await PaymentService.generateTxRef();
+		const currency = milestone.currency || "ETB";
+		const [firstName, ...restNames] = userFullName.trim().split(/\s+/);
+		const lastName = restNames.join(" ") || firstName;
+		const callbackUrl = process.env.CHAPA_CALLBACK_URL ?? "";
+		const returnUrl = process.env.CHAPA_RETURN_URL ?? "";
+
+		await PendingPayment.create({
+			tx_ref,
+			status: "pending",
+			amount: milestone.amount,
+			currency,
+			userId,
+			milestoneId: milestone._id,
+			meta: {
+				type,
+				submissionId: milestone.submissionId.toString(),
+				matchResultId: milestone.matchResultId.toString(),
+			},
+		});
+
+		// @ts-expect-error
+		const response = await chapa.initialize({
+			first_name: firstName,
+			last_name: lastName,
+			email: userEmail,
+			phone_number: userPhoneNumber ?? undefined,
+			currency,
+			amount: String(milestone.amount),
+			tx_ref,
+			callback_url: callbackUrl,
+			return_url: returnUrl,
+			meta: {
+				type,
+				milestoneId: milestone._id.toString(),
+			},
+		});
+
+		const checkout_url = response?.data?.checkout_url;
+		if (!checkout_url) {
+			throw PaymentService.createError(
+				"Payment provider returned invalid response",
+				502,
+			);
+		}
+
 		return {
 			success: true,
 			amount: milestone.amount,
-			currency: milestone.currency || "ETB",
+			currency,
 			milestone,
+			checkout_url,
+			tx_ref,
 		};
 	}
 

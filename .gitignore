@@ -73,5 +73,3 @@ ai-service/.env
 secrets/
 srs_gap_analysis_part1.md
 srs_gap_analysis_part2.md
-temp_auto_push.bat
-temp_interactive_push.bat

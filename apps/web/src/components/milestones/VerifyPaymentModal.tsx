@@ -72,10 +72,11 @@ export function VerifyPaymentModal({
 
 			const data = await res.json();
 
-			if (data.success && data.checkout_url) {
-				showSuccessToast("Redirecting to Chapa secure payment...");
+			const checkoutUrl = data.checkout_url ?? data.checkoutUrl;
+			if (data.success && checkoutUrl) {
+				toast.success("Redirecting to Chapa secure payment...");
 				// Use window.location.href for external redirect
-				window.location.href = data.checkout_url;
+				window.location.href = checkoutUrl;
 			} else {
 				showErrorToast(data.message || "Failed to initiate payment");
 			}

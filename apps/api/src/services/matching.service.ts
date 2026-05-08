@@ -80,11 +80,6 @@ const buildInvestorText = (investorProfile: {
 const scoreTo100 = (score: number) =>
 	Math.round(Math.max(0, Math.min(1, score)) * 100);
 
-export const shouldAutoSendInvitation = (
-	previousStatus: MatchStatus,
-	nextStatus: Extract<MatchStatus, "accepted" | "declined">,
-) => previousStatus !== "accepted" && nextStatus === "accepted";
-
 export class MatchingService {
 	static createError(
 		message: string,
@@ -608,19 +603,17 @@ export class MatchingService {
 				},
 			});
 
-			// Optional: auto-send invitation to start conversation
-			if (shouldAutoSendInvitation(previousStatus, "accepted")) {
-				try {
-					await InvitationService.sendInvitation({
-						matchId: match._id.toString(),
-						senderId: payload.investorId,
-						message:
-							"I am interested in investing in your project and would like to discuss the next steps.",
-						expiresInDays: 14,
-					});
-				} catch (error) {
-					console.error("Auto-invitation creation failed:", error);
-				}
+			// Auto-send invitation to start conversation when investor accepts
+			try {
+				await InvitationService.sendInvitation({
+					matchId: match._id.toString(),
+					senderId: payload.investorId,
+					message:
+						"I am interested in investing in your project and would like to discuss the next steps.",
+					expiresInDays: 14,
+				});
+			} catch (error) {
+				console.error("Auto-invitation creation failed:", error);
 			}
 		}
 
