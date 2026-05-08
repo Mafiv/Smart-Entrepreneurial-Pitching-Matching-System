@@ -313,8 +313,7 @@ export class PaymentService {
 			},
 		});
 
-		// @ts-expect-error
-		const response = await chapa.initialize({
+		const initializePayload = {
 			first_name: firstName,
 			last_name: lastName,
 			email: userEmail,
@@ -328,7 +327,9 @@ export class PaymentService {
 				type,
 				milestoneId: milestone._id.toString(),
 			},
-		});
+		} as unknown as Parameters<NonNullable<typeof chapa>["initialize"]>[0];
+
+		const response = await chapa.initialize(initializePayload);
 
 		const checkout_url = response?.data?.checkout_url;
 		if (!checkout_url) {
@@ -354,7 +355,6 @@ export class PaymentService {
 	static async generateTxRef(): Promise<string> {
 		if (chapa) {
 			try {
-				// @ts-expect-error
 				return await chapa.genTxRef();
 			} catch (error) {
 				console.error(

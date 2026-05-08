@@ -74,7 +74,7 @@ export function VerifyPaymentModal({
 
 			const checkoutUrl = data.checkout_url ?? data.checkoutUrl;
 			if (data.success && checkoutUrl) {
-				toast.success("Redirecting to Chapa secure payment...");
+				showInfoToast("Redirecting to Chapa secure payment...");
 				// Use window.location.href for external redirect
 				window.location.href = checkoutUrl;
 			} else {
