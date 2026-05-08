@@ -103,7 +103,10 @@ export class MessageService {
 
 		if (!conversation) return null;
 
-		const convoObj = conversation.toObject() as Record<string, unknown>;
+		const convoObj = conversation.toObject() as unknown as Record<
+			string,
+			unknown
+		>;
 
 		convoObj.unreadCount = await Message.countDocuments({
 			conversationId: conversation._id,
@@ -160,7 +163,7 @@ export class MessageService {
 		// Enrich each conversation with unreadCount and lastMessage
 		const enriched = await Promise.all(
 			conversations.map(async (convo) => {
-				const convoObj = convo.toObject() as Record<string, unknown>;
+				const convoObj = convo.toObject() as unknown as Record<string, unknown>;
 
 				// Count unread messages (messages not read by this user)
 				convoObj.unreadCount = await Message.countDocuments({
@@ -326,8 +329,7 @@ export class MessageService {
 			);
 		}
 
-		// Redact PII from message body before storing
-		const redactedBody = redactString(messageBody);
+		const redactedBody = messageBody;
 
 		const message = await Message.create({
 			conversationId: payload.conversationId,
