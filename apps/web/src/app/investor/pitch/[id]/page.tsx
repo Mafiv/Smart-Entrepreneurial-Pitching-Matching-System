@@ -21,7 +21,6 @@ import {
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import AiPitchSummary from "@/components/AiPitchSummary";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -34,6 +33,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { INVESTOR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 import { SECTORS, STAGES } from "@/lib/validations/submission";
 
 // ── Match context types & banner component ────────────────────────────────────
@@ -295,7 +300,7 @@ export default function InvestorPitchViewPage() {
 				const data = await pitchRes.json();
 				setPitch(data.submission);
 			} else {
-				toast.error("You don't have access to this pitch yet.");
+				showErrorToast("You don't have access to this pitch yet.");
 				router.push("/investor/feed");
 			}
 
@@ -305,7 +310,7 @@ export default function InvestorPitchViewPage() {
 			}
 		} catch (err) {
 			console.error("Failed to load pitch:", err);
-			toast.error("Network error.");
+			showErrorToast("Network error.");
 		} finally {
 			setLoading(false);
 		}
@@ -337,7 +342,7 @@ export default function InvestorPitchViewPage() {
 			});
 			const data = await res.json();
 			if (data.status === "success") {
-				toast.success(
+				showSuccessToast(
 					status === "accepted"
 						? "Investment request sent to entrepreneur"
 						: "Match declined",
@@ -360,10 +365,10 @@ export default function InvestorPitchViewPage() {
 					setShowScheduleModal(true);
 				}
 			} else {
-				toast.error(data.message ?? "Failed to respond");
+				showErrorToast(data.message ?? "Failed to respond");
 			}
 		} catch {
-			toast.error("Network error");
+			showErrorToast("Network error");
 		} finally {
 			setResponding(false);
 		}
@@ -397,10 +402,10 @@ export default function InvestorPitchViewPage() {
 					router.push("/investor/messages");
 				}
 			} else {
-				toast.error("Failed to initiate conversation");
+				showErrorToast("Failed to initiate conversation");
 			}
 		} catch {
-			toast.error("Network error starting conversation");
+			showErrorToast("Network error starting conversation");
 		}
 	};
 

@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +19,7 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/context/AuthContext";
+import { showErrorToast } from "@/lib/toast-messages";
 
 interface Notification {
 	_id: string;
@@ -131,10 +131,10 @@ export default function NotificationBell() {
 					prev.map((n) => (n._id === id ? { ...n, isRead: true } : n)),
 				);
 			} else {
-				toast.error("Failed to mark as read");
+				showErrorToast("Failed to update notification", "Notification error");
 			}
 		} catch (_error) {
-			toast.error("Failed to mark as read");
+			showErrorToast("Failed to update notification", "Notification error");
 		}
 	};
 

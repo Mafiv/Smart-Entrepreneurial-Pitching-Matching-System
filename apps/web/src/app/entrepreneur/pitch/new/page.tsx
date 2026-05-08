@@ -16,7 +16,6 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Badge } from "@/components/ui/badge";
@@ -41,6 +40,12 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { ENTREPRENEUR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 import {
 	type BusinessModelData,
 	businessModelSchema,
@@ -89,7 +94,7 @@ function NewPitchPageInner() {
 			userProfile.status !== "verified" &&
 			userProfile.role !== "admin"
 		) {
-			toast.error(
+			showErrorToast(
 				"You must complete KYC verification before creating pitches.",
 			);
 			router.push("/entrepreneur/dashboard");
@@ -367,7 +372,7 @@ function NewPitchPageInner() {
 				setUploadProgress(0);
 
 				if (file.size > 70 * 1024 * 1024) {
-					toast.error(`${file.name} exceeds the 70MB upload limit`);
+					showErrorToast(`${file.name} exceeds the 70MB upload limit`);
 					continue;
 				}
 
@@ -390,7 +395,7 @@ function NewPitchPageInner() {
 
 				if (!signatureRes.ok) {
 					const data = await signatureRes.json();
-					toast.error(data.message || `Failed to prepare ${file.name}`);
+					showErrorToast(data.message || `Failed to prepare ${file.name}`);
 					continue;
 				}
 
@@ -439,15 +444,15 @@ function NewPitchPageInner() {
 					const { document } = await registerRes.json();
 					setUploadedDocs((prev) => [...prev, document]);
 					setUploadProgress(100);
-					toast.success(`Uploaded: ${file.name}`);
+					showSuccessToast(`Uploaded: ${file.name}`);
 				} else {
 					const data = await registerRes.json();
-					toast.error(data.message || `Failed to register ${file.name}`);
+					showErrorToast(data.message || `Failed to register ${file.name}`);
 				}
 			}
 		} catch (err) {
 			console.error("Upload error:", err);
-			toast.error("Upload failed");
+			showErrorToast("Upload failed");
 		} finally {
 			setUploading(false);
 			setUploadProgress(0);
@@ -468,7 +473,7 @@ function NewPitchPageInner() {
 			});
 			if (res.ok) {
 				setUploadedDocs((prev) => prev.filter((d) => d._id !== docId));
-				toast.success("Document removed");
+				showSuccessToast("Document removed");
 			}
 		} catch (err) {
 			console.error("Delete error:", err);

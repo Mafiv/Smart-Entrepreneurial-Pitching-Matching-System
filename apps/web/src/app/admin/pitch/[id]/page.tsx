@@ -17,7 +17,6 @@ import {
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import AiPitchSummary from "@/components/AiPitchSummary";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -33,6 +32,12 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { ADMIN_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 import { SECTORS, STAGES } from "@/lib/validations/submission";
 
 interface SubmissionDoc {
@@ -178,12 +183,12 @@ export default function AdminPitchViewPage() {
 					// AI service unavailable — trust score stays null
 				}
 			} else {
-				toast.error("Failed to fetch pitch details.");
+				showErrorToast("Failed to fetch pitch details.");
 				router.back();
 			}
 		} catch (err) {
 			console.error("Failed to load pitch:", err);
-			toast.error("Network error.");
+			showErrorToast("Network error.");
 		} finally {
 			setLoading(false);
 		}
@@ -208,13 +213,13 @@ export default function AdminPitchViewPage() {
 			});
 			const data = await res.json();
 			if (data.status === "success") {
-				toast.success(`Pitch marked as ${status}!`);
+				showSuccessToast(`Pitch marked as ${status}!`);
 				if (pitch) setPitch({ ...pitch, status });
 			} else {
-				toast.error(data.message || "Failed to update pitch status");
+				showErrorToast(data.message || "Failed to update pitch status");
 			}
 		} catch {
-			toast.error("An error occurred updating the pitch status");
+			showErrorToast("An error occurred updating the pitch status");
 		} finally {
 			setActionLoading(false);
 		}

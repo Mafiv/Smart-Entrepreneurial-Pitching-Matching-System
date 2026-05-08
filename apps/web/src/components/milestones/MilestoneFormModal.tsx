@@ -12,7 +12,6 @@ import {
 	Search,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -38,6 +37,12 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 import { cn } from "@/lib/utils";
 import type { Milestone } from "./MilestoneTimeline";
 
@@ -156,7 +161,7 @@ export function MilestoneFormModal({
 				}
 			} catch (err) {
 				console.error("Project fetch error:", err);
-				toast.error("Failed to load your projects");
+				showErrorToast("Failed to load your projects");
 			} finally {
 				setLoadingProjects(false);
 			}
@@ -226,11 +231,11 @@ export function MilestoneFormModal({
 
 				const data = await res.json();
 				if (data.status === "success") {
-					toast.success("Milestone created successfully!");
+					showSuccessToast("Milestone created successfully!");
 					onSuccess();
 					onClose();
 				} else {
-					toast.error(data.message ?? "Failed to create milestone.");
+					showErrorToast(data.message ?? "Failed to create milestone.");
 				}
 			} else if (mode === "edit" && milestone) {
 				const res = await fetch(`${API}/milestones/${milestone._id}`, {
@@ -250,15 +255,15 @@ export function MilestoneFormModal({
 
 				const data = await res.json();
 				if (data.status === "success") {
-					toast.success("Milestone updated successfully!");
+					showSuccessToast("Milestone updated successfully!");
 					onSuccess();
 					onClose();
 				} else {
-					toast.error(data.message ?? "Failed to update milestone.");
+					showErrorToast(data.message ?? "Failed to update milestone.");
 				}
 			}
 		} catch {
-			toast.error("Network error. Please try again.");
+			showErrorToast("Network error. Please try again.");
 		} finally {
 			setSubmitting(false);
 		}

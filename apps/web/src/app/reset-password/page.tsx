@@ -3,12 +3,16 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
-import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 
 export default function ResetPasswordPage() {
 	return (
@@ -39,19 +43,28 @@ function ResetPasswordContent() {
 		event.preventDefault();
 
 		if (!email.trim()) {
-			toast.error("Email is required");
+			showWarningToast("Email required", "Please enter your email address.");
 			return;
 		}
 		if (!code.trim()) {
-			toast.error("OTP code is required");
+			showWarningToast(
+				"Code required",
+				"Please enter the 6-digit code from your email.",
+			);
 			return;
 		}
 		if (password.length < 6) {
-			toast.error("Password must be at least 6 characters");
+			showWarningToast(
+				"Password too short",
+				"Your password must be at least 6 characters long.",
+			);
 			return;
 		}
 		if (password !== confirmPassword) {
-			toast.error("Passwords do not match");
+			showWarningToast(
+				"Passwords don't match",
+				"Please make sure both password fields are identical.",
+			);
 			return;
 		}
 
@@ -62,12 +75,17 @@ function ResetPasswordContent() {
 				code: code.trim(),
 				newPassword: password,
 			});
-			toast.success("Password reset successfully. Please sign in.");
+			showSuccessToast(
+				"Password reset successful",
+				"You can now sign in with your new password.",
+			);
 			router.push("/sign-in");
 		} catch (err: unknown) {
-			const message =
-				err instanceof Error ? err.message : "Failed to reset password";
-			toast.error(message);
+			showErrorToast(
+				err,
+				"Password reset failed",
+				"The code may be incorrect or expired. Please try again.",
+			);
 		} finally {
 			setLoading(false);
 		}

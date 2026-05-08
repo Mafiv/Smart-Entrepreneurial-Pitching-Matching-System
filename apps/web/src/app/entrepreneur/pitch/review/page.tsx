@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,6 +27,12 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 import { SECTORS, STAGES } from "@/lib/validations/submission";
 
 interface SubmissionDoc {
@@ -236,15 +241,15 @@ function ReviewPitchPageInner() {
 				},
 			);
 			if (res.ok) {
-				toast.success(approved ? "Request approved!" : "Request declined.");
+				showSuccessToast(approved ? "Request approved!" : "Request declined.");
 				setMatchRequests((prev) => prev.filter((m) => m._id !== matchId));
 			} else {
 				const data = await res.json();
-				toast.error(data.message || "Failed to respond to request");
+				showErrorToast(data.message || "Failed to respond to request");
 			}
 		} catch (err) {
 			console.error("Approval error:", err);
-			toast.error("Network error");
+			showErrorToast("Network error");
 		} finally {
 			setRespondingMatchId(null);
 		}
