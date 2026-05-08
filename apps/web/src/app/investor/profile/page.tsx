@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProfilePictureUpload from "@/components/ProfilePictureUpload";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -40,6 +39,12 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { INVESTOR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 
 // ─── File Upload Card ───
 function FileUploadCard({
@@ -193,9 +198,9 @@ function InvestorProfilePageInner() {
 			});
 			if (!res.ok) throw new Error("Failed to update profile");
 			await refreshUserProfile();
-			toast.success("Profile updated successfully!");
+			showSuccessToast("Profile updated successfully!");
 		} catch (err: any) {
-			toast.error(err.message || "Failed to update profile");
+			showErrorToast(err.message || "Failed to update profile");
 		} finally {
 			setSavingProfile(false);
 		}
@@ -299,10 +304,10 @@ function InvestorProfilePageInner() {
 			setProfileData((prev: any) => ({ ...prev, ...payload }));
 			setFiles({});
 			await refreshUserProfile();
-			toast.success("Documents saved successfully!");
+			showSuccessToast("Documents saved successfully!");
 		} catch (err: any) {
 			setError(err.message);
-			toast.error(err.message);
+			showErrorToast(err.message);
 		} finally {
 			setSaving(false);
 		}

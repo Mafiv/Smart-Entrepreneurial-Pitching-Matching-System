@@ -3,7 +3,6 @@
 import { FileText, Handshake, Lock, Rocket, Send } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +11,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ENTREPRENEUR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 import { SECTORS } from "@/lib/validations/submission";
 
 interface Submission {
@@ -116,15 +121,11 @@ function EntrepreneurDashboardInner() {
 						<Button
 							onClick={() => {
 								if (userProfile?.status !== "verified") {
-									toast.error(
-										"Complete your verification first to create pitches.",
-										{
-											action: {
-												label: "Go to Profile",
-												onClick: () => router.push("/entrepreneur/profile"),
-											},
-										},
+									showWarningToast(
+										"Verification required",
+										"Complete your profile verification to create pitches.",
 									);
+									router.push("/entrepreneur/profile");
 									return;
 								}
 								router.push("/entrepreneur/pitch/new");

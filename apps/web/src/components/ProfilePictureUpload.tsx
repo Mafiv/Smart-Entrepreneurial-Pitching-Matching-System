@@ -2,10 +2,14 @@
 
 import { Camera, Loader2, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
-import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 
 interface ProfilePictureUploadProps {
 	/** Size of the avatar in Tailwind units, e.g. "h-24 w-24" */
@@ -42,14 +46,18 @@ export default function ProfilePictureUpload({
 
 		// Validate file type
 		if (!file.type.startsWith("image/")) {
-			toast.error("Please select an image file (JPG, PNG, WebP)");
+			showWarningToast(
+				"Invalid file type",
+				"Please select an image file (JPG, PNG, or WebP).",
+			);
 			return;
 		}
 
 		// Validate file size
 		if (file.size > MAX_SIZE_BYTES) {
-			toast.error(
-				`Image must be ${MAX_SIZE_MB}MB or smaller. Your file is ${(file.size / 1024 / 1024).toFixed(1)}MB.`,
+			showWarningToast(
+				"Image too large",
+				`Maximum size is ${MAX_SIZE_MB}MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)}MB.`,
 			);
 			return;
 		}
@@ -79,9 +87,16 @@ export default function ProfilePictureUpload({
 			}
 
 			await refreshUserProfile();
-			toast.success("Profile picture updated!");
+			showSuccessToast(
+				"Photo updated",
+				"Your profile picture has been changed.",
+			);
 		} catch (err: any) {
-			toast.error(err.message || "Failed to upload profile picture");
+			showErrorToast(
+				err,
+				"Upload failed",
+				"We couldn't update your profile picture. Please try again.",
+			);
 		} finally {
 			setUploading(false);
 			// Reset input so same file can be selected again
@@ -107,9 +122,16 @@ export default function ProfilePictureUpload({
 			if (!res.ok) throw new Error("Failed to remove profile picture");
 
 			await refreshUserProfile();
-			toast.success("Profile picture removed");
+			showSuccessToast(
+				"Photo removed",
+				"Your profile picture has been removed.",
+			);
 		} catch (err: any) {
-			toast.error(err.message || "Failed to remove profile picture");
+			showErrorToast(
+				err,
+				"Removal failed",
+				"We couldn't remove your profile picture. Please try again.",
+			);
 		} finally {
 			setUploading(false);
 		}

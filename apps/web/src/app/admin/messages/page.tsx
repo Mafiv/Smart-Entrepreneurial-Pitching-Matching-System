@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -35,6 +34,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ADMIN_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 
 /* ── Types ── */
 interface Participant {
@@ -437,11 +442,11 @@ function MessagesContent() {
 			} else {
 				setMessages((prev) => prev.filter((m) => m._id !== optimisticMsg._id));
 				const err = await res.json();
-				toast.error(err.message || "Failed to send message");
+				showErrorToast(err.message || "Failed to send message");
 			}
 		} catch (_err) {
 			setMessages((prev) => prev.filter((m) => m._id !== optimisticMsg._id));
-			toast.error("Failed to send message");
+			showErrorToast("Failed to send message");
 		} finally {
 			setSending(false);
 			inputRef.current?.focus();
@@ -469,7 +474,7 @@ function MessagesContent() {
 				},
 			);
 			if (res.ok) {
-				toast.success(
+				showSuccessToast(
 					"Report submitted. The conversation has been frozen and an admin has been alerted.",
 				);
 				setShowReportDialog(false);
@@ -479,10 +484,10 @@ function MessagesContent() {
 				setActiveConvo(null);
 			} else {
 				const err = await res.json();
-				toast.error(err.message || "Failed to submit report");
+				showErrorToast(err.message || "Failed to submit report");
 			}
 		} catch (_err) {
-			toast.error("Failed to submit report");
+			showErrorToast("Failed to submit report");
 		} finally {
 			setReportLoading(false);
 		}
@@ -568,14 +573,14 @@ function MessagesContent() {
 				},
 			);
 			if (res.ok) {
-				toast.success("Admin added to group");
+				showSuccessToast("Admin added to group");
 				loadConversations(false);
 			} else {
 				const err = await res.json();
-				toast.error(err.message || "Failed to add admin");
+				showErrorToast(err.message || "Failed to add admin");
 			}
 		} catch (_err) {
-			toast.error("Failed to add admin");
+			showErrorToast("Failed to add admin");
 		} finally {
 			setManageParticipantLoading(null);
 		}
@@ -594,14 +599,14 @@ function MessagesContent() {
 				},
 			);
 			if (res.ok) {
-				toast.success("Admin removed from group");
+				showSuccessToast("Admin removed from group");
 				loadConversations(false);
 			} else {
 				const err = await res.json();
-				toast.error(err.message || "Failed to remove admin");
+				showErrorToast(err.message || "Failed to remove admin");
 			}
 		} catch (_err) {
-			toast.error("Failed to remove admin");
+			showErrorToast("Failed to remove admin");
 		} finally {
 			setManageParticipantLoading(null);
 		}

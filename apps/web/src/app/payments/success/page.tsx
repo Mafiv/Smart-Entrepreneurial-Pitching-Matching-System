@@ -3,7 +3,6 @@
 import { ArrowRight, CheckCircle2, Home, Loader2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -12,6 +11,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { showSuccessToast } from "@/lib/toast-messages";
 
 function PaymentSuccessContent() {
 	const searchParams = useSearchParams();
@@ -24,7 +24,10 @@ function PaymentSuccessContent() {
 		// The webhook handles the actual business logic.
 		const timer = setTimeout(() => {
 			setVerifying(false);
-			toast.success("Payment confirmed by Chapa");
+			showSuccessToast(
+				"Payment confirmed",
+				"Your transaction has been successfully processed by Chapa.",
+			);
 		}, 3000);
 
 		return () => clearTimeout(timer);

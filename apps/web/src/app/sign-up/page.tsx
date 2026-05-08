@@ -3,12 +3,16 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 
 function SignUpForm() {
 	const searchParams = useSearchParams();
@@ -35,12 +39,18 @@ function SignUpForm() {
 		e.preventDefault();
 
 		if (password !== confirmPassword) {
-			toast.error("Passwords do not match");
+			showWarningToast(
+				"Passwords don't match",
+				"Please make sure both password fields are identical.",
+			);
 			return;
 		}
 
 		if (password.length < 6) {
-			toast.error("Password must be at least 6 characters");
+			showWarningToast(
+				"Password too short",
+				"Your password must be at least 6 characters long.",
+			);
 			return;
 		}
 
@@ -49,7 +59,10 @@ function SignUpForm() {
 		try {
 			console.log("SIGN UP:", { email, role, fullName });
 			await signUp(email, password, fullName, { role, companyName, fundName });
-			toast.success("Account created! Check your email to verify.");
+			showSuccessToast(
+				"Account created!",
+				"Please check your email for a verification code.",
+			);
 			// Investors go to onboarding after email verification
 			router.push(
 				role === "investor"
@@ -57,9 +70,11 @@ function SignUpForm() {
 					: "/verify-email",
 			);
 		} catch (err: unknown) {
-			const message =
-				err instanceof Error ? err.message : "Failed to create account";
-			toast.error(message);
+			showErrorToast(
+				err,
+				"Unable to create account",
+				"Please try again or use a different email address.",
+			);
 		} finally {
 			setLoading(false);
 		}
@@ -82,9 +97,11 @@ function SignUpForm() {
 			};
 			router.push(redirects[profile.role || ""] || "/");
 		} catch (err: unknown) {
-			const message =
-				err instanceof Error ? err.message : "Failed to sign up with Google";
-			toast.error(message);
+			showErrorToast(
+				err,
+				"Google sign-up failed",
+				"We couldn't complete the sign-up with Google. Please try again.",
+			);
 		} finally {
 			setLoading(false);
 		}

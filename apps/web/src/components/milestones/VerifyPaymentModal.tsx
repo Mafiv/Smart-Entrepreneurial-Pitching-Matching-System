@@ -9,7 +9,6 @@ import {
 	ShieldCheck,
 } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -22,6 +21,12 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 import type { Milestone } from "./MilestoneTimeline";
 
 interface VerifyPaymentModalProps {
@@ -68,15 +73,15 @@ export function VerifyPaymentModal({
 			const data = await res.json();
 
 			if (data.success && data.checkout_url) {
-				toast.success("Redirecting to Chapa secure payment...");
+				showSuccessToast("Redirecting to Chapa secure payment...");
 				// Use window.location.href for external redirect
 				window.location.href = data.checkout_url;
 			} else {
-				toast.error(data.message || "Failed to initiate payment");
+				showErrorToast(data.message || "Failed to initiate payment");
 			}
 		} catch (error) {
 			console.error("Payment initiation error:", error);
-			toast.error("Network error initiating payment");
+			showErrorToast("Network error initiating payment");
 		} finally {
 			setLoading(false);
 		}
@@ -85,7 +90,7 @@ export function VerifyPaymentModal({
 	const handleReject = async () => {
 		if (!user) return;
 		if (!feedback.trim()) {
-			toast.error("Please provide feedback for the rejection.");
+			showErrorToast("Please provide feedback for the rejection.");
 			return;
 		}
 
@@ -107,15 +112,15 @@ export function VerifyPaymentModal({
 			const data = await res.json();
 
 			if (data.status === "success") {
-				toast.success("Milestone rejected with feedback.");
+				showSuccessToast("Milestone rejected with feedback.");
 				onSuccess();
 				onClose();
 			} else {
-				toast.error(data.message || "Failed to reject milestone");
+				showErrorToast(data.message || "Failed to reject milestone");
 			}
 		} catch (error) {
 			console.error("Rejection error:", error);
-			toast.error("Network error");
+			showErrorToast("Network error");
 		} finally {
 			setLoading(false);
 		}

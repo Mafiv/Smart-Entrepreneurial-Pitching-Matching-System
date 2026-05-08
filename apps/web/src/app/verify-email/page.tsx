@@ -4,11 +4,15 @@ import type { RecaptchaVerifier } from "firebase/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 
 export default function VerifyEmailPage() {
 	const {
@@ -47,7 +51,10 @@ export default function VerifyEmailPage() {
 	// Redirect if email is already verified
 	useEffect(() => {
 		if (!loading && userProfile?.emailVerified) {
-			toast.success("Email verified successfully!");
+			showSuccessToast(
+				"Email verified!",
+				"Your email has been confirmed successfully.",
+			);
 			const redirects: Record<string, string> = {
 				admin: "/admin/oversight",
 				entrepreneur: "/entrepreneur/dashboard",
@@ -84,10 +91,16 @@ export default function VerifyEmailPage() {
 		try {
 			await requestEmailOtp();
 			setCooldown(60);
-			toast.success("OTP sent. Check your email.");
+			showSuccessToast(
+				"Code sent",
+				"Check your email inbox for the verification code.",
+			);
 		} catch (err: unknown) {
-			const message = err instanceof Error ? err.message : "Failed to send OTP";
-			toast.error(message);
+			showErrorToast(
+				err,
+				"Couldn't send code",
+				"Please wait a moment and try again.",
+			);
 		} finally {
 			setEmailSendLoading(false);
 		}
@@ -95,18 +108,26 @@ export default function VerifyEmailPage() {
 
 	const handleVerifyEmailOtp = useCallback(async () => {
 		if (!emailCode.trim()) {
-			toast.error("Enter the OTP code from your email");
+			showWarningToast(
+				"Code required",
+				"Please enter the 6-digit code sent to your email.",
+			);
 			return;
 		}
 		setEmailVerifyLoading(true);
 		try {
 			await verifyEmailOtp(emailCode.trim());
 			await refreshUserProfile();
-			toast.success("Email verified successfully!");
+			showSuccessToast(
+				"Email verified!",
+				"Your email address has been confirmed.",
+			);
 		} catch (err: unknown) {
-			const message =
-				err instanceof Error ? err.message : "Failed to verify OTP";
-			toast.error(message);
+			showErrorToast(
+				err,
+				"Verification failed",
+				"The code may be incorrect or expired. Please try again.",
+			);
 		} finally {
 			setEmailVerifyLoading(false);
 		}
@@ -120,7 +141,10 @@ export default function VerifyEmailPage() {
 
 	const handleSendSmsOtp = useCallback(async () => {
 		if (!smsPhoneNumber.trim()) {
-			toast.error("Enter a phone number including country code");
+			showWarningToast(
+				"Phone number required",
+				"Please enter your number with country code (e.g., +251...).",
+			);
 			return;
 		}
 		setSmsSendLoading(true);
@@ -143,11 +167,16 @@ export default function VerifyEmailPage() {
 				recaptchaRef.current,
 			);
 			setSmsVerificationId(confirmation.verificationId);
-			toast.success("SMS OTP sent");
+			showSuccessToast(
+				"SMS code sent",
+				"Check your phone for the verification code.",
+			);
 		} catch (err: unknown) {
-			const message =
-				err instanceof Error ? err.message : "Failed to send SMS OTP";
-			toast.error(message);
+			showErrorToast(
+				err,
+				"Couldn't send SMS",
+				"Please verify your phone number and try again.",
+			);
 		} finally {
 			setSmsSendLoading(false);
 		}
@@ -155,11 +184,17 @@ export default function VerifyEmailPage() {
 
 	const handleVerifySmsOtp = useCallback(async () => {
 		if (!smsVerificationId) {
-			toast.error("Request an SMS OTP first");
+			showWarningToast(
+				"Request a code first",
+				"Please send an SMS code before verifying.",
+			);
 			return;
 		}
 		if (!smsCode.trim()) {
-			toast.error("Enter the SMS OTP code");
+			showWarningToast(
+				"Code required",
+				"Please enter the code you received via SMS.",
+			);
 			return;
 		}
 		setSmsVerifyLoading(true);
@@ -176,11 +211,16 @@ export default function VerifyEmailPage() {
 			await linkWithCredential(auth.currentUser, credential);
 			await auth.currentUser.getIdToken(true);
 			await refreshUserProfile();
-			toast.success("Phone verified successfully!");
+			showSuccessToast(
+				"Phone verified!",
+				"Your phone number has been confirmed.",
+			);
 		} catch (err: unknown) {
-			const message =
-				err instanceof Error ? err.message : "Failed to verify SMS OTP";
-			toast.error(message);
+			showErrorToast(
+				err,
+				"Phone verification failed",
+				"The code may be incorrect or expired. Please try again.",
+			);
 		} finally {
 			setSmsVerifyLoading(false);
 		}

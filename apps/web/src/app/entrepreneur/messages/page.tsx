@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ScheduleMeetingModal, {
@@ -37,6 +36,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ENTREPRENEUR_NAV, INVESTOR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 
 const MEETING_PREFIX = "MEETING_CARD:";
 
@@ -512,11 +517,11 @@ function MessagesContent() {
 			} else {
 				setMessages((prev) => prev.filter((m) => m._id !== optimisticMsg._id));
 				const err = await res.json();
-				toast.error(err.message || "Failed to send message");
+				showErrorToast(err.message || "Failed to send message");
 			}
 		} catch (_err) {
 			setMessages((prev) => prev.filter((m) => m._id !== optimisticMsg._id));
-			toast.error("Failed to send message");
+			showErrorToast("Failed to send message");
 		} finally {
 			setSending(false);
 			inputRef.current?.focus();
@@ -544,7 +549,7 @@ function MessagesContent() {
 				},
 			);
 			if (res.ok) {
-				toast.success(
+				showSuccessToast(
 					"Report submitted. The conversation has been frozen and an admin has been alerted.",
 				);
 				setShowReportDialog(false);
@@ -554,10 +559,10 @@ function MessagesContent() {
 				setActiveConvo(null);
 			} else {
 				const err = await res.json();
-				toast.error(err.message || "Failed to submit report");
+				showErrorToast(err.message || "Failed to submit report");
 			}
 		} catch (_err) {
-			toast.error("Failed to submit report");
+			showErrorToast("Failed to submit report");
 		} finally {
 			setReportLoading(false);
 		}
@@ -1039,7 +1044,7 @@ function MessagesContent() {
 								);
 								loadMessages(activeConvo._id);
 							} catch {
-								toast.error("Failed to share meeting in chat");
+								showErrorToast("Failed to share meeting in chat");
 							}
 							setShowScheduleModal(false);
 						}}

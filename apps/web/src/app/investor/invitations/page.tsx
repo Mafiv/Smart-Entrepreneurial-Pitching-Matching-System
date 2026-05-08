@@ -10,7 +10,6 @@ import {
 	XCircle,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +33,12 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { INVESTOR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -156,10 +161,10 @@ export default function InvestorInvitationsPage() {
 			if (data.status === "success") {
 				setInvitations(data.invitations);
 			} else {
-				toast.error("Failed to load invitations");
+				showErrorToast("Failed to load invitations");
 			}
 		} catch {
-			toast.error("Network error loading invitations");
+			showErrorToast("Network error loading invitations");
 		} finally {
 			setLoading(false);
 		}
@@ -182,17 +187,17 @@ export default function InvestorInvitationsPage() {
 			});
 			const data = await res.json();
 			if (data.status === "success") {
-				toast.success("Invitation cancelled");
+				showSuccessToast("Invitation cancelled");
 				setInvitations((prev) =>
 					prev.map((inv) =>
 						inv._id === invitationId ? { ...inv, status: "cancelled" } : inv,
 					),
 				);
 			} else {
-				toast.error(data.message ?? "Failed to cancel invitation");
+				showErrorToast(data.message ?? "Failed to cancel invitation");
 			}
 		} catch {
-			toast.error("Network error");
+			showErrorToast("Network error");
 		} finally {
 			setCancelling(null);
 			setConfirmCancelId(null);

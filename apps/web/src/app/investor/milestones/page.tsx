@@ -15,7 +15,6 @@ import {
 	Sparkles,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import { DeleteMilestoneModal } from "@/components/milestones/DeleteMilestoneModal";
 import { MilestoneActionCard } from "@/components/milestones/MilestoneActionCard";
@@ -31,6 +30,12 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { INVESTOR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 import { cn } from "@/lib/utils";
 
 const API = (
@@ -250,13 +255,13 @@ export default function InvestorMilestonesPage() {
 				);
 				setMilestones(list);
 			} else if (!res.ok) {
-				toast.error(data.message ?? "Failed to load milestones");
+				showErrorToast(data.message ?? "Failed to load milestones");
 			} else {
 				setMilestones([]);
 			}
 		} catch (error) {
 			console.error("Fetch error:", error);
-			toast.error("Network error loading milestones");
+			showErrorToast("Network error loading milestones");
 		} finally {
 			setLoading(false);
 		}

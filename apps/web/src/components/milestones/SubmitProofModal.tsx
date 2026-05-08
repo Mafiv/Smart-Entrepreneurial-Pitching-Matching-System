@@ -8,7 +8,6 @@ import {
 	Upload,
 } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -21,6 +20,12 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 import type { Milestone } from "./MilestoneTimeline";
 
 interface SubmitProofModalProps {
@@ -49,7 +54,7 @@ export function SubmitProofModal({
 	const handleSubmit = async () => {
 		if (!user) return;
 		if (!proof.trim()) {
-			toast.error("Please provide proof or a link to your work.");
+			showErrorToast("Please provide proof or a link to your work.");
 			return;
 		}
 
@@ -69,7 +74,7 @@ export function SubmitProofModal({
 
 			const proofData = await proofRes.json();
 			if (proofData.status !== "success") {
-				toast.error(
+				showErrorToast(
 					proofData.message ?? "Failed to save proof. Please try again.",
 				);
 				return;
@@ -92,18 +97,18 @@ export function SubmitProofModal({
 			const statusData = await statusRes.json();
 
 			if (statusData.status === "success") {
-				toast.success(
+				showSuccessToast(
 					"Milestone proof submitted for review! The investor has been notified.",
 				);
 				setProof("");
 				onSuccess();
 				onClose();
 			} else {
-				toast.error(statusData.message ?? "Failed to submit for review.");
+				showErrorToast(statusData.message ?? "Failed to submit for review.");
 			}
 		} catch (error) {
 			console.error("Submission error:", error);
-			toast.error("Network error submitting proof. Please try again.");
+			showErrorToast("Network error submitting proof. Please try again.");
 		} finally {
 			setLoading(false);
 		}
