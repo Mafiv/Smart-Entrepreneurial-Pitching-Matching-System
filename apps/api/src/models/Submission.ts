@@ -1,6 +1,6 @@
 import { type Document, model, Schema, type Types } from "mongoose";
 
-export type SubmissionStage = "mvp" | "early-revenue" | "scaling";
+export type SubmissionStage = "idea" | "mvp" | "early-revenue" | "scaling";
 
 export type SubmissionStatus =
 	| "draft"
@@ -143,9 +143,14 @@ const SubmissionSchema = new Schema<ISubmission>(
 		},
 		stage: {
 			type: String,
-			enum: ["mvp", "early-revenue", "scaling"] satisfies SubmissionStage[],
+			enum: [
+				"idea",
+				"mvp",
+				"early-revenue",
+				"scaling",
+			] satisfies SubmissionStage[],
 			required: true,
-			default: "mvp",
+			default: "idea",
 		},
 		targetAmount: {
 			type: Number,

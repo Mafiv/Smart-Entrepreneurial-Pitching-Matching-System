@@ -26,6 +26,17 @@ jest.mock("../../src/controllers/investor.controller", () => ({
 		updateProfile: jest.fn((_req: any, res: any) =>
 			res.status(200).json({ success: true }),
 		),
+		getSavedPitches: jest.fn((_req: any, res: any) =>
+			res.status(200).json({ success: true, data: [] }),
+		),
+		toggleSavedPitch: jest.fn((_req: any, res: any) =>
+			res.status(200).json({
+				success: true,
+				message: "Pitch saved successfully",
+				isSaved: true,
+				savedPitches: [],
+			}),
+		),
 	},
 }));
 
