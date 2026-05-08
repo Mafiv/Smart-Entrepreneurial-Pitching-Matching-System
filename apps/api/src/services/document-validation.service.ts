@@ -76,6 +76,7 @@ const DOC_CATEGORY_DEFS = [
 ] as const;
 
 const REQUIRED_BY_STAGE: Record<SubmissionStage, string[]> = {
+	idea: ["pitch_deck"],
 	mvp: ["pitch_deck"],
 	"early-revenue": [
 		"pitch_deck",
