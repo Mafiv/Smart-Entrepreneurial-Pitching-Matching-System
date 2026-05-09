@@ -83,6 +83,14 @@ export const metadataSchema = z.object({
 		.string()
 		.min(20, "Summary must be at least 20 characters")
 		.max(1000, "Summary must be under 1000 characters"),
+	pitchVideoUrl: z
+		.string()
+		.regex(
+			/^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)[\w-]+/,
+			"Must be a valid YouTube URL",
+		)
+		.optional()
+		.or(z.literal("")),
 });
 
 // Full submission schema

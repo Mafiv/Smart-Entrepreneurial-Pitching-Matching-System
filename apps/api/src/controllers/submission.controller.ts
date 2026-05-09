@@ -309,4 +309,53 @@ export class SubmissionController {
 			handleSubmissionError(res, error, "Failed to fetch summary status");
 		}
 	}
+
+	/**
+	 * PATCH /submissions/:id/video-status
+	 * Admin-only endpoint to approve, flag, or reject a pitch video.
+	 */
+	static async updateVideoStatus(req: Request, res: Response): Promise<void> {
+		try {
+			if (!req.user || req.user.role !== "admin") {
+				res
+					.status(403)
+					.json({ status: "error", message: "Admin access required" });
+				return;
+			}
+
+			const { videoStatus, videoFlagReason } = req.body;
+			if (!["approved", "flagged", "rejected"].includes(videoStatus)) {
+				res.status(400).json({
+					status: "error",
+					message: "videoStatus must be 'approved', 'flagged', or 'rejected'",
+				});
+				return;
+			}
+
+			const { Submission } = await import("../models/Submission");
+			const submission = await Submission.findById(req.params.id);
+			if (!submission) {
+				res
+					.status(404)
+					.json({ status: "error", message: "Submission not found" });
+				return;
+			}
+
+			submission.videoStatus = videoStatus;
+			submission.videoFlagReason =
+				videoStatus === "approved"
+					? (null as unknown as string)
+					: videoFlagReason || "Rejected by admin";
+			await submission.save();
+
+			res.status(200).json({
+				status: "success",
+				message: `Video ${videoStatus}`,
+				videoStatus: submission.videoStatus,
+				videoFlagReason: submission.videoFlagReason,
+			});
+		} catch (error) {
+			handleSubmissionError(res, error, "Failed to update video status");
+		}
+	}
 }

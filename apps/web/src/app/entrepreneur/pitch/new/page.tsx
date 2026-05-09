@@ -128,6 +128,7 @@ function NewPitchPageInner() {
 			stage: "mvp",
 			targetAmount: 0,
 			summary: "",
+			pitchVideoUrl: "",
 		},
 	});
 
@@ -183,6 +184,7 @@ function NewPitchPageInner() {
 					stage: submission.stage || "idea",
 					targetAmount: submission.targetAmount || 0,
 					summary: submission.summary || "",
+					pitchVideoUrl: submission.pitchVideoUrl || "",
 				});
 				if (submission.problem) problemForm.reset(submission.problem);
 				if (submission.solution) solutionForm.reset(submission.solution);
@@ -395,6 +397,7 @@ function NewPitchPageInner() {
 
 				if (!signatureRes.ok) {
 					const data = await signatureRes.json();
+					console.error("Signature fetch failed:", signatureRes.status, data);
 					showErrorToast(data.message || `Failed to prepare ${file.name}`);
 					continue;
 				}
@@ -447,6 +450,11 @@ function NewPitchPageInner() {
 					showSuccessToast(`Uploaded: ${file.name}`);
 				} else {
 					const data = await registerRes.json();
+					console.error(
+						"Direct upload completion failed:",
+						registerRes.status,
+						data,
+					);
 					showErrorToast(data.message || `Failed to register ${file.name}`);
 				}
 			}
@@ -780,6 +788,25 @@ function NewPitchPageInner() {
 												{metadataForm.formState.errors.summary && (
 													<p className="text-sm text-destructive">
 														{metadataForm.formState.errors.summary.message}
+													</p>
+												)}
+											</div>
+
+											<div className="space-y-2">
+												<Label htmlFor="pitchVideoUrl">
+													Pitch Video URL (Optional)
+												</Label>
+												<Input
+													id="pitchVideoUrl"
+													placeholder="e.g., https://youtube.com/watch?v=..."
+													{...metadataForm.register("pitchVideoUrl")}
+												/>
+												{metadataForm.formState.errors.pitchVideoUrl && (
+													<p className="text-sm text-destructive">
+														{
+															metadataForm.formState.errors.pitchVideoUrl
+																.message
+														}
 													</p>
 												)}
 											</div>

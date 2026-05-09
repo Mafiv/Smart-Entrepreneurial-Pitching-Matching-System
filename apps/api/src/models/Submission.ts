@@ -71,6 +71,9 @@ export interface ISubmission extends Document {
 		model: string;
 	};
 	voiceSummaryUrl?: string;
+	pitchVideoUrl?: string;
+	videoStatus?: "pending" | "approved" | "flagged" | "rejected";
+	videoFlagReason?: string;
 	summaryStatus?: "pending" | "generating" | "completed" | "failed";
 	summaryError?: string;
 	currentStep: number;
@@ -191,6 +194,25 @@ const SubmissionSchema = new Schema<ISubmission>(
 			model: { type: String, default: null },
 		},
 		voiceSummaryUrl: { type: String, default: null },
+		pitchVideoUrl: {
+			type: String,
+			default: null,
+			validate: {
+				validator: (v: string | null) => {
+					if (!v) return true;
+					return /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)[\w-]+/.test(
+						v,
+					);
+				},
+				message: "Must be a valid YouTube URL",
+			},
+		},
+		videoStatus: {
+			type: String,
+			enum: ["pending", "approved", "flagged", "rejected"],
+			default: null,
+		},
+		videoFlagReason: { type: String, default: null },
 		summaryStatus: {
 			type: String,
 			enum: ["pending", "generating", "completed", "failed"],
