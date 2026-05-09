@@ -694,6 +694,8 @@ export class DocumentController {
 					timestamp,
 					folder,
 					public_id: publicId,
+					use_filename: true,
+					unique_filename: false,
 				},
 				cloudinary.config().api_secret as string,
 			);
@@ -709,6 +711,7 @@ export class DocumentController {
 				uploadUrl: `https://api.cloudinary.com/v1_1/${cloudinary.config().cloud_name}/auto/upload`,
 			});
 		} catch (error) {
+			console.error("Direct upload signature error:", error);
 			const message =
 				error instanceof Error
 					? error.message
@@ -788,6 +791,7 @@ export class DocumentController {
 				document: savedDocument,
 			});
 		} catch (error) {
+			console.error("Direct upload completion error:", error);
 			const message =
 				error instanceof Error ? error.message : "Failed to complete upload";
 			res.status(500).json({ status: "error", message });

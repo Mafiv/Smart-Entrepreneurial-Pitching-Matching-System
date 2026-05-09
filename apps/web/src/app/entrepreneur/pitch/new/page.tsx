@@ -397,6 +397,7 @@ function NewPitchPageInner() {
 
 				if (!signatureRes.ok) {
 					const data = await signatureRes.json();
+					console.error("Signature fetch failed:", signatureRes.status, data);
 					showErrorToast(data.message || `Failed to prepare ${file.name}`);
 					continue;
 				}
@@ -449,6 +450,11 @@ function NewPitchPageInner() {
 					showSuccessToast(`Uploaded: ${file.name}`);
 				} else {
 					const data = await registerRes.json();
+					console.error(
+						"Direct upload completion failed:",
+						registerRes.status,
+						data,
+					);
 					showErrorToast(data.message || `Failed to register ${file.name}`);
 				}
 			}
