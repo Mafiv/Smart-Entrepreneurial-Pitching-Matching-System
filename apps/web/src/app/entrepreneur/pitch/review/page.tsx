@@ -70,6 +70,8 @@ interface Submission {
 	};
 	documents: SubmissionDoc[];
 	pitchVideoUrl?: string;
+	videoStatus?: "pending" | "approved" | "flagged" | "rejected" | null;
+	videoFlagReason?: string | null;
 }
 
 interface DocStatus {
@@ -398,9 +400,37 @@ function ReviewPitchPageInner() {
 							</p>
 							{submission.pitchVideoUrl ? (
 								<div className="mt-6">
-									<h4 className="font-medium text-sm mb-3 text-foreground">
-										Pitch Video
-									</h4>
+									<div className="flex items-center justify-between mb-3">
+										<h4 className="font-medium text-sm text-foreground">
+											Pitch Video
+										</h4>
+										<Badge
+											variant={
+												submission.videoStatus === "approved"
+													? "default"
+													: submission.videoStatus === "flagged"
+														? "destructive"
+														: submission.videoStatus === "rejected"
+															? "destructive"
+															: "secondary"
+											}
+											className="capitalize"
+										>
+											{submission.videoStatus || "pending"}
+										</Badge>
+									</div>
+									{submission.videoStatus === "flagged" && (
+										<div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md text-sm text-destructive">
+											<strong>Action Required:</strong>{" "}
+											{submission.videoFlagReason}
+										</div>
+									)}
+									{submission.videoStatus === "rejected" && (
+										<div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md text-sm text-destructive">
+											<strong>Video Rejected:</strong>{" "}
+											{submission.videoFlagReason}
+										</div>
+									)}
 									<YoutubeEmbed url={submission.pitchVideoUrl} />
 								</div>
 							) : (

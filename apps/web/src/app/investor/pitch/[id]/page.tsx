@@ -236,6 +236,7 @@ interface Submission {
 	} | null;
 	voiceSummaryUrl?: string | null;
 	pitchVideoUrl?: string | null;
+	videoStatus?: "pending" | "approved" | "flagged" | "rejected" | null;
 	summaryStatus?: "pending" | "generating" | "completed" | "failed" | null;
 	entrepreneurId?: {
 		_id: string;
@@ -585,7 +586,7 @@ export default function InvestorPitchViewPage() {
 										</span>
 									</div>
 								</div>
-								{pitch.pitchVideoUrl ? (
+								{pitch.pitchVideoUrl && pitch.videoStatus === "approved" ? (
 									<div className="mt-6">
 										<h4 className="font-medium text-sm mb-3 text-foreground">
 											Pitch Video
@@ -596,7 +597,9 @@ export default function InvestorPitchViewPage() {
 									<div className="mt-6 rounded-lg border-2 border-dashed border-border/50 p-6 text-center">
 										<Video className="mx-auto h-8 w-8 text-muted-foreground/40 mb-2" />
 										<p className="text-sm text-muted-foreground">
-											No pitch video provided
+											{pitch.pitchVideoUrl && pitch.videoStatus !== "approved"
+												? "Pitch video is under review"
+												: "No pitch video provided"}
 										</p>
 									</div>
 								)}
