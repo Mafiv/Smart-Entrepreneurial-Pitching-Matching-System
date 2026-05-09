@@ -653,4 +653,144 @@ export class DocumentController {
 			res.status(500).json({ status: "error", message });
 		}
 	}
+
+	/**
+	 * Generate a Cloudinary signature for direct client-side upload.
+	 * Bypasses backend memory limits for large PPT/PDF files.
+	 */
+	static async generateDirectUploadSignature(
+		req: AuthRequest,
+		res: Response,
+	): Promise<void> {
+		try {
+			if (!req.user) {
+				res.status(401).json({ status: "error", message: "Unauthorized" });
+				return;
+			}
+
+			if (!isCloudinaryConfigured) {
+				res.status(500).json({
+					status: "error",
+					message: "Cloudinary is not configured on the server",
+				});
+				return;
+			}
+
+			const { type, submissionId } = req.body;
+			const docType = getDocumentType(type);
+			const ownerId = req.user._id.toString();
+
+			// Verify submission ownership before generating signature
+			if (submissionId) {
+				await resolveOwnedSubmission(submissionId, ownerId);
+			}
+
+			const timestamp = Math.round(new Date().getTime() / 1000);
+			const folder = `sepms/documents/${ownerId}/${docType}`;
+			const publicId = `doc_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+
+			const signature = cloudinary.utils.api_sign_request(
+				{
+					timestamp,
+					folder,
+					public_id: publicId,
+				},
+				cloudinary.config().api_secret as string,
+			);
+
+			res.status(200).json({
+				cloudName: cloudinary.config().cloud_name,
+				apiKey: cloudinary.config().api_key,
+				timestamp,
+				signature,
+				folder,
+				publicId,
+				chunkSize: 6000000,
+				uploadUrl: `https://api.cloudinary.com/v1_1/${cloudinary.config().cloud_name}/auto/upload`,
+			});
+		} catch (error) {
+			const message =
+				error instanceof Error
+					? error.message
+					: "Failed to generate upload signature";
+			res.status(500).json({ status: "error", message });
+		}
+	}
+
+	/**
+	 * Complete a direct upload by saving the document to the database.
+	 */
+	static async completeDirectUpload(
+		req: AuthRequest,
+		res: Response,
+	): Promise<void> {
+		try {
+			if (!req.user) {
+				res.status(401).json({ status: "error", message: "Unauthorized" });
+				return;
+			}
+
+			const {
+				type,
+				submissionId,
+				cloudinaryPublicId,
+				url,
+				sizeBytes,
+				mimeType,
+				filename,
+			} = req.body;
+
+			if (!cloudinaryPublicId || !url) {
+				res.status(400).json({
+					status: "error",
+					message: "Missing cloudinary details",
+				});
+				return;
+			}
+
+			const docType = getDocumentType(type);
+			const ownerId = req.user._id;
+
+			const submission = await resolveOwnedSubmission(
+				submissionId,
+				ownerId.toString(),
+			);
+
+			const savedDocument = await DocumentModel.create({
+				ownerId,
+				submissionId: submission?._id || null,
+				type: docType,
+				filename: filename || "Untitled Document",
+				cloudinaryPublicId,
+				url,
+				sizeBytes: sizeBytes || 0,
+				mimeType: mimeType || "application/octet-stream",
+				status: "uploaded",
+			});
+
+			enqueueDocumentProcessing(savedDocument._id.toString());
+
+			if (submission) {
+				submission.documents.push({
+					name: savedDocument.filename,
+					url: savedDocument.url,
+					type: savedDocument.type,
+					cloudinaryId: savedDocument.cloudinaryPublicId,
+					size: savedDocument.sizeBytes,
+					uploadedAt: new Date(),
+				});
+				await submission.save();
+			}
+
+			res.status(201).json({
+				status: "success",
+				message: "Document registered successfully",
+				document: savedDocument,
+			});
+		} catch (error) {
+			const message =
+				error instanceof Error ? error.message : "Failed to complete upload";
+			res.status(500).json({ status: "error", message });
+		}
+	}
 }
