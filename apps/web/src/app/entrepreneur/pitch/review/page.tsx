@@ -300,7 +300,7 @@ function ReviewPitchPageInner() {
 					</div>
 				</header>
 
-				<main className="mx-auto max-w-4xl px-4 py-8 space-y-8">
+				<main className="mx-auto max-w-4xl px-4 py-8 pb-40 space-y-8">
 					{/* Title & Overview */}
 					<div className="admin-greeting-card bg-card p-8 rounded-2xl admin-content-fade shadow-sm text-center space-y-4">
 						<h1 className="text-3xl sm:text-4xl font-bold tracking-tight admin-header-gradient">
@@ -578,7 +578,7 @@ function ReviewPitchPageInner() {
 					</Card>
 
 					{/* Documents & Completeness */}
-					<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 delay-700 fill-mode-both border-0 shadow-md overflow-hidden mb-24">
+					<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 delay-700 fill-mode-both border-0 shadow-md overflow-hidden mb-32">
 						<CardHeader className="bg-primary/5 border-b border-border/40 pb-4">
 							<div className="flex items-center justify-between">
 								<div>
@@ -616,53 +616,55 @@ function ReviewPitchPageInner() {
 										Required vs Uploaded
 									</h4>
 									<div className="grid gap-2 sm:grid-cols-2">
-										{completeness.checklist.map((item) => (
-											<div
-												key={item.category}
-												className={`flex flex-col justify-between rounded-lg border p-3 ${
-													item.required && !item.uploaded
-														? "border-destructive/50 bg-destructive/5"
-														: "bg-card"
-												}`}
-											>
-												<div className="flex items-center justify-between mb-2">
-													<div className="flex items-center gap-2">
-														<p className="text-sm font-medium flex items-center gap-1">
-															{item.label}
-															{item.required && (
-																<span className="text-destructive">*</span>
-															)}
-														</p>
+										{completeness.checklist
+											.filter((item) => item.uploaded || item.required)
+											.map((item) => (
+												<div
+													key={item.category}
+													className={`flex flex-col justify-between rounded-lg border p-3 ${
+														item.required && !item.uploaded
+															? "border-destructive/50 bg-destructive/5"
+															: "bg-card"
+													}`}
+												>
+													<div className="flex items-center justify-between mb-2">
+														<div className="flex items-center gap-2">
+															<p className="text-sm font-medium flex items-center gap-1">
+																{item.label}
+																{item.required && (
+																	<span className="text-destructive">*</span>
+																)}
+															</p>
+														</div>
+														{item.status === "verified" && (
+															<CheckCircle2 className="h-4 w-4 text-emerald-600" />
+														)}
+														{item.status === "processing" && (
+															<Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
+														)}
+														{item.status === "failed" && (
+															<XCircle className="h-4 w-4 text-destructive" />
+														)}
+														{item.status === "flagged" && (
+															<XCircle className="h-4 w-4 text-amber-600" />
+														)}
+														{item.status === "missing" && item.required && (
+															<span className="text-xs text-destructive font-medium">
+																Missing
+															</span>
+														)}
+														{item.status === "missing" && !item.required && (
+															<span className="text-xs text-muted-foreground">
+																Optional
+															</span>
+														)}
 													</div>
-													{item.status === "verified" && (
-														<CheckCircle2 className="h-4 w-4 text-emerald-600" />
-													)}
-													{item.status === "processing" && (
-														<Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
-													)}
-													{item.status === "failed" && (
-														<XCircle className="h-4 w-4 text-destructive" />
-													)}
-													{item.status === "flagged" && (
-														<XCircle className="h-4 w-4 text-amber-600" />
-													)}
-													{item.status === "missing" && item.required && (
-														<span className="text-xs text-destructive font-medium">
-															Missing
-														</span>
-													)}
-													{item.status === "missing" && !item.required && (
-														<span className="text-xs text-muted-foreground">
-															Optional
-														</span>
-													)}
+													<div className="text-xs text-muted-foreground">
+														{item.count} file{item.count !== 1 ? "s" : ""}{" "}
+														uploaded
+													</div>
 												</div>
-												<div className="text-xs text-muted-foreground">
-													{item.count} file{item.count !== 1 ? "s" : ""}{" "}
-													uploaded
-												</div>
-											</div>
-										))}
+											))}
 									</div>
 								</div>
 							)}
