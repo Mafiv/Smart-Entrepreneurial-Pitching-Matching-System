@@ -157,6 +157,7 @@ export class SubmissionService {
 			"currentStep",
 			"documents",
 			"currency",
+			"pitchVideoUrl",
 		] as const;
 
 		for (const field of allowedFields) {

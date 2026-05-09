@@ -26,6 +26,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { YoutubeEmbed } from "@/components/YoutubeEmbed";
 import { useAuth } from "@/context/AuthContext";
 import {
 	showErrorToast,
@@ -68,6 +69,7 @@ interface Submission {
 		runway: string;
 	};
 	documents: SubmissionDoc[];
+	pitchVideoUrl?: string;
 }
 
 interface DocStatus {
@@ -394,6 +396,21 @@ function ReviewPitchPageInner() {
 							<p className="text-muted-foreground leading-relaxed">
 								{submission.summary || "Not provided"}
 							</p>
+							{submission.pitchVideoUrl ? (
+								<div className="mt-6">
+									<h4 className="font-medium text-sm mb-3 text-foreground">
+										Pitch Video
+									</h4>
+									<YoutubeEmbed url={submission.pitchVideoUrl} />
+								</div>
+							) : (
+								<div className="mt-6 rounded-lg border-2 border-dashed border-border/50 p-6 text-center">
+									<ClipboardList className="mx-auto h-8 w-8 text-muted-foreground/40 mb-2" />
+									<p className="text-sm text-muted-foreground">
+										No pitch video added
+									</p>
+								</div>
+							)}
 						</CardContent>
 					</Card>
 

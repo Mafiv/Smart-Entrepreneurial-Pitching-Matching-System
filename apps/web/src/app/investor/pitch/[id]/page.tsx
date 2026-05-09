@@ -31,6 +31,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { YoutubeEmbed } from "@/components/YoutubeEmbed";
 import { INVESTOR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -234,6 +235,7 @@ interface Submission {
 		model: string;
 	} | null;
 	voiceSummaryUrl?: string | null;
+	pitchVideoUrl?: string | null;
 	summaryStatus?: "pending" | "generating" | "completed" | "failed" | null;
 	entrepreneurId?: {
 		_id: string;
@@ -583,6 +585,21 @@ export default function InvestorPitchViewPage() {
 										</span>
 									</div>
 								</div>
+								{pitch.pitchVideoUrl ? (
+									<div className="mt-6">
+										<h4 className="font-medium text-sm mb-3 text-foreground">
+											Pitch Video
+										</h4>
+										<YoutubeEmbed url={pitch.pitchVideoUrl} />
+									</div>
+								) : (
+									<div className="mt-6 rounded-lg border-2 border-dashed border-border/50 p-6 text-center">
+										<Video className="mx-auto h-8 w-8 text-muted-foreground/40 mb-2" />
+										<p className="text-sm text-muted-foreground">
+											No pitch video provided
+										</p>
+									</div>
+								)}
 							</CardContent>
 						</Card>
 
