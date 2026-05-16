@@ -4,6 +4,7 @@
 import { ChevronsUpDown, LogOut, Settings, User } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { Logo } from "@/components/Logo";
 import NotificationBell from "@/components/NotificationBell";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -262,6 +263,7 @@ export default function DashboardLayout({
 					</div>
 
 					<div className="flex items-center gap-2">
+						<LanguageSwitcher />
 						<NotificationBell />
 						<ThemeToggle />
 					</div>

@@ -4,6 +4,7 @@ import { SmoothScroll } from "@/components/SmoothScroll";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/context/AuthContext";
+import { LanguageProvider } from "@/i18n/LanguageContext";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -34,10 +35,12 @@ export default function RootLayout({
 			<body className={`${outfit.variable} font-sans antialiased`}>
 				<SmoothScroll>
 					<TooltipProvider>
-						<AuthProvider>
-							{children}
-							<Toaster richColors position="top-center" />
-						</AuthProvider>
+						<LanguageProvider>
+							<AuthProvider>
+								{children}
+								<Toaster richColors position="top-center" />
+							</AuthProvider>
+						</LanguageProvider>
 					</TooltipProvider>
 				</SmoothScroll>
 			</body>
