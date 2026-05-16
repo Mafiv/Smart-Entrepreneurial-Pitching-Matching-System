@@ -92,6 +92,12 @@ const client = axios.create({
 	timeout: 30_000,
 });
 
+/**
+ * Minimum confidence score threshold for document OCR/analysis.
+ * Documents scoring below this value are rejected as unreadable.
+ */
+export const CONFIDENCE_THRESHOLD = 0.5;
+
 const fallbackEmbedding = (text: string): number[] => {
 	const normalized = text.trim().toLowerCase() || "empty";
 	const dimensions = 24;
@@ -197,10 +203,10 @@ export const AIService = {
 			// UC-09: Unreadable / Low Quality Mock
 			if (lowerUrl.includes("blurry") || lowerUrl.includes("unreadable")) {
 				return {
-					confidence: 0.2, // Below arbitrary 0.5 threshold
+					confidence: 0.2, // Below CONFIDENCE_THRESHOLD (0.50)
 					validation: {
 						passed: false,
-						reason: "Document is unreadable. Please upload a clearer version.",
+						reason: `Document is unreadable (confidence ${0.2} below threshold ${CONFIDENCE_THRESHOLD}). Please upload a clearer version.`,
 						issueType: "unreadable",
 					},
 				};

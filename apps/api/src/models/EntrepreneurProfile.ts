@@ -5,10 +5,10 @@ export interface IEntrepreneurProfile extends Document {
 	userId: mongoose.Types.ObjectId;
 	fullName: string;
 	profilePicture?: string;
-	companyName: string;
-	companyRegistrationNumber: string;
-	businessSector: BusinessSector;
-	businessStage: BusinessStage;
+	companyName?: string;
+	companyRegistrationNumber?: string;
+	businessSector?: BusinessSector;
+	businessStage?: BusinessStage;
 	companyAddress?: string;
 	city?: string;
 	country?: string;
@@ -45,8 +45,8 @@ const EntrepreneurProfileSchema = new Schema<IEntrepreneurProfile>(
 		fullName: { type: String, required: true },
 		profilePicture: String,
 
-		companyName: { type: String, required: true },
-		companyRegistrationNumber: { type: String, required: true },
+		companyName: { type: String, default: "" },
+		companyRegistrationNumber: { type: String, default: "" },
 		businessSector: {
 			type: String,
 			enum: [
@@ -61,12 +61,12 @@ const EntrepreneurProfileSchema = new Schema<IEntrepreneurProfile>(
 				"transportation",
 				"other",
 			],
-			required: true,
+			default: "other",
 		},
 		businessStage: {
 			type: String,
 			enum: ["idea", "mvp", "early-revenue", "scaling"],
-			required: true,
+			default: "scaling",
 		},
 
 		companyAddress: String,
