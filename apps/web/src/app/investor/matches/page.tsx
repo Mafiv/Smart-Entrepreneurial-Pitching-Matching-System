@@ -26,6 +26,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { INVESTOR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -101,6 +102,7 @@ function BreakdownBar({ label, value }: { label: string; value: number }) {
 
 export default function InvestorMatchesPage() {
 	const { user } = useAuth();
+	const { t } = useLanguage();
 	const router = useRouter();
 
 	const [matches, setMatches] = useState<Match[]>([]);
@@ -230,7 +232,7 @@ export default function InvestorMatchesPage() {
 								</div>
 								<div className="min-w-0 flex-1">
 									<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-										Pending
+										{t.dashboard.pendingReview}
 									</p>
 									<p className="text-2xl font-bold tracking-tight">
 										{pendingCount}
@@ -264,7 +266,7 @@ export default function InvestorMatchesPage() {
 								</div>
 								<div className="min-w-0 flex-1">
 									<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-										Total Matches
+										{t.nav.myMatches}
 									</p>
 									<p className="text-2xl font-bold tracking-tight">
 										{matches.length}
@@ -391,24 +393,26 @@ export default function InvestorMatchesPage() {
 													) : (
 														<ChevronDown className="h-3 w-3" />
 													)}
-													Score breakdown
+													{isExpanded
+														? t.match.hideBreakdown
+														: t.match.showBreakdown}
 												</button>
 												{isExpanded && (
 													<div className="mt-3 grid gap-2 sm:grid-cols-2">
 														<BreakdownBar
-															label="Sector fit"
+															label={t.match.sectorFit}
 															value={match.scoreBreakdown.sector}
 														/>
 														<BreakdownBar
-															label="Stage fit"
+															label={t.match.stageFit}
 															value={match.scoreBreakdown.stage}
 														/>
 														<BreakdownBar
-															label="Budget fit"
+															label={t.match.budgetFit}
 															value={match.scoreBreakdown.budget}
 														/>
 														<BreakdownBar
-															label="Semantic (AI)"
+															label={t.match.semanticAI}
 															value={match.scoreBreakdown.embedding}
 														/>
 													</div>
@@ -443,7 +447,7 @@ export default function InvestorMatchesPage() {
 														router.push(`/investor/pitch/${sub?._id}`)
 													}
 												>
-													View Pitch
+													{t.pitch.viewFullPitch}
 												</Button>
 
 												{isPending && (
@@ -459,7 +463,7 @@ export default function InvestorMatchesPage() {
 															) : (
 																<XCircle className="h-3.5 w-3.5 mr-1" />
 															)}
-															Decline
+															{t.match.decline}
 														</Button>
 														<Button
 															size="sm"
@@ -471,7 +475,7 @@ export default function InvestorMatchesPage() {
 															) : (
 																<BadgeCheck className="h-3.5 w-3.5 mr-1" />
 															)}
-															Accept
+															{t.match.acceptMatch}
 														</Button>
 													</>
 												)}
