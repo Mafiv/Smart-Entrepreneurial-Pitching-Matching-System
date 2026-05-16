@@ -24,6 +24,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 interface InviteData {
 	createdBy?: string;
@@ -35,6 +36,7 @@ export default function AdminInvitePage() {
 	const params = useParams();
 	const router = useRouter();
 	const { refreshUserProfile } = useAuth();
+	const { t } = useLanguage();
 	const token = params.token as string;
 
 	const [status, setStatus] = useState<
@@ -139,10 +141,8 @@ export default function AdminInvitePage() {
 
 					{status === "loading" && (
 						<>
-							<CardTitle>Validating Invite...</CardTitle>
-							<CardDescription>
-								Please wait while we verify your invite link.
-							</CardDescription>
+							<CardTitle>{t.auth.adminInviteLoading}</CardTitle>
+							<CardDescription>{t.auth.adminInviteLoadingDesc}</CardDescription>
 						</>
 					)}
 
@@ -150,31 +150,31 @@ export default function AdminInvitePage() {
 						<>
 							<CardTitle className="flex items-center justify-center gap-2">
 								<ShieldAlert className="h-5 w-5 text-primary" />
-								Admin Invitation
+								{t.auth.adminInviteTitle}
 							</CardTitle>
 							<CardDescription>
-								You've been invited by{" "}
+								{t.auth.adminInviteDesc}{" "}
 								<strong className="text-foreground">
 									{inviteData?.createdBy}
 								</strong>{" "}
-								to join SEPMS as an administrator.
+								{t.auth.adminInviteDesc2}
 							</CardDescription>
 						</>
 					)}
 
 					{status === "invalid" && (
 						<>
-							<CardTitle className="text-destructive">Invalid Invite</CardTitle>
+							<CardTitle className="text-destructive">
+								{t.auth.invalidInvite}
+							</CardTitle>
 							<CardDescription>{error}</CardDescription>
 						</>
 					)}
 
 					{status === "accepting" && (
 						<>
-							<CardTitle>Setting up your account...</CardTitle>
-							<CardDescription>
-								Please wait while we configure your admin access.
-							</CardDescription>
+							<CardTitle>{t.auth.settingUpAdmin}</CardTitle>
+							<CardDescription>{t.auth.settingUpAdminDesc}</CardDescription>
 						</>
 					)}
 
@@ -182,11 +182,9 @@ export default function AdminInvitePage() {
 						<>
 							<CardTitle className="text-green-600 dark:text-green-400 flex items-center justify-center gap-2">
 								<ShieldCheck className="h-5 w-5" />
-								You're an Admin!
+								{t.auth.adminDone}
 							</CardTitle>
-							<CardDescription>
-								Redirecting you to the admin dashboard...
-							</CardDescription>
+							<CardDescription>{t.auth.adminDoneDesc}</CardDescription>
 						</>
 					)}
 				</CardHeader>
@@ -195,31 +193,31 @@ export default function AdminInvitePage() {
 					<CardContent className="space-y-4">
 						<div className="rounded-lg border bg-muted/30 p-4 space-y-2 text-sm">
 							<p className="text-muted-foreground">
-								As an admin, you will be able to:
+								{t.auth.adminAbilitiesTitle}
 							</p>
 							<ul className="space-y-1 text-muted-foreground">
 								<li className="flex items-center gap-2">
 									<CheckCircle2 className="h-3.5 w-3.5 text-green-500 shrink-0" />
-									Review and approve KYC verifications
+									{t.auth.adminAbility1}
 								</li>
 								<li className="flex items-center gap-2">
 									<CheckCircle2 className="h-3.5 w-3.5 text-green-500 shrink-0" />
-									Manage users and their statuses
+									{t.auth.adminAbility2}
 								</li>
 								<li className="flex items-center gap-2">
 									<CheckCircle2 className="h-3.5 w-3.5 text-green-500 shrink-0" />
-									Oversee pitch submissions
+									{t.auth.adminAbility3}
 								</li>
 							</ul>
 						</div>
 
 						<Button onClick={acceptInvite} className="w-full gap-2" size="lg">
 							<ShieldCheck className="h-4 w-4" />
-							Sign in with Google & Accept
+							{t.auth.acceptAdminInviteButton}
 						</Button>
 
 						<p className="text-xs text-muted-foreground text-center">
-							You'll be asked to choose which Google account to make admin.
+							{t.auth.adminGooglePrompt}
 						</p>
 					</CardContent>
 				)}
@@ -231,7 +229,7 @@ export default function AdminInvitePage() {
 							className="w-full"
 							onClick={() => router.push("/")}
 						>
-							Go to Home
+							{t.auth.goToHome}
 						</Button>
 					</CardContent>
 				)}

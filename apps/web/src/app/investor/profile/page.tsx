@@ -39,6 +39,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { INVESTOR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -156,6 +157,7 @@ function FileUploadCard({
 
 function InvestorProfilePageInner() {
 	const { user, userProfile, refreshUserProfile } = useAuth();
+	const { t } = useLanguage();
 	const [profileData, setProfileData] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
@@ -351,7 +353,7 @@ function InvestorProfilePageInner() {
 				<div className="admin-greeting-card bg-card mb-8 p-6 sm:p-8 admin-content-fade">
 					<div>
 						<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient">
-							Profile Settings
+							{t.nav.profile}
 						</h1>
 						<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
 							Manage your personal information and verification documents

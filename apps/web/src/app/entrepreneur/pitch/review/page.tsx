@@ -28,6 +28,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { YoutubeEmbed } from "@/components/YoutubeEmbed";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -112,6 +113,7 @@ interface MatchRequest {
 
 function ReviewPitchPageInner() {
 	const { user } = useAuth();
+	const { t } = useLanguage();
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const id = searchParams.get("id");
@@ -295,7 +297,7 @@ function ReviewPitchPageInner() {
 							variant="outline"
 							className="bg-background/50 backdrop-blur-sm"
 						>
-							Review Mode
+							{t.pitch.reviewPitch}
 						</Badge>
 					</div>
 				</header>

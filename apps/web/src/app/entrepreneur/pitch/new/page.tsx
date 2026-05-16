@@ -40,6 +40,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { ENTREPRENEUR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -83,6 +84,7 @@ const STEPS = [
 
 function NewPitchPageInner() {
 	const { user, userProfile } = useAuth();
+	const { t } = useLanguage();
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const editId = searchParams.get("id");
@@ -578,7 +580,7 @@ function NewPitchPageInner() {
 								</div>
 								<div>
 									<h1 className="text-2xl sm:text-3xl font-bold tracking-tight admin-header-gradient pb-1">
-										Create New Pitch
+										{t.nav.newPitch}
 									</h1>
 									<p className="text-sm text-muted-foreground font-medium">
 										Tell investors about your startup vision.

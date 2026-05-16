@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showSuccessToast,
@@ -18,6 +19,7 @@ function SignUpForm() {
 	const searchParams = useSearchParams();
 	const router = useRouter();
 	const { signUp, signInWithGoogle } = useAuth();
+	const { t } = useLanguage();
 
 	const [role, setRole] = useState<"entrepreneur" | "investor">("entrepreneur");
 	const [fullName, setFullName] = useState("");
@@ -141,11 +143,9 @@ function SignUpForm() {
 							<Logo className="h-12 w-12" />
 						</div>
 						<h2 className="text-3xl font-bold tracking-tight">
-							Create an account
+							{t.auth.signUpTitle}
 						</h2>
-						<p className="text-muted-foreground">
-							Select your role and enter your details
-						</p>
+						<p className="text-muted-foreground">{t.auth.signUpSubtitle}</p>
 					</div>
 
 					{/* Role Selection Toggle */}
@@ -156,7 +156,7 @@ function SignUpForm() {
 							onClick={() => setRole("entrepreneur")}
 							className={`flex flex-1 items-center justify-center rounded-md py-2.5 text-sm font-medium transition-all h-auto ${role === "entrepreneur" ? "bg-background text-foreground shadow-sm border border-border/50 hover:bg-background" : "text-muted-foreground hover:text-foreground hover:bg-transparent"}`}
 						>
-							Entrepreneur
+							{t.auth.roleEntrepreneur}
 						</Button>
 						<Button
 							type="button"
@@ -164,7 +164,7 @@ function SignUpForm() {
 							onClick={() => setRole("investor")}
 							className={`flex flex-1 items-center justify-center rounded-md py-2.5 text-sm font-medium transition-all h-auto ${role === "investor" ? "bg-background text-foreground shadow-sm border border-border/50 hover:bg-background" : "text-muted-foreground hover:text-foreground hover:bg-transparent"}`}
 						>
-							Investor
+							{t.auth.roleInvestor}
 						</Button>
 					</div>
 
@@ -201,7 +201,7 @@ function SignUpForm() {
 									fill="#EA4335"
 								/>
 							</svg>
-							Continue with Google
+							{t.auth.continueWithGoogle}
 						</Button>
 
 						<div className="relative">
@@ -210,7 +210,7 @@ function SignUpForm() {
 							</div>
 							<div className="relative flex justify-center text-xs uppercase">
 								<span className="bg-background px-2 text-muted-foreground">
-									Or continue with email
+									{t.auth.orContinueWithEmail}
 								</span>
 							</div>
 						</div>
@@ -219,12 +219,12 @@ function SignUpForm() {
 							{/* Top row: Name & Dynamic Role Info */}
 							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 								<div className="space-y-2">
-									<Label htmlFor="fullName">Full Name</Label>
+									<Label htmlFor="fullName">{t.auth.fullName}</Label>
 									<Input
 										id="fullName"
 										type="text"
 										className="h-11 border-border/50 bg-background"
-										placeholder="Abebe Kebede"
+										placeholder={t.auth.namePlaceholder}
 										value={fullName}
 										onChange={(e) => setFullName(e.target.value)}
 										required
@@ -275,12 +275,12 @@ function SignUpForm() {
 							</div>
 
 							<div className="space-y-2">
-								<Label htmlFor="email">Email</Label>
+								<Label htmlFor="email">{t.auth.email}</Label>
 								<Input
 									id="email"
 									type="email"
 									className="h-11 border-border/50 bg-background"
-									placeholder="you@example.com"
+									placeholder={t.auth.emailPlaceholder}
 									value={email}
 									onChange={(e) => setEmail(e.target.value)}
 									required
@@ -290,12 +290,12 @@ function SignUpForm() {
 
 							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 								<div className="space-y-2">
-									<Label htmlFor="password">Password</Label>
+									<Label htmlFor="password">{t.auth.password}</Label>
 									<Input
 										id="password"
 										type="password"
 										className="h-11 border-border/50 bg-background"
-										placeholder="••••••••"
+										placeholder={t.auth.passwordPlaceholder}
 										value={password}
 										onChange={(e) => setPassword(e.target.value)}
 										required
@@ -308,7 +308,7 @@ function SignUpForm() {
 										id="confirmPassword"
 										type="password"
 										className="h-11 border-border/50 bg-background"
-										placeholder="••••••••"
+										placeholder={t.auth.passwordPlaceholder}
 										value={confirmPassword}
 										onChange={(e) => setConfirmPassword(e.target.value)}
 										required
@@ -322,18 +322,18 @@ function SignUpForm() {
 								className="w-full h-11 font-medium mt-4"
 								disabled={loading}
 							>
-								{loading ? "Creating account..." : "Create Account"}
+								{loading ? t.auth.signingUp : t.auth.signUpButton}
 							</Button>
 						</form>
 					</div>
 
 					<p className="text-center text-sm text-muted-foreground pt-4">
-						Already have an account?{" "}
+						{t.auth.hasAccount}{" "}
 						<Link
 							href="/sign-in"
 							className="font-semibold text-primary hover:underline"
 						>
-							Sign in
+							{t.auth.signInLink}
 						</Link>
 					</p>
 				</div>

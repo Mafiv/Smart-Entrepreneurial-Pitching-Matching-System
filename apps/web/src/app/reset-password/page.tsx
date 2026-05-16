@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showSuccessToast,
@@ -32,6 +33,7 @@ function ResetPasswordContent() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const { confirmPasswordReset } = useAuth();
+	const { t } = useLanguage();
 
 	const [email, setEmail] = useState(searchParams.get("email") ?? "");
 	const [code, setCode] = useState("");
@@ -104,10 +106,10 @@ function ResetPasswordContent() {
 					</Link>
 					<div className="space-y-4">
 						<h1 className="text-4xl font-bold tracking-tight sm:text-5xl xl:text-6xl leading-[1.1]">
-							Set a new password
+							{t.auth.setNewPasswordTitle}
 						</h1>
 						<p className="text-lg text-muted-foreground max-w-md leading-relaxed">
-							Enter the OTP and your new password to continue.
+							{t.auth.setNewPasswordSubtitle}
 						</p>
 					</div>
 				</div>
@@ -120,71 +122,71 @@ function ResetPasswordContent() {
 							<Logo className="h-12 w-12" />
 						</div>
 						<h2 className="text-3xl font-bold tracking-tight">
-							Reset password
+							{t.auth.resetPasswordFormTitle}
 						</h2>
 						<p className="text-muted-foreground">
-							Use the code sent to your email
+							{t.auth.resetPasswordFormSubtitle}
 						</p>
 					</div>
 
 					<form className="space-y-4" onSubmit={handleSubmit}>
 						<div className="space-y-2">
-							<Label htmlFor="email">Email</Label>
+							<Label htmlFor="email">{t.auth.email}</Label>
 							<Input
 								id="email"
 								type="email"
 								required
 								value={email}
 								onChange={(event) => setEmail(event.target.value)}
-								placeholder="you@example.com"
+								placeholder={t.auth.emailPlaceholder}
 							/>
 						</div>
 						<div className="space-y-2">
-							<Label htmlFor="code">OTP code</Label>
+							<Label htmlFor="code">{t.auth.otpCode}</Label>
 							<Input
 								id="code"
 								required
 								value={code}
 								onChange={(event) => setCode(event.target.value)}
-								placeholder="Enter 6-digit code"
+								placeholder={t.auth.otpPlaceholder}
 								inputMode="numeric"
 								maxLength={6}
 							/>
 						</div>
 						<div className="space-y-2">
-							<Label htmlFor="password">New password</Label>
+							<Label htmlFor="password">{t.auth.newPassword}</Label>
 							<Input
 								id="password"
 								type="password"
 								required
 								value={password}
 								onChange={(event) => setPassword(event.target.value)}
-								placeholder="Enter a new password"
+								placeholder={t.auth.newPasswordPlaceholder}
 							/>
 						</div>
 						<div className="space-y-2">
-							<Label htmlFor="confirmPassword">Confirm password</Label>
+							<Label htmlFor="confirmPassword">{t.auth.confirmPassword}</Label>
 							<Input
 								id="confirmPassword"
 								type="password"
 								required
 								value={confirmPassword}
 								onChange={(event) => setConfirmPassword(event.target.value)}
-								placeholder="Repeat new password"
+								placeholder={t.auth.confirmPasswordPlaceholder}
 							/>
 						</div>
 						<Button type="submit" className="w-full h-11" disabled={loading}>
-							{loading ? "Resetting..." : "Reset password"}
+							{loading ? t.auth.resetting : t.auth.resetPasswordButton}
 						</Button>
 					</form>
 
 					<p className="text-sm text-muted-foreground text-center lg:text-left">
-						Need a new OTP?{" "}
+						{t.auth.needNewOtp}{" "}
 						<Link
 							href="/forgot-password"
 							className="text-primary font-semibold"
 						>
-							Request again
+							{t.auth.requestAgain}
 						</Link>
 					</p>
 				</div>
