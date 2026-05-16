@@ -44,14 +44,9 @@ import {
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
 import VerificationGate from "@/components/VerificationGate";
+import type { NavItem } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/i18n/LanguageContext";
-
-interface NavItem {
-	label: string;
-	href: string;
-	icon: string | React.ReactNode;
-}
 
 interface DashboardLayoutProps {
 	children: React.ReactNode;
@@ -136,25 +131,28 @@ export default function DashboardLayout({
 									const isActive =
 										pathname === item.href ||
 										pathname.startsWith(`${item.href}/`);
+									const displayLabel =
+										(item.labelKey && t.nav[item.labelKey]) || item.label;
+									const isMessages = item.labelKey === "messages";
 									return (
 										<SidebarMenuItem key={item.href}>
 											<SidebarMenuButton
 												isActive={isActive}
 												onClick={() => router.push(item.href)}
-												tooltip={item.label}
+												tooltip={displayLabel}
 												className={`cursor-pointer rounded-xl transition-all h-10 px-3 flex items-center gap-3 ${isActive ? "bg-primary/5 font-semibold text-primary" : "text-muted-foreground hover:bg-muted font-medium"} group-data-[collapsible=icon]:!justify-center group-data-[collapsible=icon]:!p-0`}
 											>
 												<div className="relative flex items-center justify-center shrink-0">
 													{item.icon}
-													{item.label === "Messages" && unreadCount > 0 && (
+													{isMessages && unreadCount > 0 && (
 														<span className="absolute -top-1.5 -right-1.5 hidden h-3.5 w-3.5 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground shadow-sm group-data-[collapsible=icon]:flex">
 															{unreadCount > 9 ? "9+" : unreadCount}
 														</span>
 													)}
 												</div>
 												<span className="flex-1 flex items-center justify-between group-data-[collapsible=icon]:hidden tracking-wide text-[15px]">
-													{item.label}
-													{item.label === "Messages" && unreadCount > 0 && (
+													{displayLabel}
+													{isMessages && unreadCount > 0 && (
 														<Badge
 															variant="destructive"
 															className="ml-2 px-1.5 py-0 h-4 min-w-4 text-[10px] flex items-center justify-center leading-none"
