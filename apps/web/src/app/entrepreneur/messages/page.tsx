@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
 	ArrowLeft,
@@ -6,6 +6,7 @@ import {
 	Check,
 	CheckCheck,
 	Clock,
+	Languages,
 	Loader2,
 	MessageSquare,
 	Paperclip,
@@ -99,7 +100,7 @@ function MeetingCard({
 					hour: "2-digit",
 					minute: "2-digit",
 				})}
-				{" · "}
+				{" Â· "}
 				{data.durationMinutes} min
 			</div>
 			{isJoinable ? (
@@ -124,7 +125,7 @@ function MeetingCard({
 	);
 }
 
-/* ── Types ── */
+/* â”€â”€ Types â”€â”€ */
 interface Participant {
 	_id: string;
 	fullName: string;
@@ -173,7 +174,7 @@ interface LocalProfile {
 	email?: string | null;
 }
 
-/* ── Helpers ── */
+/* â”€â”€ Helpers â”€â”€ */
 function formatTime(dateStr: string) {
 	return new Date(dateStr).toLocaleTimeString([], {
 		hour: "2-digit",
@@ -200,7 +201,7 @@ function getInitials(name?: string) {
 	return (name || "??").slice(0, 2).toUpperCase();
 }
 
-/* ── Color palette for avatars ── */
+/* â”€â”€ Color palette for avatars â”€â”€ */
 const AVATAR_COLORS = [
 	"bg-violet-500/15 text-violet-600",
 	"bg-sky-500/15 text-sky-600",
@@ -262,12 +263,14 @@ function MessagesContent() {
 	const hasAutoOpenedRef = useRef(false);
 	const scrollContainerRef = useRef<HTMLDivElement>(null);
 	const isNearBottomRef = useRef(true);
+	const [translations, setTranslations] = useState<Record<string, string>>({});
+	const [translating, setTranslating] = useState<Record<string, boolean>>({});
 
 	const api = (
 		process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
 	).replace(/\/+$/, "");
 
-	// Typed cast — UserProfile from AuthContext has _id and role at runtime
+	// Typed cast â€” UserProfile from AuthContext has _id and role at runtime
 	const profile = userProfile as unknown as LocalProfile | null;
 
 	const getToken = useCallback(async () => {
@@ -275,7 +278,7 @@ function MessagesContent() {
 		return user.getIdToken();
 	}, [user]);
 
-	/* ── Load conversations (seamless — no loading flash on poll) ── */
+	/* â”€â”€ Load conversations (seamless â€” no loading flash on poll) â”€â”€ */
 	const loadConversations = useCallback(
 		async (isInitial = false) => {
 			if (!user) return;
@@ -312,7 +315,7 @@ function MessagesContent() {
 		loadConversations(true);
 	}, [loadConversations]);
 
-	/* ── Auto-open conversation from URL ?open=conversationId ── */
+	/* â”€â”€ Auto-open conversation from URL ?open=conversationId â”€â”€ */
 	useEffect(() => {
 		if (hasAutoOpenedRef.current || !user || initialLoading) return;
 		const openId = searchParams.get("open");
@@ -351,7 +354,7 @@ function MessagesContent() {
 		})();
 	}, [searchParams, conversations, user, initialLoading, api, getToken]);
 
-	/* ── Auto-mark message notifications as read when chat page opens ── */
+	/* â”€â”€ Auto-mark message notifications as read when chat page opens â”€â”€ */
 	useEffect(() => {
 		if (!user) return;
 		(async () => {
@@ -376,7 +379,7 @@ function MessagesContent() {
 		})();
 	}, [user, api]);
 
-	/* ── Load messages for active conversation ── */
+	/* â”€â”€ Load messages for active conversation â”€â”€ */
 	const loadMessages = useCallback(
 		async (conversationId: string, backgroundMode = false) => {
 			if (!user) return;
@@ -468,7 +471,7 @@ function MessagesContent() {
 		return () => clearInterval(interval);
 	}, [user, loadConversations]);
 
-	/* ── Send message ── */
+	/* â”€â”€ Send message â”€â”€ */
 	const handleSend = async () => {
 		if (!messageBody.trim() || !activeConvo || !user || !userProfile) return;
 		const body = messageBody.trim();
@@ -528,7 +531,7 @@ function MessagesContent() {
 		}
 	};
 
-	/* ── Report misconduct ── */
+	/* â”€â”€ Report misconduct â”€â”€ */
 	const handleReport = async () => {
 		if (!reportReason.trim() || !activeConvo || !user) return;
 		setReportLoading(true);
@@ -568,7 +571,49 @@ function MessagesContent() {
 		}
 	};
 
-	/* ── Helpers ── */
+	/* â”€â”€ Translate a message â”€â”€ */
+	const handleTranslate = async (msgId: string, text: string) => {
+		if (translating[msgId] || !user) return;
+
+		// Toggle off if already translated
+		if (translations[msgId]) {
+			setTranslations((prev) => {
+				const next = { ...prev };
+				delete next[msgId];
+				return next;
+			});
+			return;
+		}
+
+		setTranslating((prev) => ({ ...prev, [msgId]: true }));
+		try {
+			const token = await getToken();
+			// Auto-detect: if text has Amharic characters, translate to English; otherwise to Amharic
+			const hasAmharic = /[\u1200-\u137F]/.test(text);
+			const targetLang = hasAmharic ? "en" : "am";
+
+			const res = await fetch(`${api}/messages/translate`, {
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${token}`,
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ text, targetLang }),
+			});
+			if (res.ok) {
+				const data = await res.json();
+				setTranslations((prev) => ({ ...prev, [msgId]: data.translated }));
+			} else {
+				showErrorToast("Translation failed");
+			}
+		} catch {
+			showErrorToast("Translation failed");
+		} finally {
+			setTranslating((prev) => ({ ...prev, [msgId]: false }));
+		}
+	};
+
+	/* â”€â”€ Helpers â”€â”€ */
 	const getOtherParticipant = (convo: Conversation) => {
 		if (!userProfile) return null;
 		return (
@@ -593,8 +638,8 @@ function MessagesContent() {
 	const getLastMessagePreview = (convo: Conversation) => {
 		if (!convo.lastMessage) return "No messages yet";
 		const body = convo.lastMessage.body;
-		if (convo.lastMessage.type === "file") return "📎 Attachment";
-		return body.length > 40 ? `${body.slice(0, 40)}…` : body;
+		if (convo.lastMessage.type === "file") return "ðŸ“Ž Attachment";
+		return body.length > 40 ? `${body.slice(0, 40)}â€¦` : body;
 	};
 
 	const getLastMessageTime = (convo: Conversation) => {
@@ -611,7 +656,7 @@ function MessagesContent() {
 		return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 	};
 
-	/* ── Build date-grouped messages ── */
+	/* â”€â”€ Build date-grouped messages â”€â”€ */
 	const groupedMessages: { date: string; msgs: Message[] }[] = [];
 	let currentDate = "";
 	for (const msg of messages) {
@@ -640,7 +685,7 @@ function MessagesContent() {
 					</div>
 
 					<div className="flex flex-1 gap-0 sm:gap-1 min-h-0 rounded-xl overflow-hidden border border-border bg-card/50">
-						{/* ── Sidebar: Conversation List ── */}
+						{/* â”€â”€ Sidebar: Conversation List â”€â”€ */}
 						<div
 							className={`w-full sm:w-80 md:w-96 shrink-0 flex flex-col bg-card border-r border-border ${
 								activeConvo ? "hidden sm:flex" : "flex"
@@ -716,7 +761,7 @@ function MessagesContent() {
 													{convo.submissionId &&
 														typeof convo.submissionId === "object" && (
 															<p className="text-[10px] text-primary/70 font-medium truncate mt-0.5">
-																📌{" "}
+																ðŸ“Œ{" "}
 																{
 																	(
 																		convo.submissionId as {
@@ -750,7 +795,7 @@ function MessagesContent() {
 							</div>
 						</div>
 
-						{/* ── Main Chat Area ── */}
+						{/* â”€â”€ Main Chat Area â”€â”€ */}
 						<div
 							className={`flex-1 flex flex-col bg-[hsl(var(--background))] overflow-hidden ${
 								!activeConvo ? "hidden sm:flex" : "flex"
@@ -808,7 +853,7 @@ function MessagesContent() {
 										</div>
 										{!activeConvo.isArchived && (
 											<div className="flex items-center gap-2">
-												{/* Schedule Meeting — investor only */}
+												{/* Schedule Meeting â€” investor only */}
 												{profile?.role === "investor" && (
 													<Button
 														variant="outline"
@@ -857,7 +902,7 @@ function MessagesContent() {
 												</div>
 												<p className="text-sm font-medium">No messages yet</p>
 												<p className="text-xs text-muted-foreground/60 mt-1">
-													Say hello! 👋
+													Say hello! ðŸ‘‹
 												</p>
 											</div>
 										) : (
@@ -901,9 +946,22 @@ function MessagesContent() {
 																				}
 																			/>
 																		) : (
-																			<p className="text-[13.5px] leading-relaxed whitespace-pre-wrap break-words">
-																				{msg.body}
-																			</p>
+																			<div>
+																				<p className="text-[13.5px] leading-relaxed whitespace-pre-wrap break-words">
+																					{msg.body}
+																				</p>
+																				{translations[msg._id] && (
+																					<p
+																						className={`text-[12px] leading-relaxed whitespace-pre-wrap break-words mt-1.5 pt-1.5 border-t ${
+																							isMine
+																								? "border-primary-foreground/20 text-primary-foreground/80"
+																								: "border-border text-muted-foreground"
+																						} italic`}
+																					>
+																						ðŸŒ {translations[msg._id]}
+																					</p>
+																				)}
+																			</div>
 																		);
 																	})()}
 																	{msg.attachmentUrl && (
@@ -917,7 +975,7 @@ function MessagesContent() {
 																			Attachment
 																		</a>
 																	)}
-																	{/* Time + Read Receipt */}
+																	{/* Time + Translate + Read Receipt */}
 																	<div
 																		className={`flex items-center justify-end gap-1 mt-0.5 ${
 																			isMine
@@ -928,6 +986,32 @@ function MessagesContent() {
 																		<span className="text-[10px] leading-none">
 																			{formatTime(msg.createdAt)}
 																		</span>
+																		{!parseMeetingCard(msg.body) && (
+																			<button
+																				type="button"
+																				onClick={(e) => {
+																					e.stopPropagation();
+																					handleTranslate(msg._id, msg.body);
+																				}}
+																				disabled={translating[msg._id]}
+																				className={`inline-flex items-center justify-center h-4 w-4 rounded-sm transition-all hover:scale-110 ${
+																					translations[msg._id]
+																						? "opacity-80"
+																						: "opacity-40 hover:opacity-100"
+																				}`}
+																				title={
+																					translations[msg._id]
+																						? "Hide translation"
+																						: "Translate"
+																				}
+																			>
+																				{translating[msg._id] ? (
+																					<Loader2 className="h-2.5 w-2.5 animate-spin" />
+																				) : (
+																					<Languages className="h-2.5 w-2.5" />
+																				)}
+																			</button>
+																		)}
 																		{isMine && (
 																			<span className="flex items-center">
 																				{read ? (
@@ -1002,7 +1086,7 @@ function MessagesContent() {
 					</div>
 				</div>
 
-				{/* ── Schedule Meeting Modal ── */}
+				{/* â”€â”€ Schedule Meeting Modal â”€â”€ */}
 				{showScheduleModal && activeConvo && (
 					<ScheduleMeetingModal
 						submissionId={
@@ -1051,7 +1135,7 @@ function MessagesContent() {
 					/>
 				)}
 
-				{/* ── Report Misconduct Dialog ── */}
+				{/* â”€â”€ Report Misconduct Dialog â”€â”€ */}
 				<Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
 					<DialogContent className="sm:max-w-md">
 						<DialogHeader>
