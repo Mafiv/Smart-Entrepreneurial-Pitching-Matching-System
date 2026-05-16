@@ -60,6 +60,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { ADMIN_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -194,6 +195,7 @@ function DocLink({
 
 export default function AdminOversight() {
 	const { user, userProfile } = useAuth();
+	const { t } = useLanguage();
 	const router = useRouter();
 	const isSuperAdmin = userProfile?.adminLevel === "super_admin";
 	const [users, setUsers] = useState<UserRecord[]>([]);
@@ -527,17 +529,16 @@ export default function AdminOversight() {
 					<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 						<div>
 							<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient">
-								Admin Overview
+								{t.admin.adminOverview}
 							</h1>
 							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
-								Monitor platform health, manage users, and review KYC
-								submissions
+								{t.admin.monitorPlatform}
 							</p>
 						</div>
 						<div className="flex items-center gap-2 shrink-0">
 							<div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
 							<span className="text-xs font-medium text-muted-foreground">
-								System Online
+								{t.admin.systemOnline}
 							</span>
 						</div>
 					</div>
@@ -547,42 +548,42 @@ export default function AdminOversight() {
 				<div className="admin-stat-grid grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 mb-8">
 					{[
 						{
-							label: "Total Users",
+							label: t.admin.totalUsers,
 							value: userStats.total,
 							icon: <Users className="h-4.5 w-4.5 text-white" />,
 							gradient: "admin-icon-blue",
 							change: null,
 						},
 						{
-							label: "Entrepreneurs",
+							label: t.admin.entrepreneurs,
 							value: userStats.entrepreneurs || 0,
 							icon: <Rocket className="h-4.5 w-4.5 text-white" />,
 							gradient: "admin-icon-violet",
 							change: null,
 						},
 						{
-							label: "Investors",
+							label: t.admin.investors,
 							value: userStats.investors || 0,
 							icon: <DollarSign className="h-4.5 w-4.5 text-white" />,
 							gradient: "admin-icon-emerald",
 							change: null,
 						},
 						{
-							label: "Pending KYC",
+							label: t.admin.pendingKYC,
 							value: pendingCount,
 							icon: <UserCheck className="h-4.5 w-4.5 text-white" />,
 							gradient: "admin-icon-amber",
 							change: pendingCount > 0 ? "action" : null,
 						},
 						{
-							label: "Submitted",
+							label: t.pitch.submitted,
 							value: subStats.submitted || 0,
 							icon: <Send className="h-4.5 w-4.5 text-white" />,
 							gradient: "admin-icon-cyan",
 							change: null,
 						},
 						{
-							label: "Approved",
+							label: t.pitch.approved,
 							value: subStats.approved || 0,
 							icon: <CheckCircle2 className="h-4.5 w-4.5 text-white" />,
 							gradient: "admin-icon-teal",
@@ -624,10 +625,10 @@ export default function AdminOversight() {
 
 				<Tabs defaultValue="users">
 					<TabsList className="mb-6">
-						<TabsTrigger value="users">Users</TabsTrigger>
-						<TabsTrigger value="submissions">Submissions</TabsTrigger>
+						<TabsTrigger value="users">{t.nav.users}</TabsTrigger>
+						<TabsTrigger value="submissions">{t.nav.submissions}</TabsTrigger>
 						<TabsTrigger value="kyc-queue" className="gap-1.5">
-							KYC Queue
+							{t.admin.kycQueue}
 							{pendingCount > 0 && (
 								<Badge
 									variant="destructive"
@@ -640,7 +641,7 @@ export default function AdminOversight() {
 						{isSuperAdmin && (
 							<TabsTrigger value="admins" className="gap-1.5">
 								<Crown className="h-3.5 w-3.5" />
-								Manage Admins
+								{t.admin.manageAdmins}
 							</TabsTrigger>
 						)}
 					</TabsList>
@@ -657,11 +658,13 @@ export default function AdminOversight() {
 							<Table>
 								<TableHeader>
 									<TableRow>
-										<TableHead>Name</TableHead>
-										<TableHead>Email</TableHead>
-										<TableHead>Role</TableHead>
-										<TableHead>Joined</TableHead>
-										<TableHead className="text-right">Actions</TableHead>
+										<TableHead>{t.admin.name}</TableHead>
+										<TableHead>{t.admin.email}</TableHead>
+										<TableHead>{t.admin.role}</TableHead>
+										<TableHead>{t.admin.joined}</TableHead>
+										<TableHead className="text-right">
+											{t.admin.actions}
+										</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
@@ -682,10 +685,8 @@ export default function AdminOversight() {
 											>
 												<div className="flex flex-col items-center gap-2">
 													<CheckCircle2 className="h-8 w-8 text-green-500/50" />
-													<p className="font-medium">All caught up!</p>
-													<p className="text-xs">
-														No pending KYC reviews at the moment.
-													</p>
+													<p className="font-medium">{t.admin.allCaughtUp}</p>
+													<p className="text-xs">{t.admin.noPendingKYC}</p>
 												</div>
 											</TableCell>
 										</TableRow>
@@ -718,7 +719,7 @@ export default function AdminOversight() {
 															fetchUserProfile(u._id);
 														}}
 													>
-														Review KYC
+														{t.admin.reviewKYC}
 													</Button>
 												</TableCell>
 											</TableRow>
@@ -760,12 +761,14 @@ export default function AdminOversight() {
 							<Table>
 								<TableHeader>
 									<TableRow>
-										<TableHead>Name</TableHead>
-										<TableHead>Email</TableHead>
-										<TableHead>Role</TableHead>
-										<TableHead>Status</TableHead>
-										<TableHead>Joined</TableHead>
-										<TableHead className="text-right">Actions</TableHead>
+										<TableHead>{t.admin.name}</TableHead>
+										<TableHead>{t.admin.email}</TableHead>
+										<TableHead>{t.admin.role}</TableHead>
+										<TableHead>{t.admin.status}</TableHead>
+										<TableHead>{t.admin.joined}</TableHead>
+										<TableHead className="text-right">
+											{t.admin.actions}
+										</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
@@ -775,7 +778,7 @@ export default function AdminOversight() {
 												colSpan={6}
 												className="text-center py-8 text-muted-foreground"
 											>
-												Loading...
+												{t.common.loading}
 											</TableCell>
 										</TableRow>
 									) : users.length === 0 ? (
@@ -784,7 +787,7 @@ export default function AdminOversight() {
 												colSpan={6}
 												className="text-center py-8 text-muted-foreground"
 											>
-												No users found
+												{t.admin.noUsersFound}
 											</TableCell>
 										</TableRow>
 									) : (

@@ -179,12 +179,38 @@ const en = {
 
 	// ── Admin ─────────────────────────────────────────────────────────────────
 	admin: {
+		adminOverview: "Admin Overview",
+		monitorPlatform:
+			"Monitor platform health, manage users, and review KYC submissions",
+		systemOnline: "System Online",
+		totalUsers: "Total Users",
+		entrepreneurs: "Entrepreneurs",
+		investors: "Investors",
+		pendingKYC: "Pending KYC",
+		needsReview: "Needs review",
 		approvalQueues: "Approval Queues",
 		userManagement: "User Management",
 		auditLog: "Audit Log",
 		suspend: "Suspend",
 		activate: "Activate",
 		override: "Override AI Decision",
+		manage: "Manage",
+		reviewKYC: "Review KYC",
+		name: "Name",
+		email: "Email",
+		role: "Role",
+		status: "Status",
+		joined: "Joined",
+		actions: "Actions",
+		noUsersFound: "No users found",
+		manageAdmins: "Manage Admins",
+		kycQueue: "KYC Queue",
+		pendingKYCReviews: "Pending KYC Reviews",
+		allCaughtUp: "All caught up!",
+		noPendingKYC: "No pending KYC reviews at the moment.",
+		approve: "Approve",
+		reject: "Reject",
+		verify: "Verify",
 	},
 
 	// ── Language ──────────────────────────────────────────────────────────────
