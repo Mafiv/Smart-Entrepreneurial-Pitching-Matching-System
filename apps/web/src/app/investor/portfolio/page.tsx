@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/table";
 import { INVESTOR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -94,6 +95,7 @@ function typeConfig(type: string): {
 
 export default function InvestorPortfolioPage() {
 	const { user } = useAuth();
+	const { t } = useLanguage();
 	const [summary, setSummary] = useState<InvestorSummary | null>(null);
 	const [loading, setLoading] = useState(true);
 
@@ -142,7 +144,7 @@ export default function InvestorPortfolioPage() {
 					<div>
 						<h1 className="text-3xl font-bold tracking-tight admin-header-gradient flex items-center gap-2">
 							<PieChart className="h-8 w-8 text-primary" />
-							Investment Portfolio
+							{t.nav.portfolio}
 						</h1>
 						<p className="text-muted-foreground mt-2">
 							Track your commitments, escrow holdings, and investment history.

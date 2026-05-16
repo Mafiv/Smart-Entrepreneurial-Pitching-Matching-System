@@ -27,6 +27,7 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { ENTREPRENEUR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -208,6 +209,7 @@ function EntrepreneurProjectGroup({
 
 export default function EntrepreneurMilestonesPage() {
 	const { user } = useAuth();
+	const { t } = useLanguage();
 	const [milestones, setMilestones] = useState<Milestone[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(
@@ -299,7 +301,7 @@ export default function EntrepreneurMilestonesPage() {
 						<div>
 							<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient flex items-center gap-2">
 								<PenTool className="h-6 w-6 text-primary" />
-								Funding Milestones
+								{t.nav.milestones}
 							</h1>
 							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
 								Submit evidence for completed work to unlock milestone payments

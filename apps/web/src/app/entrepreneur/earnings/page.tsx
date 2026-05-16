@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/table";
 import { ENTREPRENEUR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -69,6 +70,7 @@ const API = (
 
 export default function EntrepreneurEarningsPage() {
 	const { user } = useAuth();
+	const { t } = useLanguage();
 	const [summary, setSummary] = useState<EntrepreneurSummary | null>(null);
 	const [loading, setLoading] = useState(true);
 
@@ -117,7 +119,7 @@ export default function EntrepreneurEarningsPage() {
 					<div>
 						<h1 className="text-3xl font-bold tracking-tight admin-header-gradient flex items-center gap-2">
 							<Wallet className="h-8 w-8 text-primary" />
-							My Earnings
+							{t.nav.earnings}
 						</h1>
 						<p className="text-muted-foreground mt-2">
 							Monitor your received payouts and funds awaiting release.

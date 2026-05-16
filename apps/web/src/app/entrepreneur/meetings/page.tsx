@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ENTREPRENEUR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -43,6 +44,7 @@ function statusVariant(
 
 export default function EntrepreneurMeetingsPage() {
 	const { user } = useAuth();
+	const { t } = useLanguage();
 	const router = useRouter();
 	const [meetings, setMeetings] = useState<Meeting[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -84,7 +86,7 @@ export default function EntrepreneurMeetingsPage() {
 					<div>
 						<h1 className="text-2xl font-bold tracking-tight admin-header-gradient flex items-center gap-2">
 							<CalendarDays className="h-6 w-6 text-primary" />
-							My Meetings
+							{t.nav.meetings}
 						</h1>
 						<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
 							Video calls scheduled by investors for your pitches.
@@ -154,6 +156,7 @@ function MeetingCard({
 	meeting: Meeting;
 	onJoin?: () => void;
 }) {
+	const { t } = useLanguage();
 	const scheduledDate = new Date(meeting.scheduledAt);
 	const isJoinable =
 		meeting.status === "scheduled" || meeting.status === "ongoing";
@@ -209,7 +212,7 @@ function MeetingCard({
 						size="sm"
 					>
 						<Video className="h-4 w-4" />
-						Join Meeting
+						{t.meetings.joinNow}
 					</Button>
 				)}
 			</CardContent>
