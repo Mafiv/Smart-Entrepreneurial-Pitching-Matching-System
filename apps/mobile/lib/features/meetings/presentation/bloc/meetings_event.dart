@@ -28,3 +28,10 @@ class MeetingStatusUpdated extends MeetingsEvent {
   List<Object?> get props => [meetingId, payload];
 }
 
+class MeetingTokenRequested extends MeetingsEvent {
+  final String meetingId;
+  const MeetingTokenRequested({required this.meetingId});
+  @override
+  List<Object?> get props => [meetingId];
+}
+

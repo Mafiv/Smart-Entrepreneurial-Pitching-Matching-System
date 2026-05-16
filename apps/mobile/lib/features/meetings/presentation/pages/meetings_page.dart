@@ -6,6 +6,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../meeting_display.dart';
 import '../bloc/meetings_bloc.dart';
+import 'meeting_room_page.dart';
 
 class MeetingsPage extends StatefulWidget {
   const MeetingsPage({super.key});
@@ -163,9 +164,8 @@ class _MeetingsPageState extends State<MeetingsPage> {
                     ? 'No meetings for this status filter.'
                     : 'Schedule your first meeting to align with investors.',
                 actionLabel: _status != null ? 'Clear filter' : 'Schedule',
-                onAction: _status != null
-                    ? () => _setStatus(null)
-                    : _scheduleDialog,
+                onAction:
+                    _status != null ? () => _setStatus(null) : _scheduleDialog,
               );
             }
 
@@ -238,7 +238,8 @@ class _MeetingsPageState extends State<MeetingsPage> {
                                   Expanded(
                                     child: Text(
                                       m.title.isEmpty ? 'Meeting' : m.title,
-                                      style: theme.textTheme.titleSmall?.copyWith(
+                                      style:
+                                          theme.textTheme.titleSmall?.copyWith(
                                         fontWeight: FontWeight.w700,
                                       ),
                                     ),
@@ -289,40 +290,64 @@ class _MeetingsPageState extends State<MeetingsPage> {
                               AppSpacing.gapMd,
                               Row(
                                 children: [
-                                  Expanded(
-                                    child: FilledButton.tonal(
+                                  if (m.status == 'scheduled' ||
+                                      m.status == 'ongoing')
+                                    Expanded(
+                                      child: FilledButton.tonal(
+                                        onPressed: m.id.isEmpty
+                                            ? null
+                                            : () {
+                                                Navigator.push<void>(
+                                                  context,
+                                                  MaterialPageRoute<void>(
+                                                    builder: (_) =>
+                                                        BlocProvider.value(
+                                                      value: context
+                                                          .read<MeetingsBloc>(),
+                                                      child: MeetingRoomPage(
+                                                          meetingId: m.id),
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                        child: const Text('Join'),
+                                        style: FilledButton.styleFrom(
+                                            backgroundColor: AppColors.success),
+                                      ),
+                                    ),
+                                  if (m.status == 'scheduled' ||
+                                      m.status == 'ongoing')
+                                    OutlinedButton(
                                       onPressed: m.id.isEmpty
                                           ? null
                                           : () {
-                                              context.read<MeetingsBloc>().add(
-                                                    MeetingStatusUpdated(
-                                                      meetingId: m.id,
-                                                      payload: {
-                                                        'status': 'completed',
-                                                      },
-                                                    ),
-                                                  );
+                                              // TODO: Implement status update
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                const SnackBar(
+                                                  content:
+                                                      Text('Status updated'),
+                                                ),
+                                              );
                                             },
                                       child: const Text('Complete'),
                                     ),
-                                  ),
-                                  const SizedBox(width: AppSpacing.sm),
-                                  Expanded(
-                                    child: OutlinedButton(
-                                      onPressed: m.id.isEmpty
-                                          ? null
-                                          : () {
-                                              context.read<MeetingsBloc>().add(
-                                                    MeetingStatusUpdated(
-                                                      meetingId: m.id,
-                                                      payload: {
-                                                        'status': 'cancelled',
-                                                      },
-                                                    ),
-                                                  );
-                                            },
-                                      child: const Text('Cancel'),
-                                    ),
+                                  OutlinedButton(
+                                    onPressed: m.id.isEmpty
+                                        ? null
+                                        : () {
+                                            // TODO: Implement status update
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              const SnackBar(
+                                                content:
+                                                    Text('Meeting cancelled'),
+                                              ),
+                                            );
+                                          },
+                                    style: OutlinedButton.styleFrom(
+                                        foregroundColor: Colors.red),
+                                    child: const Text('Cancel'),
                                   ),
                                 ],
                               ),

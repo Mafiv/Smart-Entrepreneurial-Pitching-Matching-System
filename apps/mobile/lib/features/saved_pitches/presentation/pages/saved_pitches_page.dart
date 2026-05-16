@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../../../pitch_detail/presentation/pages/pitch_detail_page.dart';
+import '../../../pitch_detail/presentation/bloc/pitch_detail_bloc.dart';
 import '../../../submissions/presentation/submission_display.dart';
 import '../bloc/saved_pitches_bloc.dart';
 
@@ -97,6 +100,19 @@ class _SavedPitchesPageState extends State<SavedPitchesPage> {
                     sector: p.sector.isEmpty ? 'General' : p.sector,
                     stageLabel: submissionStageLabel(p.stage),
                     summary: p.summary,
+                    onTap: p.id.isEmpty
+                        ? null
+                        : () {
+                            Navigator.push<void>(
+                              context,
+                              MaterialPageRoute<void>(
+                                builder: (_) => BlocProvider<PitchDetailBloc>(
+                                  create: (_) => sl<PitchDetailBloc>(),
+                                  child: PitchDetailPage(pitchId: p.id),
+                                ),
+                              ),
+                            );
+                          },
                     trailing: IconButton(
                       tooltip: 'Remove from saved',
                       style: IconButton.styleFrom(

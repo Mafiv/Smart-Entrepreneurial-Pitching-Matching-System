@@ -10,5 +10,6 @@ abstract class MeetingsRepository {
     String meetingId,
     Map<String, dynamic> payload,
   );
+  Future<Either<Failure, String>> getMeetingToken(String meetingId);
 }
 

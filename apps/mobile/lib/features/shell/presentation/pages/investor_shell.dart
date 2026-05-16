@@ -11,6 +11,8 @@ import '../../../match_queue/presentation/bloc/match_queue_bloc.dart';
 import '../../../match_queue/presentation/pages/match_queue_page.dart';
 import '../../../messaging/presentation/bloc/messaging_bloc.dart';
 import '../../../messaging/presentation/pages/message_center_page.dart';
+import '../../../portfolio/presentation/bloc/portfolio_bloc.dart';
+import '../../../portfolio/presentation/pages/portfolio_page.dart';
 import '../../../investor_profile/presentation/bloc/investor_profile_bloc.dart';
 import '../../../investor_profile/presentation/pages/investor_profile_page.dart';
 
@@ -40,6 +42,10 @@ class _InvestorShellState extends State<InvestorShell> {
       BlocProvider<MatchQueueBloc>(
         create: (_) => sl<MatchQueueBloc>(),
         child: const MatchQueuePage(),
+      ),
+      BlocProvider<PortfolioBloc>(
+        create: (_) => sl<PortfolioBloc>(),
+        child: const PortfolioPage(),
       ),
       BlocProvider<MessagingBloc>(
         create: (_) => sl<MessagingBloc>(),
@@ -75,6 +81,11 @@ class _InvestorShellState extends State<InvestorShell> {
             icon: Icons.handshake_outlined,
             selectedIcon: Icons.handshake,
             label: 'Matches',
+          ),
+          AppBottomNavDestination(
+            icon: Icons.trending_up_outlined,
+            selectedIcon: Icons.trending_up,
+            label: 'Portfolio',
           ),
           AppBottomNavDestination(
             icon: Icons.chat_bubble_outline,

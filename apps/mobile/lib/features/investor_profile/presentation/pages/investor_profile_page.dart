@@ -18,6 +18,8 @@ import '../../../meetings/presentation/bloc/meetings_bloc.dart';
 import '../../../meetings/presentation/pages/meetings_page.dart';
 import '../../../milestones/presentation/bloc/milestones_bloc.dart';
 import '../../../milestones/presentation/pages/milestones_page.dart';
+import '../../../payment/presentation/bloc/payment_bloc.dart';
+import '../../../payment/presentation/pages/pending_milestones_page.dart';
 import '../bloc/investor_profile_bloc.dart';
 
 class InvestorProfilePage extends StatefulWidget {
@@ -426,6 +428,20 @@ class _InvestorProfilePageState extends State<InvestorProfilePage> {
                               builder: (_) => BlocProvider<MilestonesBloc>(
                                 create: (_) => sl<MilestonesBloc>(),
                                 child: const MilestonesPage(),
+                              ),
+                            ),
+                          ),
+                        ),
+                        _InvestorQuickTool(
+                          icon: Icons.payment_rounded,
+                          title: 'Payments',
+                          subtitle: 'Milestone releases',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (_) => BlocProvider<PaymentBloc>(
+                                create: (_) => sl<PaymentBloc>(),
+                                child: const PendingMilestonesPage(),
                               ),
                             ),
                           ),

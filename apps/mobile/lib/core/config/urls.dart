@@ -215,6 +215,11 @@ class Urls {
   /// Path: /meetings/{meetingId}
   static const String updateMeetingStatus = '/meetings';
 
+  /// GET - Get meeting token for LiveKit
+  /// Headers: Authorization: Bearer {token}
+  /// Path: /meetings/{meetingId}/token
+  static const String getMeetingToken = '/meetings';
+
   // ============================================================================
   // SEARCH ENDPOINTS
   // ============================================================================

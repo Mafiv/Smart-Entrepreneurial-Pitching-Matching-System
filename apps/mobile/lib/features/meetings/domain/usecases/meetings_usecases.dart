@@ -28,3 +28,10 @@ class UpdateMeetingStatusUseCase {
       _repo.updateStatus(meetingId, payload);
 }
 
+class GetMeetingTokenUseCase {
+  final MeetingsRepository _repo;
+  GetMeetingTokenUseCase(this._repo);
+  Future<Either<Failure, String>> call(String meetingId) =>
+      _repo.getMeetingToken(meetingId);
+}
+

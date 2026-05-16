@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../bloc/messaging_bloc.dart';
+import '../widgets/message_bubble.dart';
 
 class ChatPage extends StatefulWidget {
   final String conversationId;
@@ -122,7 +123,6 @@ class _ChatPageState extends State<ChatPage> {
 
                     return LayoutBuilder(
                       builder: (context, constraints) {
-                        final maxBubble = constraints.maxWidth * 0.88;
                         return RefreshIndicator(
                           onRefresh: () async {
                             _reload();
@@ -137,32 +137,19 @@ class _ChatPageState extends State<ChatPage> {
                             separatorBuilder: (_, __) => AppSpacing.gapSm,
                             itemBuilder: (context, i) {
                               final m = msgs[msgs.length - 1 - i];
-                              return Align(
-                                alignment: Alignment.centerLeft,
-                                child: ConstrainedBox(
-                                  constraints:
-                                      BoxConstraints(maxWidth: maxBubble),
-                                  child: Material(
-                                    color: AppColors.muted,
-                                    elevation: 0,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                      side: const BorderSide(
-                                        color: AppColors.border,
-                                      ),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 14,
-                                        vertical: 10,
-                                      ),
-                                      child: Text(
-                                        m.body,
-                                        style: theme.textTheme.bodyMedium
-                                            ?.copyWith(height: 1.45),
-                                      ),
-                                    ),
-                                  ),
+                              // Determine if this is the current user's message
+                              // In a real app, compare with actual user ID from auth
+                              final isOwnMessage =
+                                  m.senderId == 'current_user_id';
+                              return Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 4),
+                                child: MessageBubble(
+                                  message: m,
+                                  currentUserId: 'current_user_id',
+                                  isOwnMessage: isOwnMessage,
+                                  showTimestamp: true,
+                                  showReadReceipt: isOwnMessage,
                                 ),
                               );
                             },

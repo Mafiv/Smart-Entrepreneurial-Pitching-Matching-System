@@ -47,5 +47,17 @@ class MeetingsRepositoryImpl implements MeetingsRepository {
       return Left(ServerFailure(message: e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, String>> getMeetingToken(String meetingId) async {
+    try {
+      final token = await _remote.getMeetingToken(meetingId);
+      return Right(token);
+    } on Failure catch (e) {
+      return Left(e);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
 }
 

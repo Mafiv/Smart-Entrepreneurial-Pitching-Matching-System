@@ -61,6 +61,11 @@ import '../../features/match_queue/data/repositories/match_queue_repository_impl
 import '../../features/match_queue/domain/repositories/match_queue_repository.dart';
 import '../../features/match_queue/domain/usecases/match_queue_usecases.dart';
 import '../../features/match_queue/presentation/bloc/match_queue_bloc.dart';
+import '../../features/pitch_detail/data/datasources/pitch_detail_remote_datasource.dart';
+import '../../features/pitch_detail/data/repositories/pitch_detail_repository_impl.dart';
+import '../../features/pitch_detail/domain/repositories/pitch_detail_repository.dart';
+import '../../features/pitch_detail/domain/usecases/pitch_detail_usecases.dart';
+import '../../features/pitch_detail/presentation/bloc/pitch_detail_bloc.dart';
 import '../../features/invitations/data/datasources/invitations_manage_remote_datasource.dart';
 import '../../features/invitations/data/repositories/invitations_manage_repository_impl.dart';
 import '../../features/invitations/domain/repositories/invitations_manage_repository.dart';
@@ -86,6 +91,16 @@ import '../../features/feedback/data/repositories/feedback_repository_impl.dart'
 import '../../features/feedback/domain/repositories/feedback_repository.dart';
 import '../../features/feedback/domain/usecases/feedback_usecases.dart';
 import '../../features/feedback/presentation/bloc/feedback_bloc.dart';
+import '../../features/portfolio/data/datasources/portfolio_remote_datasource.dart';
+import '../../features/portfolio/data/repositories/portfolio_repository_impl.dart';
+import '../../features/portfolio/domain/repositories/portfolio_repository.dart';
+import '../../features/portfolio/domain/usecases/portfolio_usecases.dart';
+import '../../features/portfolio/presentation/bloc/portfolio_bloc.dart';
+import '../../features/payment/data/datasources/payment_remote_datasource.dart';
+import '../../features/payment/data/repositories/payment_repository_impl.dart';
+import '../../features/payment/domain/repositories/payment_repository.dart';
+import '../../features/payment/domain/usecases/payment_usecases.dart';
+import '../../features/payment/presentation/bloc/payment_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -177,6 +192,18 @@ Future<void> initDependencies() async {
       () => MatchQueueRemoteDataSourceImpl(dioClient: sl<DioClient>()),
     );
 
+    sl.registerLazySingleton<PitchDetailRemoteDataSource>(
+      () => PitchDetailRemoteDataSourceImpl(dioClient: sl<DioClient>()),
+    );
+
+    sl.registerLazySingleton<PortfolioRemoteDatasource>(
+      () => PortfolioRemoteDatasourceImpl(dioClient: sl<DioClient>()),
+    );
+
+    sl.registerLazySingleton<PaymentRemoteDatasource>(
+      () => PaymentRemoteDatasourceImpl(dioClient: sl<DioClient>()),
+    );
+
     // Repositories
     sl.registerLazySingleton<AuthRepository>(
       () => AuthRepositoryImpl(
@@ -252,6 +279,21 @@ Future<void> initDependencies() async {
 
     sl.registerLazySingleton<MatchQueueRepository>(
       () => MatchQueueRepositoryImpl(remote: sl<MatchQueueRemoteDataSource>()),
+    );
+
+    sl.registerLazySingleton<PitchDetailRepository>(
+      () => PitchDetailRepositoryImpl(
+          remoteDataSource: sl<PitchDetailRemoteDataSource>()),
+    );
+
+    sl.registerLazySingleton<PortfolioRepository>(
+      () => PortfolioRepositoryImpl(
+          remoteDatasource: sl<PortfolioRemoteDatasource>()),
+    );
+
+    sl.registerLazySingleton<PaymentRepository>(
+      () => PaymentRepositoryImpl(
+          remoteDatasource: sl<PaymentRemoteDatasource>()),
     );
 
     // Use Cases
@@ -348,6 +390,8 @@ Future<void> initDependencies() async {
         () => ScheduleMeetingUseCase(sl<MeetingsRepository>()));
     sl.registerLazySingleton(
         () => UpdateMeetingStatusUseCase(sl<MeetingsRepository>()));
+    sl.registerLazySingleton(
+        () => GetMeetingTokenUseCase(sl<MeetingsRepository>()));
 
     sl.registerLazySingleton(
         () => ListMilestonesUseCase(sl<MilestonesRepository>()));
@@ -388,6 +432,39 @@ Future<void> initDependencies() async {
         () => ListMatchQueueUseCase(sl<MatchQueueRepository>()));
     sl.registerLazySingleton(
         () => UpdateMatchStatusUseCase(sl<MatchQueueRepository>()));
+
+    // Pitch Detail Use Cases
+    sl.registerLazySingleton(
+        () => GetPitchDetailUseCase(sl<PitchDetailRepository>()));
+    sl.registerLazySingleton(
+        () => PitchDetailToggleSavedUseCase(sl<PitchDetailRepository>()));
+    sl.registerLazySingleton(
+        () => IsPitchSavedUseCase(sl<PitchDetailRepository>()));
+
+    // Portfolio Use Cases
+    sl.registerLazySingleton(
+        () => GetPortfolioSummaryUseCase(sl<PortfolioRepository>()));
+    sl.registerLazySingleton(
+        () => GetRecentLedgerUseCase(sl<PortfolioRepository>()));
+    sl.registerLazySingleton(
+        () => GetProjectDetailsUseCase(sl<PortfolioRepository>()));
+
+    // Payment Use Cases
+    sl.registerLazySingleton(
+      () => GetMilestoneDetailsUseCase(repository: sl<PaymentRepository>()),
+    );
+    sl.registerLazySingleton(
+      () => GetPendingMilestonesUseCase(repository: sl<PaymentRepository>()),
+    );
+    sl.registerLazySingleton(
+      () => InitiatePaymentUseCase(repository: sl<PaymentRepository>()),
+    );
+    sl.registerLazySingleton(
+      () => VerifyPaymentUseCase(repository: sl<PaymentRepository>()),
+    );
+    sl.registerLazySingleton(
+      () => SubmitMilestoneProofUseCase(repository: sl<PaymentRepository>()),
+    );
 
     // BLoCs
     sl.registerFactory<AuthBloc>(
@@ -473,6 +550,7 @@ Future<void> initDependencies() async {
         list: sl<ListMeetingsUseCase>(),
         schedule: sl<ScheduleMeetingUseCase>(),
         update: sl<UpdateMeetingStatusUseCase>(),
+        getToken: sl<GetMeetingTokenUseCase>(),
       ),
     );
 
@@ -521,6 +599,32 @@ Future<void> initDependencies() async {
       () => MatchQueueBloc(
         list: sl<ListMatchQueueUseCase>(),
         update: sl<UpdateMatchStatusUseCase>(),
+      ),
+    );
+
+    sl.registerFactory<PitchDetailBloc>(
+      () => PitchDetailBloc(
+        getPitchDetail: sl<GetPitchDetailUseCase>(),
+        toggleSavedPitch: sl<PitchDetailToggleSavedUseCase>(),
+        isPitchSaved: sl<IsPitchSavedUseCase>(),
+      ),
+    );
+
+    sl.registerFactory<PortfolioBloc>(
+      () => PortfolioBloc(
+        getPortfolioSummary: sl<GetPortfolioSummaryUseCase>(),
+        getRecentLedger: sl<GetRecentLedgerUseCase>(),
+        getProjectDetails: sl<GetProjectDetailsUseCase>(),
+      ),
+    );
+
+    sl.registerFactory<PaymentBloc>(
+      () => PaymentBloc(
+        getMilestoneDetails: sl<GetMilestoneDetailsUseCase>(),
+        getPendingMilestones: sl<GetPendingMilestonesUseCase>(),
+        initiatePayment: sl<InitiatePaymentUseCase>(),
+        verifyPayment: sl<VerifyPaymentUseCase>(),
+        submitProof: sl<SubmitMilestoneProofUseCase>(),
       ),
     );
     AppLogger.info('Dependency injection registration completed successfully.');

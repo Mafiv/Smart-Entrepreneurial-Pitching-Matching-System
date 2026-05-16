@@ -12,6 +12,7 @@ abstract class MeetingsRemoteDataSource {
   Future<MeetingModel> schedule(Map<String, dynamic> payload);
   Future<MeetingModel> updateStatus(
       String meetingId, Map<String, dynamic> payload);
+  Future<String> getMeetingToken(String meetingId);
 }
 
 class MeetingsRemoteDataSourceImpl implements MeetingsRemoteDataSource {
@@ -94,6 +95,27 @@ class MeetingsRemoteDataSourceImpl implements MeetingsRemoteDataSource {
       final msg =
           data is Map<String, dynamic> ? data['message'] as String? : null;
       throw ServerFailure(message: msg ?? e.message ?? 'Failed to update meeting');
+    }
+  }
+
+  @override
+  Future<String> getMeetingToken(String meetingId) async {
+    if (ApiConfig.useMockData) {
+      await Future<void>.delayed(ApiConfig.mockLatency);
+      return 'mock_token_$meetingId';
+    }
+    try {
+      final res = await _dio.get(Urls.buildUrl(Urls.getMeetingToken, meetingId));
+      if (res.statusCode == 200) {
+        final data = res.data as Map<String, dynamic>;
+        return (data['token'] as String?) ?? '';
+      }
+      throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to get meeting token');
     }
   }
 }

@@ -5,11 +5,14 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../../core/di/injection_container.dart';
+import '../../../pitch_detail/presentation/pages/pitch_detail_page.dart';
+import '../../../pitch_detail/presentation/bloc/pitch_detail_bloc.dart';
 import '../../../saved_pitches/presentation/bloc/saved_pitches_bloc.dart';
 import '../../../saved_pitches/presentation/pages/saved_pitches_page.dart';
 import '../../../submissions/presentation/submission_display.dart';
 import '../bloc/feed_bloc.dart';
-import 'pitch_detail_page.dart';
+import '../widgets/feed_filter_bottom_sheet.dart';
+import '../widgets/save_pitch_button.dart';
 
 class FeedPage extends StatefulWidget {
   const FeedPage({super.key});
@@ -19,6 +22,9 @@ class FeedPage extends StatefulWidget {
 }
 
 class _FeedPageState extends State<FeedPage> {
+  String _selectedSort = 'recent';
+  String? _selectedSector;
+
   @override
   void initState() {
     super.initState();
@@ -28,9 +34,30 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   void _reload() {
-    context
-        .read<FeedBloc>()
-        .add(const FeedRequested(sort: 'recent', page: 1, limit: 20));
+    context.read<FeedBloc>().add(FeedRequested(
+          sort: _selectedSort,
+          page: 1,
+          limit: 20,
+          sector: _selectedSector,
+        ));
+  }
+
+  void _openFilterSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (context) => FeedFilterBottomSheet(
+        selectedSector: _selectedSector,
+        selectedStage: null,
+        selectedSort: _selectedSort,
+        onApply: (sector, stage, sort) {
+          setState(() {
+            _selectedSector = sector;
+            _selectedSort = sort;
+          });
+          _reload();
+        },
+      ),
+    );
   }
 
   @override
@@ -58,6 +85,11 @@ class _FeedPageState extends State<FeedPage> {
           ],
         ),
         actions: [
+          IconButton(
+            tooltip: 'Filter & sort',
+            icon: const Icon(Icons.tune_rounded),
+            onPressed: _openFilterSheet,
+          ),
           IconButton(
             tooltip: 'Saved pitches',
             icon: const Icon(Icons.bookmark_added_outlined),
@@ -90,8 +122,8 @@ class _FeedPageState extends State<FeedPage> {
               return EmptyStateView(
                 icon: Icons.cloud_off_outlined,
                 title: 'Could not load pitches',
-                message: state.error ??
-                    'Check your connection and pull to refresh.',
+                message:
+                    state.error ?? 'Check your connection and pull to refresh.',
                 actionLabel: 'Try again',
                 onAction: _reload,
               );
@@ -129,24 +161,42 @@ class _FeedPageState extends State<FeedPage> {
                     );
                   }
                   final p = state.items[i - 1];
-                  return PitchPreviewCard(
-                    title: p.title,
-                    sector: p.sector.isEmpty ? 'General' : p.sector,
-                    stageLabel: submissionStageLabel(p.stage),
-                    summary: p.summary,
-                    onTap: p.id.isEmpty
-                        ? null
-                        : () {
-                            Navigator.push<void>(
-                              context,
-                              MaterialPageRoute<void>(
-                                builder: (_) => BlocProvider.value(
-                                  value: context.read<FeedBloc>(),
-                                  child: PitchDetailPage(pitchId: p.id),
-                                ),
-                              ),
-                            );
-                          },
+                  return BlocBuilder<SavedPitchesBloc, SavedPitchesState>(
+                    builder: (context, savedState) {
+                      final isSaved =
+                          savedState.items.any((saved) => saved.id == p.id);
+                      return PitchPreviewCard(
+                        title: p.title,
+                        sector: p.sector.isEmpty ? 'General' : p.sector,
+                        stageLabel: submissionStageLabel(p.stage),
+                        summary: p.summary,
+                        aiScore: p.aiScore,
+                        submissionStatus:
+                            p.updatedAt.year == DateTime.now().year &&
+                                    p.updatedAt.month == DateTime.now().month &&
+                                    p.updatedAt.day == DateTime.now().day
+                                ? 'new'
+                                : null,
+                        trailing: SavePitchButton(
+                          pitchId: p.id,
+                          isSaved: isSaved,
+                        ),
+                        onTap: p.id.isEmpty
+                            ? null
+                            : () {
+                                Navigator.push<void>(
+                                  context,
+                                  MaterialPageRoute<void>(
+                                    builder: (_) =>
+                                        BlocProvider<PitchDetailBloc>(
+                                      create: (_) => sl<PitchDetailBloc>(),
+                                      child: PitchDetailPage(pitchId: p.id),
+                                    ),
+                                  ),
+                                );
+                              },
+                      );
+                    },
                   );
                 },
               ),

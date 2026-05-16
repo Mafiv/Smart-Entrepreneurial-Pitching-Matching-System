@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../matching/domain/entities/match_result_entity.dart';
 import '../../../matching/presentation/match_display.dart';
+import '../../../pitch_detail/presentation/pages/pitch_detail_page.dart';
+import '../../../pitch_detail/presentation/bloc/pitch_detail_bloc.dart';
 import '../bloc/match_queue_bloc.dart';
+import '../widgets/match_ai_rationale_widget.dart';
+import '../widgets/match_score_breakdown_widget.dart';
 
 class MatchQueuePage extends StatefulWidget {
   const MatchQueuePage({super.key});
@@ -17,6 +22,7 @@ class MatchQueuePage extends StatefulWidget {
 
 class _MatchQueuePageState extends State<MatchQueuePage> {
   String? _filter;
+  final Set<String> _expandedCards = {};
 
   void _refresh() {
     context
@@ -33,6 +39,16 @@ class _MatchQueuePageState extends State<MatchQueuePage> {
   void _setFilter(String? value) {
     setState(() => _filter = value);
     _refresh();
+  }
+
+  void _toggleExpandCard(String matchId) {
+    setState(() {
+      if (_expandedCards.contains(matchId)) {
+        _expandedCards.remove(matchId);
+      } else {
+        _expandedCards.add(matchId);
+      }
+    });
   }
 
   @override
@@ -90,8 +106,7 @@ class _MatchQueuePageState extends State<MatchQueuePage> {
                     ? 'When the system suggests founders, they will appear in this queue.'
                     : 'Nothing with this status. Try another filter.',
                 actionLabel: _filter != null ? 'Clear filter' : 'Refresh',
-                onAction:
-                    _filter != null ? () => _setFilter(null) : _refresh,
+                onAction: _filter != null ? () => _setFilter(null) : _refresh,
               );
             }
 
@@ -149,148 +164,192 @@ class _MatchQueuePageState extends State<MatchQueuePage> {
                       final scorePct = (m.score * 100).clamp(0, 100).round();
                       final statusColor = matchStatusAccent(m.status);
 
-                      return Material(
-                        color: AppColors.card,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(AppSpacing.radiusLg),
-                          side: const BorderSide(color: AppColors.border),
-                        ),
-                        child: Padding(
-                          padding: AppSpacing.paddingMd,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  SizedBox(
-                                    width: 56,
-                                    height: 56,
-                                    child: Stack(
-                                      alignment: Alignment.center,
-                                      children: [
-                                        SizedBox(
-                                          width: 52,
-                                          height: 52,
-                                          child: CircularProgressIndicator(
-                                            value: m.score.clamp(0.0, 1.0),
-                                            strokeWidth: 5,
-                                            backgroundColor: AppColors.muted,
-                                            color: AppColors.primary,
-                                          ),
-                                        ),
-                                        Text(
-                                          '$scorePct',
-                                          style: theme.textTheme.labelLarge
-                                              ?.copyWith(
-                                            fontWeight: FontWeight.w800,
-                                          ),
-                                        ),
-                                      ],
+                      return InkWell(
+                        onTap: m.submissionId.isEmpty
+                            ? null
+                            : () {
+                                Navigator.push<void>(
+                                  context,
+                                  MaterialPageRoute<void>(
+                                    builder: (_) =>
+                                        BlocProvider<PitchDetailBloc>(
+                                      create: (_) => sl<PitchDetailBloc>(),
+                                      child: PitchDetailPage(
+                                          pitchId: m.submissionId),
                                     ),
                                   ),
-                                  const SizedBox(width: AppSpacing.md),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Fit score',
-                                          style: theme.textTheme.labelSmall
-                                              ?.copyWith(
-                                            color: AppColors.mutedForeground,
-                                            fontWeight: FontWeight.w600,
+                                );
+                              },
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusLg),
+                        child: Material(
+                          color: AppColors.card,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(AppSpacing.radiusLg),
+                            side: const BorderSide(color: AppColors.border),
+                          ),
+                          child: Padding(
+                            padding: AppSpacing.paddingMd,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SizedBox(
+                                      width: 56,
+                                      height: 56,
+                                      child: Stack(
+                                        alignment: Alignment.center,
+                                        children: [
+                                          SizedBox(
+                                            width: 52,
+                                            height: 52,
+                                            child: CircularProgressIndicator(
+                                              value: m.score.clamp(0.0, 1.0),
+                                              strokeWidth: 5,
+                                              backgroundColor: AppColors.muted,
+                                              color: AppColors.primary,
+                                            ),
                                           ),
-                                        ),
-                                        Text(
-                                          '${m.score.toStringAsFixed(2)} compatibility',
-                                          style: theme.textTheme.bodyMedium
-                                              ?.copyWith(
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                        if (m.rank != null) ...[
-                                          AppSpacing.gapXs,
                                           Text(
-                                            'Rank #${m.rank}',
-                                            style: theme.textTheme.bodySmall
+                                            '$scorePct',
+                                            style: theme.textTheme.labelLarge
                                                 ?.copyWith(
-                                              color: AppColors.mutedForeground,
+                                              fontWeight: FontWeight.w800,
                                             ),
                                           ),
                                         ],
-                                      ],
-                                    ),
-                                  ),
-                                  DecoratedBox(
-                                    decoration: BoxDecoration(
-                                      color: statusColor.withValues(alpha: 0.12),
-                                      borderRadius: BorderRadius.circular(
-                                        AppSpacing.radiusFull,
                                       ),
                                     ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: AppSpacing.sm,
-                                        vertical: AppSpacing.xs,
+                                    const SizedBox(width: AppSpacing.md),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Fit score',
+                                            style: theme.textTheme.labelSmall
+                                                ?.copyWith(
+                                              color: AppColors.mutedForeground,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          Text(
+                                            '${m.score.toStringAsFixed(2)} compatibility',
+                                            style: theme.textTheme.bodyMedium
+                                                ?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          if (m.rank != null) ...[
+                                            AppSpacing.gapXs,
+                                            Text(
+                                              'Rank #${m.rank}',
+                                              style: theme.textTheme.bodySmall
+                                                  ?.copyWith(
+                                                color:
+                                                    AppColors.mutedForeground,
+                                              ),
+                                            ),
+                                          ],
+                                        ],
                                       ),
-                                      child: Text(
-                                        matchStatusLabel(m.status).toUpperCase(),
-                                        style: theme.textTheme.labelSmall
-                                            ?.copyWith(
-                                          color: statusColor,
-                                          fontWeight: FontWeight.w800,
-                                          letterSpacing: 0.4,
+                                    ),
+                                    DecoratedBox(
+                                      decoration: BoxDecoration(
+                                        color:
+                                            statusColor.withValues(alpha: 0.12),
+                                        borderRadius: BorderRadius.circular(
+                                          AppSpacing.radiusFull,
+                                        ),
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: AppSpacing.sm,
+                                          vertical: AppSpacing.xs,
+                                        ),
+                                        child: Text(
+                                          matchStatusLabel(m.status)
+                                              .toUpperCase(),
+                                          style: theme.textTheme.labelSmall
+                                              ?.copyWith(
+                                            color: statusColor,
+                                            fontWeight: FontWeight.w800,
+                                            letterSpacing: 0.4,
+                                          ),
                                         ),
                                       ),
                                     ),
+                                  ],
+                                ),
+                                AppSpacing.gapMd,
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: FilledButton.tonal(
+                                        onPressed: (m.id.isEmpty ||
+                                                m.status ==
+                                                    MatchStatus.accepted)
+                                            ? null
+                                            : () => context
+                                                .read<MatchQueueBloc>()
+                                                .add(
+                                                  MatchStatusChanged(
+                                                    matchId: m.id,
+                                                    newStatus: 'accepted',
+                                                  ),
+                                                ),
+                                        child: const Text('Accept'),
+                                      ),
+                                    ),
+                                    const SizedBox(width: AppSpacing.sm),
+                                    Expanded(
+                                      child: OutlinedButton(
+                                        onPressed: (m.id.isEmpty ||
+                                                m.status ==
+                                                    MatchStatus.declined)
+                                            ? null
+                                            : () => context
+                                                .read<MatchQueueBloc>()
+                                                .add(
+                                                  MatchStatusChanged(
+                                                    matchId: m.id,
+                                                    newStatus: 'declined',
+                                                  ),
+                                                ),
+                                        child: const Text('Decline'),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                // Score Breakdown
+                                if (!_expandedCards.contains(m.id))
+                                  const SizedBox(height: AppSpacing.md),
+                                if (!_expandedCards.contains(m.id))
+                                  MatchScoreBreakdownWidget(
+                                    breakdown: m.scoreBreakdown,
+                                    expanded: false,
+                                    onExpand: () => _toggleExpandCard(m.id),
+                                  ),
+                                if (_expandedCards.contains(m.id)) ...[
+                                  const SizedBox(height: AppSpacing.md),
+                                  MatchScoreBreakdownWidget(
+                                    breakdown: m.scoreBreakdown,
+                                    expanded: true,
+                                    onExpand: () => _toggleExpandCard(m.id),
+                                  ),
+                                  const SizedBox(height: AppSpacing.md),
+                                  MatchAIRationaleWidget(
+                                    rationale: m.aiRationale,
+                                    expanded: true,
                                   ),
                                 ],
-                              ),
-                              AppSpacing.gapMd,
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: FilledButton.tonal(
-                                      onPressed: (m.id.isEmpty ||
-                                              m.status ==
-                                                  MatchStatus.accepted)
-                                          ? null
-                                          : () => context
-                                              .read<MatchQueueBloc>()
-                                              .add(
-                                                MatchStatusChanged(
-                                                  matchId: m.id,
-                                                  newStatus: 'accepted',
-                                                ),
-                                              ),
-                                      child: const Text('Accept'),
-                                    ),
-                                  ),
-                                  const SizedBox(width: AppSpacing.sm),
-                                  Expanded(
-                                    child: OutlinedButton(
-                                      onPressed: (m.id.isEmpty ||
-                                              m.status ==
-                                                  MatchStatus.declined)
-                                          ? null
-                                          : () => context
-                                              .read<MatchQueueBloc>()
-                                              .add(
-                                                MatchStatusChanged(
-                                                  matchId: m.id,
-                                                  newStatus: 'declined',
-                                                ),
-                                              ),
-                                      child: const Text('Decline'),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       );
