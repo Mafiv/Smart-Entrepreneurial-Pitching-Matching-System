@@ -101,6 +101,16 @@ import '../../features/payment/data/repositories/payment_repository_impl.dart';
 import '../../features/payment/domain/repositories/payment_repository.dart';
 import '../../features/payment/domain/usecases/payment_usecases.dart';
 import '../../features/payment/presentation/bloc/payment_bloc.dart';
+import '../../features/dashboard/data/datasources/dashboard_remote_datasource.dart';
+import '../../features/dashboard/data/repositories/dashboard_repository_impl.dart';
+import '../../features/dashboard/domain/repositories/dashboard_repository.dart';
+import '../../features/dashboard/domain/usecases/get_dashboard_stats_usecase.dart';
+import '../../features/dashboard/presentation/bloc/dashboard_bloc.dart';
+import '../../features/earnings/data/datasources/earnings_remote_datasource.dart';
+import '../../features/earnings/data/repositories/earnings_repository_impl.dart';
+import '../../features/earnings/domain/repositories/earnings_repository.dart';
+import '../../features/earnings/domain/usecases/get_entrepreneur_summary_usecase.dart';
+import '../../features/earnings/presentation/bloc/earnings_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -200,6 +210,14 @@ Future<void> initDependencies() async {
       () => PortfolioRemoteDatasourceImpl(dioClient: sl<DioClient>()),
     );
 
+    sl.registerLazySingleton<DashboardRemoteDataSource>(
+      () => DashboardRemoteDataSourceImpl(dioClient: sl<DioClient>()),
+    );
+
+    sl.registerLazySingleton<EarningsRemoteDataSource>(
+      () => EarningsRemoteDataSourceImpl(dioClient: sl<DioClient>()),
+    );
+
     sl.registerLazySingleton<PaymentRemoteDatasource>(
       () => PaymentRemoteDatasourceImpl(dioClient: sl<DioClient>()),
     );
@@ -294,6 +312,19 @@ Future<void> initDependencies() async {
     sl.registerLazySingleton<PaymentRepository>(
       () => PaymentRepositoryImpl(
           remoteDatasource: sl<PaymentRemoteDatasource>()),
+    );
+
+    sl.registerLazySingleton<DashboardRepository>(
+      () => DashboardRepositoryImpl(
+        remoteDataSource: sl<DashboardRemoteDataSource>(),
+        submissionsRepository: sl<SubmissionsRepository>(),
+      ),
+    );
+
+    sl.registerLazySingleton<EarningsRepository>(
+      () => EarningsRepositoryImpl(
+        remoteDataSource: sl<EarningsRemoteDataSource>(),
+      ),
     );
 
     // Use Cases
@@ -466,6 +497,16 @@ Future<void> initDependencies() async {
       () => SubmitMilestoneProofUseCase(repository: sl<PaymentRepository>()),
     );
 
+    // Dashboard Use Cases
+    sl.registerLazySingleton(
+      () => GetDashboardStatsUseCase(sl<DashboardRepository>()),
+    );
+
+    // Earnings Use Cases
+    sl.registerLazySingleton(
+      () => GetEntrepreneurSummaryUseCase(sl<EarningsRepository>()),
+    );
+
     // BLoCs
     sl.registerFactory<AuthBloc>(
       () => AuthBloc(
@@ -626,6 +667,14 @@ Future<void> initDependencies() async {
         verifyPayment: sl<VerifyPaymentUseCase>(),
         submitProof: sl<SubmitMilestoneProofUseCase>(),
       ),
+    );
+
+    sl.registerFactory<DashboardBloc>(
+      () => DashboardBloc(getStats: sl<GetDashboardStatsUseCase>()),
+    );
+
+    sl.registerFactory<EarningsBloc>(
+      () => EarningsBloc(getSummary: sl<GetEntrepreneurSummaryUseCase>()),
     );
     AppLogger.info('Dependency injection registration completed successfully.');
   } catch (e, st) {

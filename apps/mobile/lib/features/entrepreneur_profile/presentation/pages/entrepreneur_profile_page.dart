@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:file_picker/file_picker.dart';
 
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
@@ -7,6 +10,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../bloc/entrepreneur_profile_bloc.dart';
+import '../../domain/entities/entrepreneur_profile_entity.dart';
 
 class EntrepreneurProfilePage extends StatefulWidget {
   const EntrepreneurProfilePage({super.key});
@@ -16,8 +20,10 @@ class EntrepreneurProfilePage extends StatefulWidget {
       _EntrepreneurProfilePageState();
 }
 
-class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage> {
+class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
+  late TabController _tabController;
 
   final _fullName = TextEditingController();
   final _companyName = TextEditingController();
@@ -25,9 +31,15 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage> {
   final _sector = TextEditingController();
   final _stage = TextEditingController();
 
+  // Document file states
+  File? _nationalIdFile;
+  File? _businessLicenseFile;
+  File? _tinCertificateFile;
+
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     context
         .read<EntrepreneurProfileBloc>()
         .add(const EntrepreneurProfileChecked());
@@ -35,6 +47,7 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage> {
 
   @override
   void dispose() {
+    _tabController.dispose();
     _fullName.dispose();
     _companyName.dispose();
     _companyReg.dispose();
@@ -91,6 +104,49 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage> {
         ],
       ),
     );
+  }
+
+  Future<void> _pickFile({
+    required Function(File) onPicked,
+    List<String>? allowedExtensions,
+  }) async {
+    final result = await FilePicker.pickFiles(
+      type: allowedExtensions != null
+          ? FileType.custom
+          : FileType.any,
+      allowedExtensions: allowedExtensions,
+    );
+    if (result != null && result.files.single.path != null) {
+      onPicked(File(result.files.single.path!));
+    }
+  }
+
+  void _saveVerificationDocuments(EntrepreneurProfileEntity profile) {
+    // Simplified implementation - just update with placeholder URLs
+    // In a real implementation, you would upload files first
+    String nationalIdUrl = profile.nationalIdUrl;
+    String businessLicenseUrl = profile.businessLicenseUrl;
+    String tinNumber = profile.tinNumber;
+
+    if (_nationalIdFile != null) {
+      nationalIdUrl = 'uploaded_national_id_url';
+    }
+
+    if (_businessLicenseFile != null) {
+      businessLicenseUrl = 'uploaded_business_license_url';
+    }
+
+    if (_tinCertificateFile != null) {
+      tinNumber = 'uploaded_tin_url';
+    }
+
+    context.read<EntrepreneurProfileBloc>().add(
+          EntrepreneurProfileVerificationDocumentsUpdateRequested(
+            nationalIdUrl: nationalIdUrl,
+            businessLicenseUrl: businessLicenseUrl,
+            tinNumber: tinNumber,
+          ),
+        );
   }
 
   Widget _logoutSection({EdgeInsets? margin}) {
@@ -251,7 +307,10 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage> {
                 );
               }
 
-              return _buildView(state);
+              return SizedBox(
+                height: MediaQuery.of(context).size.height - 200,
+                child: _buildView(state),
+              );
             },
           ),
         ),
@@ -341,8 +400,7 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage> {
   Widget _buildView(EntrepreneurProfileState state) {
     final profile = state.profile!;
     final theme = Theme.of(context);
-    return ListView(
-      padding: const EdgeInsets.only(bottom: 100),
+    return Column(
       children: [
         Container(
           padding: AppSpacing.paddingMd,
@@ -395,6 +453,34 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage> {
           ),
         ),
         AppSpacing.gapMd,
+        TabBar(
+          controller: _tabController,
+          labelColor: theme.colorScheme.primary,
+          unselectedLabelColor: AppColors.mutedForeground,
+          indicatorColor: theme.colorScheme.primary,
+          tabs: const [
+            Tab(text: 'Personal Info'),
+            Tab(text: 'Verification'),
+          ],
+        ),
+        AppSpacing.gapMd,
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildPersonalInfoTab(profile, theme),
+              _buildVerificationTab(profile, theme),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPersonalInfoTab(EntrepreneurProfileEntity profile, ThemeData theme) {
+    return ListView(
+      padding: const EdgeInsets.only(bottom: 100),
+      children: [
         Text(
           'Details',
           style: theme.textTheme.titleMedium?.copyWith(
@@ -538,6 +624,330 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildVerificationTab(EntrepreneurProfileEntity profile, ThemeData theme) {
+    return ListView(
+      padding: const EdgeInsets.only(bottom: 100),
+      children: [
+        // Verification Status Card
+        Card(
+          color: profile.isVerified
+              ? const Color(0xFFECFDF5)
+              : profile.isPending
+                  ? const Color(0xFFEFF6FF)
+                  : const Color(0xFFFFFBEB),
+          child: Padding(
+            padding: AppSpacing.paddingMd,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      profile.isVerified
+                          ? Icons.verified
+                          : profile.isPending
+                              ? Icons.pending
+                              : Icons.warning_amber_rounded,
+                      color: profile.isVerified
+                          ? const Color(0xFF10B981)
+                          : profile.isPending
+                              ? const Color(0xFF3B82F6)
+                              : const Color(0xFFF59E0B),
+                    ),
+                    AppSpacing.gapSm,
+                    Text(
+                      profile.isVerified
+                          ? 'Verified'
+                          : profile.isPending
+                              ? 'Under Review'
+                              : 'Incomplete',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: profile.isVerified
+                            ? const Color(0xFF10B981)
+                            : profile.isPending
+                                ? const Color(0xFF3B82F6)
+                                : const Color(0xFFF59E0B),
+                      ),
+                    ),
+                  ],
+                ),
+                AppSpacing.gapSm,
+                Text(
+                  profile.isVerified
+                      ? 'Your identity and business documents have been verified.'
+                      : profile.isPending
+                          ? 'Your documents are being reviewed by an administrator.'
+                          : 'Complete your verification to access all features.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppColors.mutedForeground,
+                  ),
+                ),
+                if (profile.rejectionReason.isNotEmpty) ...[
+                  AppSpacing.gapSm,
+                  Container(
+                    padding: AppSpacing.paddingSm,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEE2E2),
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                    ),
+                    child: Text(
+                      profile.rejectionReason,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: const Color(0xFFDC2626),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+        AppSpacing.gapLg,
+
+        // Document Upload Section
+        Text(
+          'Identity Verification',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        AppSpacing.gapSm,
+        Text(
+          'Upload a valid government-issued ID (National ID, Driving License, or Passport).',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: AppColors.mutedForeground,
+          ),
+        ),
+        AppSpacing.gapMd,
+        _DocumentUploadCard(
+          label: 'Government ID',
+          description: 'National ID, Driving License, or Passport',
+          file: _nationalIdFile,
+          existingUrl: profile.nationalIdUrl,
+          onPick: () => _pickFile(
+            onPicked: (file) => setState(() => _nationalIdFile = file),
+            allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+          ),
+          onRemove: () => setState(() => _nationalIdFile = null),
+        ),
+        AppSpacing.gapLg,
+
+        Text(
+          'Business Verification',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        AppSpacing.gapSm,
+        Text(
+          'Upload your business license and TIN certificate.',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: AppColors.mutedForeground,
+          ),
+        ),
+        AppSpacing.gapMd,
+        _DocumentUploadCard(
+          label: 'Business License',
+          description: 'Certificate of incorporation or business license',
+          file: _businessLicenseFile,
+          existingUrl: profile.businessLicenseUrl,
+          onPick: () => _pickFile(
+            onPicked: (file) => setState(() => _businessLicenseFile = file),
+            allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+          ),
+          onRemove: () => setState(() => _businessLicenseFile = null),
+        ),
+        AppSpacing.gapMd,
+        _DocumentUploadCard(
+          label: 'TIN Certificate',
+          description: 'Tax Identification Number certificate',
+          file: _tinCertificateFile,
+          existingUrl: profile.tinNumber,
+          onPick: () => _pickFile(
+            onPicked: (file) => setState(() => _tinCertificateFile = file),
+            allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+          ),
+          onRemove: () => setState(() => _tinCertificateFile = null),
+        ),
+        AppSpacing.gapLg,
+
+        // Save Button
+        AppButton(
+          text: 'Save Documents',
+          onPressed: () => _saveVerificationDocuments(profile),
+        ),
+      ],
+    );
+  }
+}
+
+class _DocumentUploadCard extends StatelessWidget {
+  final String label;
+  final String description;
+  final File? file;
+  final String? existingUrl;
+  final VoidCallback onPick;
+  final VoidCallback onRemove;
+
+  const _DocumentUploadCard({
+    required this.label,
+    required this.description,
+    required this.file,
+    required this.existingUrl,
+    required this.onPick,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final hasFile = file != null;
+    final hasExisting = existingUrl != null && existingUrl!.isNotEmpty;
+    final isComplete = hasFile || hasExisting;
+
+    return Container(
+      padding: AppSpacing.paddingMd,
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        border: Border.all(
+          color: isComplete
+              ? const Color(0xFF10B981).withValues(alpha: 0.3)
+              : AppColors.border,
+          width: 2,
+        ),
+      ),
+      child: hasFile
+          ? Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.sm),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                  ),
+                  child: const Icon(
+                    Icons.check_circle_outline,
+                    color: Color(0xFF10B981),
+                    size: 20,
+                  ),
+                ),
+                AppSpacing.gapMd,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        file!.path.split('/').last,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        'Ready to upload',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppColors.mutedForeground,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: onRemove,
+                  icon: const Icon(Icons.close),
+                  color: AppColors.mutedForeground,
+                ),
+              ],
+            )
+          : hasExisting
+              ? Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(AppSpacing.sm),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                      ),
+                      child: const Icon(
+                        Icons.check_circle_outline,
+                        color: Color(0xFF10B981),
+                        size: 20,
+                      ),
+                    ),
+                    AppSpacing.gapMd,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            label,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            'Uploaded',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: const Color(0xFF10B981),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: onPick,
+                      child: const Text('Replace'),
+                    ),
+                  ],
+                )
+              : InkWell(
+                  onTap: onPick,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(AppSpacing.sm),
+                        decoration: BoxDecoration(
+                          color: AppColors.mutedForeground.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                        ),
+                        child: const Icon(
+                          Icons.cloud_upload_outlined,
+                          color: AppColors.mutedForeground,
+                          size: 20,
+                        ),
+                      ),
+                      AppSpacing.gapMd,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              label,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              description,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: AppColors.mutedForeground,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(
+                        Icons.chevron_right,
+                        color: AppColors.mutedForeground,
+                      ),
+                    ],
+                  ),
+                ),
     );
   }
 }

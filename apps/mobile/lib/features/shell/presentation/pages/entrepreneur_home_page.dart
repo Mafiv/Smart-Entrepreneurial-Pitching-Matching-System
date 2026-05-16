@@ -6,6 +6,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../documents/presentation/bloc/documents_bloc.dart';
 import '../../../documents/presentation/pages/documents_page.dart';
+import '../../../earnings/presentation/bloc/earnings_bloc.dart';
+import '../../../earnings/presentation/pages/entrepreneur_earnings_page.dart';
 import '../../../invitations/presentation/bloc/invitations_bloc.dart';
 import '../../../invitations/presentation/pages/invitations_page.dart';
 import '../../../meetings/presentation/bloc/meetings_bloc.dart';
@@ -177,6 +179,20 @@ class EntrepreneurHomePage extends StatelessWidget {
                     builder: (_) => BlocProvider<MilestonesBloc>(
                       create: (_) => sl<MilestonesBloc>(),
                       child: const MilestonesPage(),
+                    ),
+                  ),
+                ),
+              ),
+              _EntrepreneurHubTile(
+                icon: Icons.account_balance_wallet_outlined,
+                title: 'Earnings',
+                subtitle: 'View payouts',
+                onTap: () => Navigator.push<void>(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => BlocProvider<EarningsBloc>(
+                      create: (_) => sl<EarningsBloc>(),
+                      child: const EntrepreneurEarningsPage(),
                     ),
                   ),
                 ),

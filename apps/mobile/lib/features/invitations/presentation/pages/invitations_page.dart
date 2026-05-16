@@ -7,6 +7,7 @@ import '../../../../core/widgets/widgets.dart';
 import '../../domain/entities/invitation_entity.dart';
 import '../invitation_display.dart';
 import '../bloc/invitations_bloc.dart';
+import '../../../investor_profile/domain/entities/investor_profile_entity.dart';
 
 class InvitationsPage extends StatefulWidget {
   const InvitationsPage({super.key});
@@ -202,115 +203,121 @@ class _InvitationsPageState extends State<InvitationsPage> {
                                 inv.id.isNotEmpty &&
                                 inv.status == InvitationStatus.pending;
 
-                            return Material(
-                              color: AppColors.card,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                  AppSpacing.radiusLg,
-                                ),
-                                side: const BorderSide(color: AppColors.border),
+                            return InkWell(
+                              onTap: () => _showInvestorProfileModal(inv),
+                              borderRadius: BorderRadius.circular(
+                                AppSpacing.radiusLg,
                               ),
-                              child: Padding(
-                                padding: AppSpacing.paddingMd,
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: DecoratedBox(
-                                        decoration: BoxDecoration(
-                                          color: accent.withValues(alpha: 0.12),
-                                          borderRadius: BorderRadius.circular(
-                                            AppSpacing.radiusFull,
+                              child: Material(
+                                color: AppColors.card,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    AppSpacing.radiusLg,
+                                  ),
+                                  side: const BorderSide(color: AppColors.border),
+                                ),
+                                child: Padding(
+                                  padding: AppSpacing.paddingMd,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: DecoratedBox(
+                                          decoration: BoxDecoration(
+                                            color: accent.withValues(alpha: 0.12),
+                                            borderRadius: BorderRadius.circular(
+                                              AppSpacing.radiusFull,
+                                            ),
                                           ),
-                                        ),
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: AppSpacing.md,
-                                            vertical: AppSpacing.xs,
-                                          ),
-                                          child: Text(
-                                            invitationStatusLabel(inv.status)
-                                                .toUpperCase(),
-                                            style: theme.textTheme.labelSmall
-                                                ?.copyWith(
-                                              color: accent,
-                                              fontWeight: FontWeight.w800,
-                                              letterSpacing: 0.35,
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: AppSpacing.md,
+                                              vertical: AppSpacing.xs,
+                                            ),
+                                            child: Text(
+                                              invitationStatusLabel(inv.status)
+                                                  .toUpperCase(),
+                                              style: theme.textTheme.labelSmall
+                                                  ?.copyWith(
+                                                color: accent,
+                                                fontWeight: FontWeight.w800,
+                                                letterSpacing: 0.35,
+                                              ),
                                             ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                    if (message.isNotEmpty) ...[
-                                      AppSpacing.gapSm,
-                                      Text(
-                                        message,
-                                        style: theme.textTheme.bodyMedium
-                                            ?.copyWith(height: 1.45),
-                                      ),
-                                    ],
-                                    AppSpacing.gapMd,
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: FilledButton.tonal(
-                                            onPressed: !canRespond
-                                                ? null
-                                                : () => context
-                                                    .read<InvitationsBloc>()
-                                                    .add(
-                                                      InvitationRespondRequested(
-                                                        invitationId: inv.id,
-                                                        status: 'accepted',
-                                                      ),
-                                                    ),
-                                            child: const Text('Accept'),
-                                          ),
-                                        ),
-                                        const SizedBox(width: AppSpacing.sm),
-                                        Expanded(
-                                          child: OutlinedButton(
-                                            onPressed: !canRespond
-                                                ? null
-                                                : () => context
-                                                    .read<InvitationsBloc>()
-                                                    .add(
-                                                      InvitationRespondRequested(
-                                                        invitationId: inv.id,
-                                                        status: 'declined',
-                                                      ),
-                                                    ),
-                                            child: const Text('Decline'),
-                                          ),
-                                        ),
-                                        IconButton(
-                                          tooltip: 'Cancel invitation',
-                                          onPressed: !canRespond
-                                              ? null
-                                              : () => context
-                                                  .read<InvitationsBloc>()
-                                                  .add(
-                                                    InvitationCancelRequested(
-                                                      inv.id,
-                                                    ),
-                                                  ),
-                                          icon: const Icon(
-                                            Icons.cancel_outlined,
-                                          ),
+                                      if (message.isNotEmpty) ...[
+                                        AppSpacing.gapSm,
+                                        Text(
+                                          message,
+                                          style: theme.textTheme.bodyMedium
+                                              ?.copyWith(height: 1.45),
                                         ),
                                       ],
-                                    ),
-                                    AppSpacing.gapSm,
-                                    Text(
-                                      'Ref: ${inv.id.isEmpty ? '—' : inv.id}',
-                                      style: theme.textTheme.bodySmall?.copyWith(
-                                        color: AppColors.mutedForeground,
+                                      AppSpacing.gapMd,
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: FilledButton.tonal(
+                                              onPressed: !canRespond
+                                                  ? null
+                                                  : () => context
+                                                      .read<InvitationsBloc>()
+                                                      .add(
+                                                        InvitationRespondRequested(
+                                                          invitationId: inv.id,
+                                                          status: 'accepted',
+                                                        ),
+                                                      ),
+                                              child: const Text('Accept'),
+                                            ),
+                                          ),
+                                          const SizedBox(width: AppSpacing.sm),
+                                          Expanded(
+                                            child: OutlinedButton(
+                                              onPressed: !canRespond
+                                                  ? null
+                                                  : () => context
+                                                      .read<InvitationsBloc>()
+                                                      .add(
+                                                        InvitationRespondRequested(
+                                                          invitationId: inv.id,
+                                                          status: 'declined',
+                                                        ),
+                                                      ),
+                                              child: const Text('Decline'),
+                                            ),
+                                          ),
+                                          IconButton(
+                                            tooltip: 'Cancel invitation',
+                                            onPressed: !canRespond
+                                                ? null
+                                                : () => context
+                                                    .read<InvitationsBloc>()
+                                                    .add(
+                                                      InvitationCancelRequested(
+                                                        inv.id,
+                                                      ),
+                                                    ),
+                                            icon: const Icon(
+                                              Icons.cancel_outlined,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                  ],
+                                      AppSpacing.gapSm,
+                                      Text(
+                                        'Ref: ${inv.id.isEmpty ? '—' : inv.id}',
+                                        style: theme.textTheme.bodySmall?.copyWith(
+                                          color: AppColors.mutedForeground,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             );
@@ -320,6 +327,164 @@ class _InvitationsPageState extends State<InvitationsPage> {
               ],
             );
           },
+        ),
+      ),
+    );
+  }
+
+  void _showInvestorProfileModal(InvitationEntity invitation) {
+    const mockProfile = InvestorProfileEntity(
+      data: {
+        'fullName': 'Investor Name',
+        'preferredSectors': ['Technology', 'Healthcare'],
+        'preferredStages': ['MVP', 'Early Revenue'],
+      },
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) => _InvestorProfileModal(
+        profile: mockProfile,
+        investorId: invitation.investorId,
+      ),
+    );
+  }
+}
+
+class _InvestorProfileModal extends StatelessWidget {
+  final InvestorProfileEntity profile;
+  final String investorId;
+
+  const _InvestorProfileModal({
+    required this.profile,
+    required this.investorId,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+      ),
+      child: Padding(
+        padding: AppSpacing.paddingLg,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Investor Profile',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+            AppSpacing.gapLg,
+            CircleAvatar(
+              radius: 32,
+              backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+              child: Text(
+                profile.fullName.isNotEmpty
+                    ? profile.fullName[0].toUpperCase()
+                    : 'I',
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            AppSpacing.gapLg,
+            Text(
+              profile.fullName.isNotEmpty ? profile.fullName : 'Unknown Investor',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            AppSpacing.gapSm,
+            Text(
+              'ID: $investorId',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppColors.mutedForeground,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            AppSpacing.gapLg,
+            const Divider(),
+            AppSpacing.gapMd,
+            Text(
+              'Preferred Sectors',
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: AppColors.mutedForeground,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            AppSpacing.gapSm,
+            Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.sm,
+              children: profile.preferredSectors.isEmpty
+                  ? [
+                      Text(
+                        'No sectors specified',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppColors.mutedForeground,
+                        ),
+                      ),
+                    ]
+                  : profile.preferredSectors
+                      .map((sector) => Chip(
+                            label: Text(sector),
+                            backgroundColor: theme.colorScheme.primary
+                                .withValues(alpha: 0.1),
+                          ))
+                      .toList(),
+            ),
+            AppSpacing.gapMd,
+            Text(
+              'Preferred Stages',
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: AppColors.mutedForeground,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            AppSpacing.gapSm,
+            Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.sm,
+              children: profile.preferredStages.isEmpty
+                  ? [
+                      Text(
+                        'No stages specified',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppColors.mutedForeground,
+                        ),
+                      ),
+                    ]
+                  : profile.preferredStages
+                      .map((stage) => Chip(
+                            label: Text(stage),
+                            backgroundColor: theme.colorScheme.primary
+                                .withValues(alpha: 0.1),
+                          ))
+                      .toList(),
+            ),
+            AppSpacing.gapLg,
+            AppButton(
+              text: 'Close',
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
         ),
       ),
     );

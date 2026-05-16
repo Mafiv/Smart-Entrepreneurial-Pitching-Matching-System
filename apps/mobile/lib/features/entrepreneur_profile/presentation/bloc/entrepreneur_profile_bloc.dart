@@ -28,6 +28,7 @@ class EntrepreneurProfileBloc
     on<EntrepreneurProfileLoaded>(_onLoad);
     on<EntrepreneurProfileCreateRequested>(_onCreate);
     on<EntrepreneurProfileUpdateRequested>(_onUpdate);
+    on<EntrepreneurProfileVerificationDocumentsUpdateRequested>(_onUpdateVerificationDocuments);
   }
 
   Future<void> _onCheck(
@@ -98,6 +99,29 @@ class EntrepreneurProfileBloc
   ) async {
     emit(state.copyWith(status: EntrepreneurProfileStatus.loading, error: null));
     final result = await _update(event.patch);
+    result.fold(
+      (f) => emit(state.copyWith(
+        status: EntrepreneurProfileStatus.error,
+        error: f.message,
+      )),
+      (profile) => emit(state.copyWith(
+        status: EntrepreneurProfileStatus.loaded,
+        profile: profile,
+        error: null,
+      )),
+    );
+  }
+
+  Future<void> _onUpdateVerificationDocuments(
+    EntrepreneurProfileVerificationDocumentsUpdateRequested event,
+    Emitter<EntrepreneurProfileState> emit,
+  ) async {
+    emit(state.copyWith(status: EntrepreneurProfileStatus.loading, error: null));
+    final result = await _update({
+      'nationalIdUrl': event.nationalIdUrl,
+      'businessLicenseUrl': event.businessLicenseUrl,
+      'tinNumber': event.tinNumber,
+    });
     result.fold(
       (f) => emit(state.copyWith(
         status: EntrepreneurProfileStatus.error,

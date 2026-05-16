@@ -840,5 +840,71 @@ class MockBackend {
       'updatedAt': now.toIso8601String(),
     };
   }
+
+  static int getAcceptedMatchCount() {
+    // Return a mock count of accepted investor matches
+    return 3;
+  }
+
+  static Map<String, dynamic> getEntrepreneurSummary() {
+    final now = DateTime.now().toUtc();
+    return {
+      'status': 'success',
+      'summary': {
+        'totalReceived': 150000.0,
+        'pendingRelease': 45000.0,
+        'recentPayouts': [
+          {
+            '_id': 'payout_001',
+            'transactionId': 'TXN-2024-001234567890',
+            'amount': 50000.0,
+            'currency': 'ETB',
+            'status': 'completed',
+            'description': 'Milestone 1 Payment',
+            'milestoneId': {
+              '_id': 'milestone_001',
+              'title': 'Product Development Phase 1',
+            },
+            'submissionId': {
+              '_id': 'pitch_002',
+              'title': 'ClinicFlow: Queue & Records for Rural Clinics',
+            },
+            'occurredAt': now.subtract(const Duration(days: 7)).toIso8601String(),
+          },
+          {
+            '_id': 'payout_002',
+            'transactionId': 'TXN-2024-001234567891',
+            'amount': 100000.0,
+            'currency': 'ETB',
+            'status': 'completed',
+            'description': 'Milestone 2 Payment',
+            'milestoneId': {
+              '_id': 'milestone_002',
+              'title': 'Product Development Phase 2',
+            },
+            'submissionId': {
+              '_id': 'pitch_002',
+              'title': 'ClinicFlow: Queue & Records for Rural Clinics',
+            },
+            'occurredAt': now.subtract(const Duration(days: 14)).toIso8601String(),
+          },
+        ],
+        'pendingMilestones': [
+          {
+            'id': 'milestone_003',
+            'title': 'Market Expansion',
+            'amount': 25000.0,
+            'projectTitle': 'ClinicFlow: Queue & Records for Rural Clinics',
+          },
+          {
+            'id': 'milestone_004',
+            'title': 'User Training',
+            'amount': 20000.0,
+            'projectTitle': 'ClinicFlow: Queue & Records for Rural Clinics',
+          },
+        ],
+      },
+    };
+  }
 }
 

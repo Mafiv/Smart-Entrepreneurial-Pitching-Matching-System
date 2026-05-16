@@ -42,3 +42,19 @@ class EntrepreneurProfileUpdateRequested extends EntrepreneurProfileEvent {
   List<Object?> get props => [patch];
 }
 
+class EntrepreneurProfileVerificationDocumentsUpdateRequested
+    extends EntrepreneurProfileEvent {
+  final String nationalIdUrl;
+  final String businessLicenseUrl;
+  final String tinNumber;
+
+  const EntrepreneurProfileVerificationDocumentsUpdateRequested({
+    required this.nationalIdUrl,
+    required this.businessLicenseUrl,
+    required this.tinNumber,
+  });
+
+  @override
+  List<Object?> get props => [nationalIdUrl, businessLicenseUrl, tinNumber];
+}
+

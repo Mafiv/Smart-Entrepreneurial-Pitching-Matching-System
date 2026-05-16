@@ -17,6 +17,7 @@ class MeetingsPage extends StatefulWidget {
 
 class _MeetingsPageState extends State<MeetingsPage> {
   String? _status;
+  String _category = 'all';
 
   void _refresh() {
     context.read<MeetingsBloc>().add(MeetingsRequested(status: _status));
@@ -101,7 +102,10 @@ class _MeetingsPageState extends State<MeetingsPage> {
 
   void _setStatus(String? v) {
     setState(() => _status = v);
-    _refresh();
+  }
+
+  void _setCategory(String v) {
+    setState(() => _category = v);
   }
 
   @override
@@ -179,6 +183,32 @@ class _MeetingsPageState extends State<MeetingsPage> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
+                        _CategoryChip(
+                          label: 'All',
+                          selected: _category == 'all',
+                          onTap: () => _setCategory('all'),
+                        ),
+                        _CategoryChip(
+                          label: 'Upcoming',
+                          selected: _category == 'upcoming',
+                          onTap: () => _setCategory('upcoming'),
+                        ),
+                        _CategoryChip(
+                          label: 'Past',
+                          selected: _category == 'past',
+                          onTap: () => _setCategory('past'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                AppSpacing.gapSm,
+                Padding(
+                  padding: AppSpacing.screenPaddingHorizontal,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
                         _StatusChip(
                           label: 'All',
                           selected: _status == null,
@@ -210,157 +240,227 @@ class _MeetingsPageState extends State<MeetingsPage> {
                 ),
                 AppSpacing.gapMd,
                 Expanded(
-                  child: ListView.separated(
-                    padding: AppSpacing.screenPadding.copyWith(bottom: 32),
-                    itemCount: state.items.length,
-                    separatorBuilder: (_, __) => AppSpacing.gapMd,
-                    itemBuilder: (context, i) {
-                      final m = state.items[i];
-                      final when = m.scheduledAt.toLocal().toString();
-                      final statusLabel = meetingStatusLabel(m.status);
-
-                      return Material(
-                        color: AppColors.card,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(AppSpacing.radiusLg),
-                          side: const BorderSide(color: AppColors.border),
-                        ),
-                        child: Padding(
-                          padding: AppSpacing.paddingMd,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      m.title.isEmpty ? 'Meeting' : m.title,
-                                      style:
-                                          theme.textTheme.titleSmall?.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ),
-                                  DecoratedBox(
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primary
-                                          .withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(
-                                        AppSpacing.radiusFull,
-                                      ),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: AppSpacing.sm,
-                                        vertical: AppSpacing.xs,
-                                      ),
-                                      child: Text(
-                                        statusLabel.toUpperCase(),
-                                        style: theme.textTheme.labelSmall
-                                            ?.copyWith(
-                                          color: AppColors.primary,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (when.isNotEmpty) ...[
-                                AppSpacing.gapSm,
-                                Text(
-                                  when,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: AppColors.mutedForeground,
-                                  ),
-                                ),
-                              ],
-                              if ((m.meetingUrl ?? '').isNotEmpty) ...[
-                                AppSpacing.gapXs,
-                                SelectableText(
-                                  m.meetingUrl!,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: AppColors.primary,
-                                  ),
-                                ),
-                              ],
-                              AppSpacing.gapMd,
-                              Row(
-                                children: [
-                                  if (m.status == 'scheduled' ||
-                                      m.status == 'ongoing')
-                                    Expanded(
-                                      child: FilledButton.tonal(
-                                        onPressed: m.id.isEmpty
-                                            ? null
-                                            : () {
-                                                Navigator.push<void>(
-                                                  context,
-                                                  MaterialPageRoute<void>(
-                                                    builder: (_) =>
-                                                        BlocProvider.value(
-                                                      value: context
-                                                          .read<MeetingsBloc>(),
-                                                      child: MeetingRoomPage(
-                                                          meetingId: m.id),
-                                                    ),
-                                                  ),
-                                                );
-                                              },
-                                        child: const Text('Join'),
-                                        style: FilledButton.styleFrom(
-                                            backgroundColor: AppColors.success),
-                                      ),
-                                    ),
-                                  if (m.status == 'scheduled' ||
-                                      m.status == 'ongoing')
-                                    OutlinedButton(
-                                      onPressed: m.id.isEmpty
-                                          ? null
-                                          : () {
-                                              // TODO: Implement status update
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
-                                                const SnackBar(
-                                                  content:
-                                                      Text('Status updated'),
-                                                ),
-                                              );
-                                            },
-                                      child: const Text('Complete'),
-                                    ),
-                                  OutlinedButton(
-                                    onPressed: m.id.isEmpty
-                                        ? null
-                                        : () {
-                                            // TODO: Implement status update
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              const SnackBar(
-                                                content:
-                                                    Text('Meeting cancelled'),
-                                              ),
-                                            );
-                                          },
-                                    style: OutlinedButton.styleFrom(
-                                        foregroundColor: Colors.red),
-                                    child: const Text('Cancel'),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+                  child: _buildMeetingsList(state.items),
                 ),
               ],
             );
           },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMeetingsList(List<dynamic> allMeetings) {
+    final theme = Theme.of(context);
+    final now = DateTime.now();
+    final upcomingMeetings = allMeetings.where((m) => m.scheduledAt.isAfter(now)).toList();
+    final pastMeetings = allMeetings.where((m) => m.scheduledAt.isBefore(now) || m.scheduledAt.isAtSameMomentAs(now)).toList();
+
+    List<dynamic> filteredMeetings;
+    if (_category == 'upcoming') {
+      filteredMeetings = upcomingMeetings;
+    } else if (_category == 'past') {
+      filteredMeetings = pastMeetings;
+    } else {
+      filteredMeetings = allMeetings;
+    }
+
+    if (_status != null) {
+      filteredMeetings = filteredMeetings.where((m) => m.status == _status).toList();
+    }
+
+    if (filteredMeetings.isEmpty) {
+      return EmptyStateView(
+        icon: Icons.event_available_rounded,
+        title: 'No meetings',
+        message: _category != 'all' || _status != null
+            ? 'No meetings match your filters.'
+            : 'Schedule your first meeting to align with investors.',
+        actionLabel: _category != 'all' || _status != null ? 'Clear filters' : 'Schedule',
+        onAction: _category != 'all' || _status != null
+            ? () {
+                setState(() {
+                  _category = 'all';
+                  _status = null;
+                });
+              }
+            : _scheduleDialog,
+      );
+    }
+
+    return ListView.separated(
+      padding: AppSpacing.screenPadding.copyWith(bottom: 32),
+      itemCount: filteredMeetings.length,
+      separatorBuilder: (_, __) => AppSpacing.gapMd,
+      itemBuilder: (context, i) {
+        final m = filteredMeetings[i];
+        final when = m.scheduledAt.toLocal().toString();
+        final statusLabel = meetingStatusLabel(m.status);
+
+        return Material(
+          color: AppColors.card,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+            side: const BorderSide(color: AppColors.border),
+          ),
+          child: Padding(
+            padding: AppSpacing.paddingMd,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        m.title.isEmpty ? 'Meeting' : m.title,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusFull,
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm,
+                          vertical: AppSpacing.xs,
+                        ),
+                        child: Text(
+                          statusLabel.toUpperCase(),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (when.isNotEmpty) ...[
+                  AppSpacing.gapSm,
+                  Text(
+                    when,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppColors.mutedForeground,
+                    ),
+                  ),
+                ],
+                if ((m.meetingUrl ?? '').isNotEmpty) ...[
+                  AppSpacing.gapXs,
+                  SelectableText(
+                    m.meetingUrl!,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
+                AppSpacing.gapMd,
+                Row(
+                  children: [
+                    if (m.status == 'scheduled' || m.status == 'ongoing')
+                      Expanded(
+                        child: FilledButton.tonal(
+                          onPressed: m.id.isEmpty
+                              ? null
+                              : () {
+                                  Navigator.push<void>(
+                                    context,
+                                    MaterialPageRoute<void>(
+                                      builder: (_) => BlocProvider.value(
+                                        value: context.read<MeetingsBloc>(),
+                                        child: MeetingRoomPage(meetingId: m.id),
+                                      ),
+                                    ),
+                                  );
+                                },
+                          style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.success),
+                          child: const Text('Join'),
+                        ),
+                      ),
+                    if (m.status == 'scheduled' || m.status == 'ongoing')
+                      OutlinedButton(
+                        onPressed: m.id.isEmpty
+                            ? null
+                            : () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Status updated'),
+                                  ),
+                                );
+                              },
+                        child: const Text('Complete'),
+                      ),
+                    OutlinedButton(
+                      onPressed: m.id.isEmpty
+                          ? null
+                          : () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Meeting cancelled'),
+                                ),
+                              );
+                            },
+                      style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.red),
+                      child: const Text('Cancel'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _CategoryChip extends StatelessWidget {
+  const _CategoryChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: AppSpacing.sm),
+      child: Material(
+        color: selected
+            ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.14)
+            : AppColors.muted,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: selected
+                        ? Theme.of(context).colorScheme.primary
+                        : AppColors.mutedForeground,
+                  ),
+            ),
+          ),
         ),
       ),
     );

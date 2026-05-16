@@ -17,6 +17,7 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final _controller = TextEditingController();
+  String? _attachedFilePath;
 
   @override
   void initState() {
@@ -43,14 +44,54 @@ class _ChatPageState extends State<ChatPage> {
 
   void _send() {
     final text = _controller.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty && _attachedFilePath == null) return;
     _controller.clear();
+    setState(() => _attachedFilePath = null);
     context.read<MessagingBloc>().add(
           MessageSendRequested(
             conversationId: widget.conversationId,
             body: text,
           ),
         );
+  }
+
+  void _attachFile() {
+    // TODO: Implement file picker
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('File attachment coming soon')),
+    );
+  }
+
+  void _scheduleMeeting() {
+    // TODO: Implement meeting scheduling
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Meeting scheduling coming soon')),
+    );
+  }
+
+  void _reportMessage(String messageId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Report Message'),
+        content: const Text('Are you sure you want to report this message?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Message reported')),
+              );
+            },
+            child: const Text('Report'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -144,12 +185,15 @@ class _ChatPageState extends State<ChatPage> {
                               return Padding(
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 4),
-                                child: MessageBubble(
-                                  message: m,
-                                  currentUserId: 'current_user_id',
-                                  isOwnMessage: isOwnMessage,
-                                  showTimestamp: true,
-                                  showReadReceipt: isOwnMessage,
+                                child: GestureDetector(
+                                  onLongPress: () => _reportMessage(m.id),
+                                  child: MessageBubble(
+                                    message: m,
+                                    currentUserId: 'current_user_id',
+                                    isOwnMessage: isOwnMessage,
+                                    showTimestamp: true,
+                                    showReadReceipt: isOwnMessage,
+                                  ),
                                 ),
                               );
                             },

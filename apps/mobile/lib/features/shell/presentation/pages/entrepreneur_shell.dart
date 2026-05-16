@@ -7,7 +7,8 @@ import '../../../entrepreneur_profile/presentation/pages/entrepreneur_profile_pa
 import '../../../../core/di/injection_container.dart';
 import '../../../submissions/presentation/bloc/submissions_bloc.dart';
 import '../../../submissions/presentation/pages/my_submissions_page.dart';
-import 'entrepreneur_home_page.dart';
+import '../../../dashboard/presentation/bloc/dashboard_bloc.dart';
+import '../../../dashboard/presentation/pages/entrepreneur_dashboard_page.dart';
 import '../../../messaging/presentation/bloc/messaging_bloc.dart';
 import '../../../messaging/presentation/pages/message_center_page.dart';
 
@@ -26,7 +27,10 @@ class _EntrepreneurShellState extends State<EntrepreneurShell> {
   void initState() {
     super.initState();
     _pages = <Widget>[
-      const EntrepreneurHomePage(),
+      BlocProvider(
+        create: (_) => sl<DashboardBloc>()..add(const DashboardStatsRequested()),
+        child: const EntrepreneurDashboardPage(),
+      ),
       BlocProvider<SubmissionsBloc>(
         create: (_) => sl<SubmissionsBloc>(),
         child: const MySubmissionsPage(),

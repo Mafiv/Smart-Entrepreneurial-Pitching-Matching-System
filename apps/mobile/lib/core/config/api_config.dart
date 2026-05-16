@@ -52,6 +52,7 @@ class ApiConfig {
       '/matching/submissions/$submissionId';
   static String get matchingInvestorQueue => '/matching/me/investor';
   static String matchingStatus(String matchId) => '/matching/$matchId/status';
+  static String get matchesCount => '/recommendation/matches/count';
 
   /// Invitation endpoints
   static String get invitations => '/invitations';
@@ -62,14 +63,15 @@ class ApiConfig {
       '/invitations/$invitationId/cancel';
 
   /// Upload/Document endpoints
-  static String get upload => Urls.uploadFile;
-  static String uploadDelete(String publicId) =>
-      Urls.buildUrl(Urls.deleteUploadedFile, publicId);
-  static String get documents => Urls.listDocuments;
-  static String documentById(String id) =>
-      Urls.buildUrl(Urls.deleteDocument, id);
-  static String documentValidation(String id) =>
-      Urls.buildUrl(Urls.getDocumentValidation, id);
+  static String get upload => '/upload';
+  static String uploadDocument(String documentId) => '/documents/$documentId';
+  static String get documents => '/documents';
+  static String documentById(String documentId) => '/documents/$documentId';
+  static String documentDownload(String documentId) =>
+      '/documents/$documentId/download';
+
+  /// Finance/Earnings endpoints
+  static String get entrepreneurSummary => '/finance/entrepreneur-summary';
 
   /// Communication endpoints
   static String get meetings => Urls.listMeetings;
