@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
 	ArrowLeft,
@@ -37,6 +37,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ENTREPRENEUR_NAV, INVESTOR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -244,6 +245,7 @@ function RoleBadge({ role }: { role?: string }) {
 
 function MessagesContent() {
 	const { user, userProfile } = useAuth();
+	const { t } = useLanguage();
 	const searchParams = useSearchParams();
 	const router = useRouter();
 	const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -1039,11 +1041,10 @@ function MessagesContent() {
 												<ShieldAlert className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
 												<div>
 													<p className="text-sm font-semibold text-destructive">
-														Conversation Frozen
+														{t.messages.conversationFrozen}
 													</p>
 													<p className="text-xs text-muted-foreground mt-1">
-														This conversation has been reported and is under
-														admin review.
+														{t.messages.frozenDescription}
 													</p>
 												</div>
 											</div>
@@ -1053,7 +1054,7 @@ function MessagesContent() {
 											<div className="flex items-end gap-2">
 												<Input
 													ref={inputRef}
-													placeholder="Type a message..."
+													placeholder={t.messages.typeMessage}
 													value={messageBody}
 													onChange={(e) => setMessageBody(e.target.value)}
 													onKeyDown={(e) => {

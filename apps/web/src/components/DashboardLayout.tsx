@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/sidebar";
 import VerificationGate from "@/components/VerificationGate";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 interface NavItem {
 	label: string;
@@ -64,6 +65,7 @@ export default function DashboardLayout({
 	title,
 }: DashboardLayoutProps) {
 	const { userProfile, signOut, user } = useAuth();
+	const { t } = useLanguage();
 	const router = useRouter();
 	const pathname = usePathname();
 	const [showLogoutDialog, setShowLogoutDialog] = useState(false);
@@ -234,17 +236,17 @@ export default function DashboardLayout({
 									</DropdownMenuLabel>
 									<DropdownMenuSeparator />
 									<DropdownMenuItem className="cursor-pointer">
-										<User className="mr-2 h-4 w-4" /> Profile
+										<User className="mr-2 h-4 w-4" /> {t.common.profile}
 									</DropdownMenuItem>
 									<DropdownMenuItem className="cursor-pointer">
-										<Settings className="mr-2 h-4 w-4" /> Settings
+										<Settings className="mr-2 h-4 w-4" /> {t.common.settings}
 									</DropdownMenuItem>
 									<DropdownMenuSeparator />
 									<DropdownMenuItem
 										onClick={() => setShowLogoutDialog(true)}
 										className="cursor-pointer text-destructive focus:text-destructive"
 									>
-										<LogOut className="mr-2 h-4 w-4" /> Sign Out
+										<LogOut className="mr-2 h-4 w-4" /> {t.common.signOut}
 									</DropdownMenuItem>
 								</DropdownMenuContent>
 							</DropdownMenu>
@@ -277,17 +279,15 @@ export default function DashboardLayout({
 			<Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
 				<DialogContent className="max-w-md">
 					<DialogHeader>
-						<DialogTitle>Sign Out</DialogTitle>
-						<DialogDescription>
-							Are you sure you want to sign out of your account?
-						</DialogDescription>
+						<DialogTitle>{t.common.signOut}</DialogTitle>
+						<DialogDescription>{t.common.signOutConfirm}</DialogDescription>
 					</DialogHeader>
 					<DialogFooter className="mt-4 gap-2 sm:justify-end">
 						<Button
 							variant="outline"
 							onClick={() => setShowLogoutDialog(false)}
 						>
-							Cancel
+							{t.common.cancel}
 						</Button>
 						<Button
 							onClick={() => {
@@ -296,7 +296,7 @@ export default function DashboardLayout({
 							}}
 							variant="destructive"
 						>
-							Sign Out
+							{t.common.signOut}
 						</Button>
 					</DialogFooter>
 				</DialogContent>

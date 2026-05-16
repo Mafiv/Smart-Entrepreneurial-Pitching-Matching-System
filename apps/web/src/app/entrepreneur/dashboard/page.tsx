@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ENTREPRENEUR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -47,6 +48,7 @@ function statusVariant(
 
 function EntrepreneurDashboardInner() {
 	const { user, userProfile } = useAuth();
+	const { t } = useLanguage();
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const justSubmitted = searchParams.get("submitted");
@@ -112,7 +114,7 @@ function EntrepreneurDashboardInner() {
 					<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 						<div>
 							<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient">
-								Dashboard
+								{t.nav.dashboard}
 							</h1>
 							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
 								Manage your pitches and track investor interest
@@ -135,7 +137,7 @@ function EntrepreneurDashboardInner() {
 							{userProfile?.status !== "verified" && (
 								<Lock className="h-3.5 w-3.5 mr-1.5" />
 							)}
-							+ New Pitch
+							+ {t.nav.newPitch}
 						</Button>
 					</div>
 				</div>
@@ -150,7 +152,7 @@ function EntrepreneurDashboardInner() {
 								</div>
 								<div className="min-w-0 flex-1">
 									<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-										Total Pitches
+										{t.dashboard.totalPitches}
 									</p>
 									<p className="text-2xl font-bold tracking-tight">
 										{submissions.length}
@@ -170,7 +172,7 @@ function EntrepreneurDashboardInner() {
 								</div>
 								<div className="min-w-0 flex-1">
 									<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-										Submitted
+										{t.pitch.submitted}
 									</p>
 									<p className="text-2xl font-bold tracking-tight">
 										{submitted.length}
