@@ -6,6 +6,7 @@ import {
 	authorizeSuperAdmin,
 } from "../middleware/auth";
 import { AdminInvite } from "../models/AdminInvite";
+import { EntrepreneurProfile } from "../models/EntrepreneurProfile";
 import { User } from "../models/User";
 import {
 	createOtp,
@@ -209,6 +210,24 @@ router.post(
 						? true
 						: false,
 			});
+
+			// Bootstrap role-specific profile so signup data (e.g. companyName) is not lost
+			if (assignedRole === "entrepreneur") {
+				try {
+					await EntrepreneurProfile.create({
+						userId: newUser._id,
+						fullName: newUser.fullName,
+						companyName: req.body.companyName || "",
+						profilePicture: newUser.photoURL || undefined,
+					});
+				} catch (profileErr) {
+					// Non-fatal — profile can be completed later via /users/me/profile
+					console.warn(
+						"Auto-creating EntrepreneurProfile failed (non-fatal):",
+						profileErr,
+					);
+				}
+			}
 
 			res.status(201).json({
 				status: "success",
@@ -1612,6 +1631,190 @@ router.post(
 		} catch (error) {
 			console.error("Add admin by email error:", error);
 			res.status(500).json({ status: "error", message: "Failed to add admin" });
+		}
+	},
+);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SC-04: OTP-Based Password Recovery
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * @openapi
+ * /api/auth/password-reset/request:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Request a password reset OTP (sent to email)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: OTP sent if the email exists (always returns 200 to prevent enumeration)
+ *       429:
+ *         description: Rate limited — try again later
+ */
+router.post(
+	"/password-reset/request",
+	async (req: Request, res: Response): Promise<void> => {
+		try {
+			const email = (req.body.email || "").trim().toLowerCase();
+			if (!email) {
+				res.status(400).json({ status: "error", message: "Email is required" });
+				return;
+			}
+
+			// Look up user — always return 200 to prevent email enumeration
+			const user = await User.findOne({ email });
+			if (!user) {
+				res.status(200).json({
+					status: "success",
+					message:
+						"If this email is registered, you will receive a reset code.",
+				});
+				return;
+			}
+
+			const { code, expiresAt } = await createOtp({
+				identifier: email,
+				channel: "email",
+				purpose: "password_reset",
+				userId: user._id.toString(),
+				requestedIp:
+					(req.headers["x-forwarded-for"] as string) || req.ip || undefined,
+				userAgent: req.headers["user-agent"] || undefined,
+			});
+
+			await sendOtpEmail({
+				to: email,
+				code,
+				expiresInMinutes: otpExpiryMinutes,
+				purpose: "password_reset",
+			});
+
+			console.log(
+				`[AUTH] Password reset OTP sent to ${email} (expires ${expiresAt.toISOString()})`,
+			);
+
+			res.status(200).json({
+				status: "success",
+				message: "If this email is registered, you will receive a reset code.",
+				expiresInMinutes: otpExpiryMinutes,
+				cooldownSeconds: otpCooldownSeconds,
+			});
+		} catch (error) {
+			if (error instanceof OtpError) {
+				res
+					.status(error.status)
+					.json({ status: "error", message: error.message });
+				return;
+			}
+			console.error("Password reset request error:", error);
+			res
+				.status(500)
+				.json({ status: "error", message: "Failed to send reset code" });
+		}
+	},
+);
+
+/**
+ * @openapi
+ * /api/auth/password-reset/confirm:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Verify OTP and set a new password
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, code, newPassword]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               code:
+ *                 type: string
+ *                 description: 6-digit OTP from email
+ *               newPassword:
+ *                 type: string
+ *                 minLength: 8
+ *     responses:
+ *       200:
+ *         description: Password updated successfully
+ *       400:
+ *         description: Invalid or expired OTP
+ */
+router.post(
+	"/password-reset/confirm",
+	async (req: Request, res: Response): Promise<void> => {
+		try {
+			const email = (req.body.email || "").trim().toLowerCase();
+			const code = (req.body.code || "").trim();
+			const newPassword = req.body.newPassword || "";
+
+			if (!email || !code || !newPassword) {
+				res.status(400).json({
+					status: "error",
+					message: "Email, OTP code, and new password are required",
+				});
+				return;
+			}
+
+			if (newPassword.length < 8) {
+				res.status(400).json({
+					status: "error",
+					message: "Password must be at least 8 characters",
+				});
+				return;
+			}
+
+			// Verify the OTP (this consumes it on success)
+			await verifyOtp({
+				identifier: email,
+				channel: "email",
+				purpose: "password_reset",
+				code,
+			});
+
+			// Find the user and update Firebase password
+			const user = await User.findOne({ email });
+			if (!user || !user.firebaseUid) {
+				res.status(400).json({ status: "error", message: "User not found" });
+				return;
+			}
+
+			await firebaseAuth().updateUser(user.firebaseUid, {
+				password: newPassword,
+			});
+
+			console.log(`[AUTH] Password reset completed for ${email}`);
+
+			res.status(200).json({
+				status: "success",
+				message:
+					"Password updated successfully. You can now sign in with your new password.",
+			});
+		} catch (error) {
+			if (error instanceof OtpError) {
+				res
+					.status(error.status)
+					.json({ status: "error", message: error.message });
+				return;
+			}
+			console.error("Password reset confirm error:", error);
+			res
+				.status(500)
+				.json({ status: "error", message: "Failed to reset password" });
 		}
 	},
 );
