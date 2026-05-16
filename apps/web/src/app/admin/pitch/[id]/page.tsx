@@ -17,7 +17,6 @@ import {
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import AiPitchSummary from "@/components/AiPitchSummary";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -31,8 +30,15 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { YoutubeEmbed } from "@/components/YoutubeEmbed";
 import { ADMIN_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 import { SECTORS, STAGES } from "@/lib/validations/submission";
 
 interface SubmissionDoc {
@@ -79,6 +85,9 @@ interface Submission {
 		model: string;
 	} | null;
 	voiceSummaryUrl?: string | null;
+	pitchVideoUrl?: string | null;
+	videoStatus?: "pending" | "approved" | "flagged" | "rejected" | null;
+	videoFlagReason?: string | null;
 	summaryStatus?: "pending" | "generating" | "completed" | "failed" | null;
 	entrepreneurId?: {
 		_id: string;
@@ -178,12 +187,12 @@ export default function AdminPitchViewPage() {
 					// AI service unavailable — trust score stays null
 				}
 			} else {
-				toast.error("Failed to fetch pitch details.");
+				showErrorToast("Failed to fetch pitch details.");
 				router.back();
 			}
 		} catch (err) {
 			console.error("Failed to load pitch:", err);
-			toast.error("Network error.");
+			showErrorToast("Network error.");
 		} finally {
 			setLoading(false);
 		}
@@ -208,13 +217,58 @@ export default function AdminPitchViewPage() {
 			});
 			const data = await res.json();
 			if (data.status === "success") {
-				toast.success(`Pitch marked as ${status}!`);
+				showSuccessToast(`Pitch marked as ${status}!`);
 				if (pitch) setPitch({ ...pitch, status });
 			} else {
-				toast.error(data.message || "Failed to update pitch status");
+				showErrorToast(data.message || "Failed to update pitch status");
 			}
 		} catch {
-			toast.error("An error occurred updating the pitch status");
+			showErrorToast("An error occurred updating the pitch status");
+		} finally {
+			setActionLoading(false);
+		}
+	};
+
+	const handleVideoStatusUpdate = async (
+		videoStatus: "approved" | "flagged" | "rejected",
+	) => {
+		if (!user || !pitchId) return;
+		setActionLoading(true);
+		try {
+			const token = await user.getIdToken();
+			const reason =
+				videoStatus === "rejected"
+					? prompt("Please provide a reason for rejecting the video:")
+					: null;
+
+			if (videoStatus === "rejected" && !reason) {
+				setActionLoading(false);
+				return;
+			}
+
+			const res = await fetch(`${api}/submissions/${pitchId}/video-status`, {
+				method: "PATCH",
+				headers: {
+					Authorization: `Bearer ${token}`,
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ videoStatus, videoFlagReason: reason }),
+			});
+			const data = await res.json();
+			if (data.status === "success") {
+				showSuccessToast(`Video marked as ${videoStatus}!`);
+				if (pitch) {
+					setPitch({
+						...pitch,
+						videoStatus: data.videoStatus,
+						videoFlagReason: data.videoFlagReason,
+					});
+				}
+			} else {
+				showErrorToast(data.message || "Failed to update video status");
+			}
+		} catch {
+			showErrorToast("An error occurred updating the video status");
 		} finally {
 			setActionLoading(false);
 		}
@@ -458,6 +512,72 @@ export default function AdminPitchViewPage() {
 										</span>
 									</div>
 								</div>
+								{pitch.pitchVideoUrl ? (
+									<div className="mt-6">
+										<div className="flex items-center justify-between mb-3">
+											<h4 className="font-medium text-sm text-foreground">
+												Pitch Video
+											</h4>
+											<Badge
+												variant={
+													pitch.videoStatus === "approved"
+														? "default"
+														: pitch.videoStatus === "flagged"
+															? "destructive"
+															: pitch.videoStatus === "rejected"
+																? "destructive"
+																: "secondary"
+												}
+												className="capitalize"
+											>
+												{pitch.videoStatus || "pending"}
+											</Badge>
+										</div>
+										{pitch.videoStatus === "flagged" && (
+											<div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md text-sm text-destructive">
+												<strong>Automated Flag:</strong> {pitch.videoFlagReason}
+											</div>
+										)}
+										{pitch.videoStatus === "rejected" && (
+											<div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md text-sm text-destructive">
+												<strong>Rejected:</strong> {pitch.videoFlagReason}
+											</div>
+										)}
+										<YoutubeEmbed url={pitch.pitchVideoUrl} />
+
+										{pitch.videoStatus !== "approved" && (
+											<div className="mt-4 flex gap-2">
+												<Button
+													size="sm"
+													variant="outline"
+													className="bg-green-600/10 text-green-600 hover:bg-green-600/20 border-green-600/20"
+													onClick={() => handleVideoStatusUpdate("approved")}
+													disabled={actionLoading}
+												>
+													<CheckCircle2 className="w-4 h-4 mr-1.5" />
+													Approve Video
+												</Button>
+												<Button
+													size="sm"
+													variant="outline"
+													className="text-destructive hover:bg-destructive/10 border-destructive/20"
+													onClick={() => handleVideoStatusUpdate("rejected")}
+													disabled={actionLoading}
+												>
+													<XCircle className="w-4 h-4 mr-1.5" />
+													Reject Video
+												</Button>
+											</div>
+										)}
+									</div>
+								) : (
+									<div className="mt-6 rounded-lg border-2 border-dashed border-border/50 p-6 text-center">
+										<FileUp className="mx-auto h-8 w-8 text-muted-foreground/40 mb-2" />
+										<p className="text-sm text-muted-foreground">
+											No pitch video provided
+										</p>
+									</div>
+								)}
 							</CardContent>
 						</Card>
 

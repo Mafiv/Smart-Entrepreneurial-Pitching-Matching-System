@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
+import { showErrorToast } from "@/lib/toast-messages";
 
 export default function SignInPage() {
 	const [email, setEmail] = useState("");
@@ -56,8 +56,11 @@ export default function SignInPage() {
 			router.push(await getRedirect(profile.role, token));
 		} catch (err: unknown) {
 			console.error("Firebase Email Sign-In Error:", err);
-			const message = err instanceof Error ? err.message : "Failed to sign in";
-			toast.error(message);
+			showErrorToast(
+				err,
+				"Unable to sign in",
+				"Please check your email and password and try again.",
+			);
 		} finally {
 			setLoading(false);
 		}
@@ -72,9 +75,11 @@ export default function SignInPage() {
 			router.push(await getRedirect(profile.role, token));
 		} catch (err: unknown) {
 			console.error("Firebase Google Sign-In Error:", err);
-			const message =
-				err instanceof Error ? err.message : "Failed to sign in with Google";
-			toast.error(message);
+			showErrorToast(
+				err,
+				"Google sign-in failed",
+				"We couldn't complete the sign-in with Google. Please try again.",
+			);
 		} finally {
 			setLoading(false);
 		}

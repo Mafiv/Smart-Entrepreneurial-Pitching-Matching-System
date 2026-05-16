@@ -76,20 +76,10 @@ const DOC_CATEGORY_DEFS = [
 ] as const;
 
 const REQUIRED_BY_STAGE: Record<SubmissionStage, string[]> = {
+	idea: ["pitch_deck"],
 	mvp: ["pitch_deck"],
-	"early-revenue": [
-		"pitch_deck",
-		"financial_model",
-		"tin_certificate",
-		"business_license",
-	],
-	scaling: [
-		"pitch_deck",
-		"financial_model",
-		"tin_certificate",
-		"business_license",
-		"moa_aoa",
-	],
+	"early-revenue": ["pitch_deck"],
+	scaling: ["pitch_deck"],
 };
 
 const buildChecklist = (stage: SubmissionStage) => {

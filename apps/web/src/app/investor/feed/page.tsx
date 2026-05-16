@@ -3,7 +3,6 @@
 import { Briefcase, Compass, Heart, MessageSquare } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +24,12 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { INVESTOR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 
 interface Submission {
 	_id: string;
@@ -160,7 +165,7 @@ export default function InvestorFeed() {
 					else next.delete(pitchId);
 					return next;
 				});
-				toast.error(data.message || "Failed to toggle save");
+				showErrorToast(data.message || "Failed to toggle save");
 			}
 		} catch {
 			setSavedPitchIds((prev) => {
@@ -169,7 +174,7 @@ export default function InvestorFeed() {
 				else next.delete(pitchId);
 				return next;
 			});
-			toast.error("An error occurred while saving the pitch");
+			showErrorToast("An error occurred while saving the pitch");
 		}
 	};
 

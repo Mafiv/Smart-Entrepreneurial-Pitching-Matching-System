@@ -224,7 +224,7 @@ function extractEntitiesOfType(
  */
 function calculateConfidence(
 	value: string,
-	// entityType: EntityType,
+	_entityType: EntityType,
 	pattern: RegExp,
 ): number {
 	let confidence = 0.5;

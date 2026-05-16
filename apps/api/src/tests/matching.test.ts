@@ -1,9 +1,6 @@
 import mongoose from "mongoose";
 import { MatchResult } from "../models/MatchResult";
-import {
-	computeBudgetFit,
-	shouldAutoSendInvitation,
-} from "../services/matching.service";
+import { computeBudgetFit } from "../services/matching.service";
 
 describe("Matching service and model", () => {
 	it("computes strong budget fit when target amount is inside range", () => {
@@ -32,12 +29,5 @@ describe("Matching service and model", () => {
 		expect(match.status).toBe("pending");
 		expect(match.scoreBreakdown?.sector).toBe(0);
 		expect(match.scoreBreakdown?.embedding).toBe(0);
-	});
-
-	it("triggers auto invitation only on first acceptance transition", () => {
-		expect(shouldAutoSendInvitation("pending", "accepted")).toBe(true);
-		expect(shouldAutoSendInvitation("declined", "accepted")).toBe(true);
-		expect(shouldAutoSendInvitation("accepted", "accepted")).toBe(false);
-		expect(shouldAutoSendInvitation("pending", "declined")).toBe(false);
 	});
 });

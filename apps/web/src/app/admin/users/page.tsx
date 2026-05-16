@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -54,6 +53,12 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { ADMIN_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 
 interface UserRecord {
 	_id: string;
@@ -263,14 +268,14 @@ export default function AdminUsersPage() {
 							: undefined,
 				}),
 			});
-			toast.success(`User status updated to ${statusToSet}`);
+			showSuccessToast(`User status updated to ${statusToSet}`);
 			setActionUser(null);
 			setActionUserProfile(null);
 			setNewStatus("");
 			setRejectionReason("");
 			fetchUsers();
 		} catch {
-			toast.error("Failed to update status");
+			showErrorToast("Failed to update status");
 		}
 	};
 
@@ -291,13 +296,13 @@ export default function AdminUsersPage() {
 				if (data.conversation?._id) {
 					router.push(`/admin/messages?open=${data.conversation._id}`);
 				} else {
-					toast.error("Failed to start conversation");
+					showErrorToast("Failed to start conversation");
 				}
 			} else {
-				toast.error("Failed to start conversation");
+				showErrorToast("Failed to start conversation");
 			}
 		} catch {
-			toast.error("Failed to start conversation");
+			showErrorToast("Failed to start conversation");
 		}
 	};
 

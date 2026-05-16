@@ -1,4 +1,5 @@
 import { AdminAction } from "../../models/AdminAction";
+import { Conversation } from "../../models/Conversation";
 import { EntrepreneurProfile } from "../../models/EntrepreneurProfile";
 import { InvestorProfile } from "../../models/InvestorProfile";
 import { Submission } from "../../models/Submission";
@@ -146,6 +147,15 @@ export const AdminUserService = {
 					{ $set: { status: "suspended" } },
 				);
 			}
+
+			// SC-24: Freeze all active message threads for the suspended user
+			await Conversation.updateMany(
+				{
+					participants: user._id,
+					isArchived: false,
+				},
+				{ $set: { isArchived: true } },
+			);
 		}
 		if (payload.status === "verified") {
 			user.kycRejectionReason = undefined;

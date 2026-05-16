@@ -12,7 +12,6 @@ import {
 	TrendingUp,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +26,12 @@ import {
 } from "@/components/ui/table";
 import { INVESTOR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -104,10 +109,10 @@ export default function InvestorPortfolioPage() {
 			if (data.status === "success") {
 				setSummary(data.summary);
 			} else {
-				toast.error("Failed to load portfolio summary");
+				showErrorToast("Failed to load portfolio summary");
 			}
 		} catch {
-			toast.error("Network error");
+			showErrorToast("Network error");
 		} finally {
 			setLoading(false);
 		}

@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,7 +26,14 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { YoutubeEmbed } from "@/components/YoutubeEmbed";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 import { SECTORS, STAGES } from "@/lib/validations/submission";
 
 interface SubmissionDoc {
@@ -63,6 +69,9 @@ interface Submission {
 		runway: string;
 	};
 	documents: SubmissionDoc[];
+	pitchVideoUrl?: string;
+	videoStatus?: "pending" | "approved" | "flagged" | "rejected" | null;
+	videoFlagReason?: string | null;
 }
 
 interface DocStatus {
@@ -236,15 +245,15 @@ function ReviewPitchPageInner() {
 				},
 			);
 			if (res.ok) {
-				toast.success(approved ? "Request approved!" : "Request declined.");
+				showSuccessToast(approved ? "Request approved!" : "Request declined.");
 				setMatchRequests((prev) => prev.filter((m) => m._id !== matchId));
 			} else {
 				const data = await res.json();
-				toast.error(data.message || "Failed to respond to request");
+				showErrorToast(data.message || "Failed to respond to request");
 			}
 		} catch (err) {
 			console.error("Approval error:", err);
-			toast.error("Network error");
+			showErrorToast("Network error");
 		} finally {
 			setRespondingMatchId(null);
 		}
@@ -291,7 +300,7 @@ function ReviewPitchPageInner() {
 					</div>
 				</header>
 
-				<main className="mx-auto max-w-4xl px-4 py-8 space-y-8">
+				<main className="mx-auto max-w-4xl px-4 py-8 pb-40 space-y-8">
 					{/* Title & Overview */}
 					<div className="admin-greeting-card bg-card p-8 rounded-2xl admin-content-fade shadow-sm text-center space-y-4">
 						<h1 className="text-3xl sm:text-4xl font-bold tracking-tight admin-header-gradient">
@@ -389,6 +398,49 @@ function ReviewPitchPageInner() {
 							<p className="text-muted-foreground leading-relaxed">
 								{submission.summary || "Not provided"}
 							</p>
+							{submission.pitchVideoUrl ? (
+								<div className="mt-6">
+									<div className="flex items-center justify-between mb-3">
+										<h4 className="font-medium text-sm text-foreground">
+											Pitch Video
+										</h4>
+										<Badge
+											variant={
+												submission.videoStatus === "approved"
+													? "default"
+													: submission.videoStatus === "flagged"
+														? "destructive"
+														: submission.videoStatus === "rejected"
+															? "destructive"
+															: "secondary"
+											}
+											className="capitalize"
+										>
+											{submission.videoStatus || "pending"}
+										</Badge>
+									</div>
+									{submission.videoStatus === "flagged" && (
+										<div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md text-sm text-destructive">
+											<strong>Action Required:</strong>{" "}
+											{submission.videoFlagReason}
+										</div>
+									)}
+									{submission.videoStatus === "rejected" && (
+										<div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md text-sm text-destructive">
+											<strong>Video Rejected:</strong>{" "}
+											{submission.videoFlagReason}
+										</div>
+									)}
+									<YoutubeEmbed url={submission.pitchVideoUrl} />
+								</div>
+							) : (
+								<div className="mt-6 rounded-lg border-2 border-dashed border-border/50 p-6 text-center">
+									<ClipboardList className="mx-auto h-8 w-8 text-muted-foreground/40 mb-2" />
+									<p className="text-sm text-muted-foreground">
+										No pitch video added
+									</p>
+								</div>
+							)}
 						</CardContent>
 					</Card>
 
@@ -526,7 +578,7 @@ function ReviewPitchPageInner() {
 					</Card>
 
 					{/* Documents & Completeness */}
-					<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 delay-700 fill-mode-both border-0 shadow-md overflow-hidden mb-24">
+					<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 delay-700 fill-mode-both border-0 shadow-md overflow-hidden mb-32">
 						<CardHeader className="bg-primary/5 border-b border-border/40 pb-4">
 							<div className="flex items-center justify-between">
 								<div>
@@ -564,53 +616,55 @@ function ReviewPitchPageInner() {
 										Required vs Uploaded
 									</h4>
 									<div className="grid gap-2 sm:grid-cols-2">
-										{completeness.checklist.map((item) => (
-											<div
-												key={item.category}
-												className={`flex flex-col justify-between rounded-lg border p-3 ${
-													item.required && !item.uploaded
-														? "border-destructive/50 bg-destructive/5"
-														: "bg-card"
-												}`}
-											>
-												<div className="flex items-center justify-between mb-2">
-													<div className="flex items-center gap-2">
-														<p className="text-sm font-medium flex items-center gap-1">
-															{item.label}
-															{item.required && (
-																<span className="text-destructive">*</span>
-															)}
-														</p>
+										{completeness.checklist
+											.filter((item) => item.uploaded || item.required)
+											.map((item) => (
+												<div
+													key={item.category}
+													className={`flex flex-col justify-between rounded-lg border p-3 ${
+														item.required && !item.uploaded
+															? "border-destructive/50 bg-destructive/5"
+															: "bg-card"
+													}`}
+												>
+													<div className="flex items-center justify-between mb-2">
+														<div className="flex items-center gap-2">
+															<p className="text-sm font-medium flex items-center gap-1">
+																{item.label}
+																{item.required && (
+																	<span className="text-destructive">*</span>
+																)}
+															</p>
+														</div>
+														{item.status === "verified" && (
+															<CheckCircle2 className="h-4 w-4 text-emerald-600" />
+														)}
+														{item.status === "processing" && (
+															<Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
+														)}
+														{item.status === "failed" && (
+															<XCircle className="h-4 w-4 text-destructive" />
+														)}
+														{item.status === "flagged" && (
+															<XCircle className="h-4 w-4 text-amber-600" />
+														)}
+														{item.status === "missing" && item.required && (
+															<span className="text-xs text-destructive font-medium">
+																Missing
+															</span>
+														)}
+														{item.status === "missing" && !item.required && (
+															<span className="text-xs text-muted-foreground">
+																Optional
+															</span>
+														)}
 													</div>
-													{item.status === "verified" && (
-														<CheckCircle2 className="h-4 w-4 text-emerald-600" />
-													)}
-													{item.status === "processing" && (
-														<Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
-													)}
-													{item.status === "failed" && (
-														<XCircle className="h-4 w-4 text-destructive" />
-													)}
-													{item.status === "flagged" && (
-														<XCircle className="h-4 w-4 text-amber-600" />
-													)}
-													{item.status === "missing" && item.required && (
-														<span className="text-xs text-destructive font-medium">
-															Missing
-														</span>
-													)}
-													{item.status === "missing" && !item.required && (
-														<span className="text-xs text-muted-foreground">
-															Optional
-														</span>
-													)}
+													<div className="text-xs text-muted-foreground">
+														{item.count} file{item.count !== 1 ? "s" : ""}{" "}
+														uploaded
+													</div>
 												</div>
-												<div className="text-xs text-muted-foreground">
-													{item.count} file{item.count !== 1 ? "s" : ""}{" "}
-													uploaded
-												</div>
-											</div>
-										))}
+											))}
 									</div>
 								</div>
 							)}

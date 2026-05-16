@@ -80,11 +80,6 @@ const buildInvestorText = (investorProfile: {
 const scoreTo100 = (score: number) =>
 	Math.round(Math.max(0, Math.min(1, score)) * 100);
 
-export const shouldAutoSendInvitation = (
-	previousStatus: MatchStatus,
-	nextStatus: Extract<MatchStatus, "accepted" | "declined">,
-) => previousStatus !== "accepted" && nextStatus === "accepted";
-
 export class MatchingService {
 	static createError(
 		message: string,
@@ -608,20 +603,32 @@ export class MatchingService {
 				},
 			});
 
-			// Optional: auto-send invitation to start conversation
-			if (shouldAutoSendInvitation(previousStatus, "accepted")) {
-				try {
-					await InvitationService.sendInvitation({
-						matchId: match._id.toString(),
-						senderId: payload.investorId,
-						message:
-							"I am interested in investing in your project and would like to discuss the next steps.",
-						expiresInDays: 14,
-					});
-				} catch (error) {
-					console.error("Auto-invitation creation failed:", error);
-				}
+			// Auto-send invitation to start conversation when investor accepts
+			try {
+				await InvitationService.sendInvitation({
+					matchId: match._id.toString(),
+					senderId: payload.investorId,
+					message:
+						"I am interested in investing in your project and would like to discuss the next steps.",
+					expiresInDays: 14,
+				});
+			} catch (error) {
+				console.error("Auto-invitation creation failed:", error);
 			}
+		}
+
+		// Negative Feedback Loop: When investor declines, apply Rocchio-style
+		// penalty vector shift to suppress similar pitches in future matching.
+		if (targetStatus === "declined") {
+			MatchingService.applyNegativeFeedback(
+				payload.investorId,
+				match.submissionId.toString(),
+			).catch((err) =>
+				console.error(
+					"[MATCHING] Negative feedback update failed (non-fatal):",
+					err,
+				),
+			);
 		}
 
 		return match;
@@ -747,5 +754,71 @@ export class MatchingService {
 		}
 
 		return match;
+	}
+
+	/**
+	 * Rocchio-style negative feedback: shift the investor's preference
+	 * embedding AWAY from the declined submission's embedding.
+	 *
+	 * Updated vector = normalize(currentVector - PENALTY_WEIGHT * submissionVector)
+	 *
+	 * This causes future $vectorSearch queries to naturally de-rank
+	 * pitches that are similar to declined ones.
+	 */
+	static async applyNegativeFeedback(
+		investorUserId: string,
+		submissionId: string,
+	) {
+		const PENALTY_WEIGHT = 0.25;
+
+		const investorProfile = await InvestorProfile.findOne({
+			userId: investorUserId,
+		}).lean();
+		if (!investorProfile) return;
+
+		// Fetch investor embedding
+		const investorEmbedding = await EmbeddingEntry.findOne({
+			targetId: investorProfile._id,
+			targetType: "investorProfile",
+		});
+		if (!investorEmbedding?.vector?.length) return;
+
+		// Fetch declined submission embedding
+		const submissionEmbedding = await EmbeddingEntry.findOne({
+			targetId: submissionId,
+			targetType: "submission",
+		});
+		if (!submissionEmbedding?.vector?.length) return;
+
+		// Dimension mismatch guard
+		if (investorEmbedding.vector.length !== submissionEmbedding.vector.length) {
+			console.warn(
+				"[MATCHING:FEEDBACK] Dimension mismatch — skipping penalty shift",
+			);
+			return;
+		}
+
+		// Apply Rocchio penalty: shift investor vector away from submission vector
+		const updated = investorEmbedding.vector.map(
+			(val: number, i: number) =>
+				val - PENALTY_WEIGHT * submissionEmbedding.vector[i],
+		);
+
+		// L2-normalize the updated vector
+		const norm =
+			Math.sqrt(updated.reduce((acc: number, v: number) => acc + v * v, 0)) ||
+			1;
+		const normalized = updated.map((v: number) => v / norm);
+
+		investorEmbedding.vector = normalized;
+		investorEmbedding.sourceHash = createHash("sha1")
+			.update(`feedback-${Date.now()}`)
+			.digest("hex");
+		investorEmbedding.generatedAt = new Date();
+		await investorEmbedding.save();
+
+		console.log(
+			`[MATCHING:FEEDBACK] Applied penalty shift for investor ${investorUserId} against submission ${submissionId}`,
+		);
 	}
 }

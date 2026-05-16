@@ -12,7 +12,6 @@ import {
 	TrendingUp,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -39,6 +38,12 @@ import {
 } from "@/components/ui/table";
 import { ADMIN_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -126,10 +131,10 @@ export default function AdminFinancePage() {
 			if (result.status === "success") {
 				setData(result.summary);
 			} else {
-				toast.error("Failed to load finance data");
+				showErrorToast("Failed to load finance data");
 			}
 		} catch {
-			toast.error("Network error");
+			showErrorToast("Network error");
 		} finally {
 			setLoading(false);
 		}
@@ -157,15 +162,15 @@ export default function AdminFinancePage() {
 			});
 			const result = await res.json();
 			if (result.status === "success") {
-				toast.success("Funds disbursed successfully");
+				showSuccessToast("Funds disbursed successfully");
 				setDisburseTarget(null);
 				setPaymentRef("");
 				fetchData(); // Refresh overview
 			} else {
-				toast.error(result.message || "Disbursement failed");
+				showErrorToast(result.message || "Disbursement failed");
 			}
 		} catch {
-			toast.error("Network error");
+			showErrorToast("Network error");
 		} finally {
 			setActing(false);
 		}

@@ -2,9 +2,9 @@
 
 import { CalendarDays, Clock, Loader2, X } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
+import { showErrorToast, showSuccessToast } from "@/lib/toast-messages";
 
 interface Props {
 	submissionId: string;
@@ -72,14 +72,25 @@ export default function ScheduleMeetingModal({
 
 			const data = await res.json();
 			if (data.status === "success") {
-				toast.success("Meeting scheduled! The founder has been notified.");
+				showSuccessToast(
+					"Meeting scheduled!",
+					"The founder has been notified and will receive the meeting details.",
+				);
 				onScheduled(data.meeting);
 				onClose();
 			} else {
-				toast.error(data.message ?? "Failed to schedule meeting");
+				showErrorToast(
+					data.message ?? "Failed to schedule meeting",
+					"Scheduling failed",
+					"Please try a different time or try again later.",
+				);
 			}
 		} catch {
-			toast.error("Network error scheduling meeting");
+			showErrorToast(
+				"Network error",
+				"Connection error",
+				"Unable to reach the server. Please check your connection.",
+			);
 		} finally {
 			setLoading(false);
 		}
