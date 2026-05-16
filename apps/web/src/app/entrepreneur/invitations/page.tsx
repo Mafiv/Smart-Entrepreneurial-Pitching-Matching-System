@@ -43,6 +43,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { ENTREPRENEUR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -430,6 +431,7 @@ function InvestorProfileModal({
 
 export default function EntrepreneurInvitationsPage() {
 	const { user } = useAuth();
+	const { t } = useLanguage();
 
 	const [invitations, setInvitations] = useState<Invitation[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -539,7 +541,7 @@ export default function EntrepreneurInvitationsPage() {
 						<div>
 							<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient flex items-center gap-2">
 								<Mail className="h-6 w-6 text-primary" />
-								Investment Invitations
+								{t.nav.invitations}
 							</h1>
 							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
 								Review and respond to investment invitations from matched

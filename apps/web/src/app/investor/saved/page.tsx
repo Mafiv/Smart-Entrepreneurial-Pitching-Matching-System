@@ -17,6 +17,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { INVESTOR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -69,6 +70,7 @@ function statusColor(
 
 export default function SavedPitchesPage() {
 	const { user } = useAuth();
+	const { t } = useLanguage();
 	const router = useRouter();
 	const [submissions, setSubmissions] = useState<Submission[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -146,7 +148,7 @@ export default function SavedPitchesPage() {
 					<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 						<div>
 							<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient">
-								Saved Pitches
+								{t.nav.saved}
 							</h1>
 							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
 								Pitches you have bookmarked for later review
@@ -300,7 +302,7 @@ export default function SavedPitchesPage() {
 									router.push(`/investor/pitch/${pitchId}`);
 								}}
 							>
-								View Full Pitch
+								{t.pitch.viewFullPitch}
 							</Button>
 						</div>
 					</DialogContent>

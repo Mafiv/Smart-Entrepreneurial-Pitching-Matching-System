@@ -33,6 +33,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { INVESTOR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -137,6 +138,7 @@ function daysUntil(dateStr: string): number {
 
 export default function InvestorInvitationsPage() {
 	const { user } = useAuth();
+	const { t } = useLanguage();
 
 	const [invitations, setInvitations] = useState<Invitation[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -224,7 +226,7 @@ export default function InvestorInvitationsPage() {
 						<div>
 							<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient flex items-center gap-2">
 								<SendHorizonal className="h-6 w-6 text-primary" />
-								Sent Invitations
+								{t.nav.invitations}
 							</h1>
 							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
 								Track and manage the investment invitations you have sent to
