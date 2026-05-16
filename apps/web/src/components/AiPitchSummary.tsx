@@ -77,7 +77,7 @@ function readinessDot(level: "High" | "Medium" | "Low") {
 	}
 }
 
-// ── Voice Player ────────────────────────────────────────────────────────────
+// ── Voice Player (English — Gemini TTS audio) ──────────────────────────────
 
 function VoicePlayer({ url }: { url: string }) {
 	const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -121,7 +121,7 @@ function VoicePlayer({ url }: { url: string }) {
 	};
 
 	return (
-		<div className="flex items-center gap-3 rounded-xl border px-4 py-3 mt-4">
+		<div className="flex items-center gap-3 rounded-xl border px-4 py-3">
 			<Button
 				size="icon"
 				variant="ghost"
@@ -140,7 +140,7 @@ function VoicePlayer({ url }: { url: string }) {
 				<div className="flex items-center gap-2 mb-1">
 					<Volume2 className="h-3.5 w-3.5 text-primary" />
 					<span className="text-xs font-semibold text-primary">
-						AI Voice Summary
+						AI Voice Summary (English)
 					</span>
 				</div>
 				<div
@@ -160,6 +160,121 @@ function VoicePlayer({ url }: { url: string }) {
 			<span className="text-[11px] text-muted-foreground font-mono shrink-0 tabular-nums">
 				{fmt(progress)} / {fmt(duration)}
 			</span>
+		</div>
+	);
+}
+
+// ── Amharic TTS (browser SpeechSynthesis + translation) ─────────────────────
+
+function AmharicTTS({
+	text,
+	submissionId,
+}: {
+	text: string;
+	submissionId: string;
+}) {
+	const { user } = useAuth();
+	const [speaking, setSpeaking] = useState(false);
+	const [translating, setTranslating] = useState(false);
+	const [amharicText, setAmharicText] = useState<string | null>(null);
+
+	const api = (
+		process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+	).replace(/\/+$/, "");
+
+	const handleSpeak = useCallback(async () => {
+		if (speaking) {
+			window.speechSynthesis.cancel();
+			setSpeaking(false);
+			return;
+		}
+
+		let textToSpeak = amharicText;
+
+		// Translate to Amharic if not cached
+		if (!textToSpeak && user) {
+			setTranslating(true);
+			try {
+				const token = await user.getIdToken();
+				const res = await fetch(`${api}/messages/translate`, {
+					method: "POST",
+					headers: {
+						Authorization: `Bearer ${token}`,
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ text, targetLang: "am" }),
+				});
+				if (res.ok) {
+					const data = await res.json();
+					textToSpeak = data.translated;
+					setAmharicText(data.translated);
+				} else {
+					showErrorToast("Failed to translate summary to Amharic");
+					setTranslating(false);
+					return;
+				}
+			} catch {
+				showErrorToast("Translation failed");
+				setTranslating(false);
+				return;
+			}
+			setTranslating(false);
+		}
+
+		if (!textToSpeak) return;
+
+		const utterance = new SpeechSynthesisUtterance(textToSpeak);
+		utterance.lang = "am-ET";
+		utterance.rate = 0.9;
+
+		// Try to find an Amharic voice, fallback to default
+		const voices = window.speechSynthesis.getVoices();
+		const amVoice = voices.find(
+			(v) => v.lang.startsWith("am") || v.lang.includes("ET"),
+		);
+		if (amVoice) utterance.voice = amVoice;
+
+		utterance.onend = () => setSpeaking(false);
+		utterance.onerror = () => setSpeaking(false);
+
+		setSpeaking(true);
+		window.speechSynthesis.speak(utterance);
+	}, [speaking, amharicText, user, api, text]);
+
+	return (
+		<div className="flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/[0.03] px-4 py-3">
+			<Button
+				size="icon"
+				variant="ghost"
+				className="h-9 w-9 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 shrink-0"
+				onClick={handleSpeak}
+				disabled={translating}
+				aria-label={speaking ? "Stop Amharic speech" : "Listen in Amharic"}
+			>
+				{translating ? (
+					<Loader2 className="h-4 w-4 animate-spin" />
+				) : speaking ? (
+					<Pause className="h-4 w-4" />
+				) : (
+					<Play className="h-4 w-4 ml-0.5" />
+				)}
+			</Button>
+
+			<div className="flex-1 min-w-0">
+				<div className="flex items-center gap-2">
+					<Volume2 className="h-3.5 w-3.5 text-amber-600" />
+					<span className="text-xs font-semibold text-amber-600">
+						🇪🇹 Listen in Amharic (አማርኛ)
+					</span>
+				</div>
+				<p className="text-[10px] text-muted-foreground mt-0.5">
+					{translating
+						? "Translating to Amharic..."
+						: speaking
+							? "Speaking..."
+							: "AI translates & reads the summary in Amharic"}
+				</p>
+			</div>
 		</div>
 	);
 }
@@ -512,8 +627,14 @@ export default function AiPitchSummary({
 						</p>
 					</div>
 
-					{/* Voice Player */}
-					{voiceSummaryUrl && <VoicePlayer url={voiceSummaryUrl} />}
+					{/* Voice Players — English & Amharic (SRS §6) */}
+					<div className="space-y-2 mt-4">
+						{voiceSummaryUrl && <VoicePlayer url={voiceSummaryUrl} />}
+						<AmharicTTS
+							text={aiSummary.executiveSummary}
+							submissionId={submissionId}
+						/>
+					</div>
 
 					{/* Investment Readiness Badge */}
 					<div className="flex items-center gap-3">
