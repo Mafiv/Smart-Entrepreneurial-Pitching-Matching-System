@@ -24,7 +24,6 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -61,6 +60,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { ADMIN_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 
 interface UserRecord {
 	_id: string;
@@ -380,16 +385,16 @@ export default function AdminOversight() {
 			});
 			const data = await res.json();
 			if (data.status === "success") {
-				toast.success("AI determination overridden successfully!");
+				showSuccessToast("AI determination overridden successfully!");
 				if (selectedSubmission) {
 					fetchSubmissionDocs(selectedSubmission);
 				}
 				fetchData(); // refresh overview stats if relevant
 			} else {
-				toast.error(data.message || "Failed to override document");
+				showErrorToast(data.message || "Failed to override document");
 			}
 		} catch (_err) {
-			toast.error("An error occurred during Admin override");
+			showErrorToast("An error occurred during Admin override");
 		}
 	};
 
@@ -410,14 +415,14 @@ export default function AdminOversight() {
 			);
 			const data = await res.json();
 			if (data.status === "success") {
-				toast.success(`Pitch successfully marked as ${status}!`);
+				showSuccessToast(`Pitch successfully marked as ${status}!`);
 				setSelectedSubmission(null);
 				fetchData();
 			} else {
-				toast.error(data.message || "Failed to update pitch status");
+				showErrorToast(data.message || "Failed to update pitch status");
 			}
 		} catch (_err) {
-			toast.error("An error occurred updating the pitch status");
+			showErrorToast("An error occurred updating the pitch status");
 		}
 	};
 
@@ -438,12 +443,12 @@ export default function AdminOversight() {
 			const data = await res.json();
 			if (data.status === "success") {
 				setInviteLink(data.inviteLink);
-				toast.success("Invite link generated!");
+				showSuccessToast("Invite link generated!");
 			} else {
-				toast.error(data.message);
+				showErrorToast(data.message);
 			}
 		} catch (_err) {
-			toast.error("Failed to generate invite");
+			showErrorToast("Failed to generate invite");
 		} finally {
 			setInviting(false);
 		}
@@ -464,16 +469,16 @@ export default function AdminOversight() {
 			});
 			const data = await res.json();
 			if (data.status === "success") {
-				toast.success(data.message);
+				showSuccessToast(data.message);
 				setAddByEmail("");
 				setShowInviteDialog(false);
 				fetchAdmins();
 				fetchData();
 			} else {
-				toast.error(data.message);
+				showErrorToast(data.message);
 			}
 		} catch (_err) {
-			toast.error("Failed to add admin");
+			showErrorToast("Failed to add admin");
 		} finally {
 			setAddByEmailLoading(false);
 		}
@@ -489,14 +494,14 @@ export default function AdminOversight() {
 			});
 			const data = await res.json();
 			if (data.status === "success") {
-				toast.success(data.message);
+				showSuccessToast(data.message);
 				fetchAdmins();
 				fetchData();
 			} else {
-				toast.error(data.message);
+				showErrorToast(data.message);
 			}
 		} catch (_err) {
-			toast.error("Failed to remove admin");
+			showErrorToast("Failed to remove admin");
 		} finally {
 			setAdminToRemove(null);
 		}
@@ -1242,7 +1247,7 @@ export default function AdminOversight() {
 														className="w-full gap-2"
 														onClick={() => {
 															navigator.clipboard.writeText(inviteLink);
-															toast.success("Link copied to clipboard!");
+															showSuccessToast("Link copied to clipboard!");
 														}}
 													>
 														<Copy className="h-4 w-4" />

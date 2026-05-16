@@ -12,6 +12,7 @@ jest.mock("../../src/models/MisconductReport", () => ({
 
 jest.mock("../../src/models/User", () => ({
 	User: {
+		findById: jest.fn(),
 		find: jest.fn(),
 	},
 }));
@@ -52,13 +53,30 @@ describe("MessageService misconduct reporting", () => {
 		(MisconductReport.create as jest.Mock).mockResolvedValue({
 			_id: "report-1",
 		});
-		(User.find as jest.Mock).mockReturnValue({
-			select: jest
-				.fn()
-				.mockResolvedValue([
-					{ _id: { toString: () => "admin-1" } },
-					{ _id: { toString: () => "admin-2" } },
-				]),
+		(User.findById as jest.Mock).mockReturnValue({
+			select: jest.fn().mockResolvedValue({
+				fullName: "Reporter User",
+				email: "reporter@example.com",
+			}),
+		});
+		(User.find as jest.Mock).mockImplementation((query: any) => {
+			if (query?.role === "admin") {
+				return {
+					select: jest
+						.fn()
+						.mockResolvedValue([
+							{ _id: { toString: () => "admin-1" } },
+							{ _id: { toString: () => "admin-2" } },
+						]),
+				};
+			}
+			return {
+				select: jest
+					.fn()
+					.mockResolvedValue([
+						{ fullName: "Reported User", email: "reported@example.com" },
+					]),
+			};
 		});
 
 		const result = await MessageService.reportMisconduct({

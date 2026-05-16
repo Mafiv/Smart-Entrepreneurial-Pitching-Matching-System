@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import cloudinary, { isCloudinaryConfigured } from "../config/cloudinary";
 import { Submission } from "../models/Submission";
 
 /**
@@ -16,6 +17,46 @@ export interface AiPitchSummary {
 
 const GEMINI_MODEL = "gemini-2.5-flash";
 const GEMINI_TTS_MODEL = "gemini-2.5-flash-preview-tts";
+const MAX_RETRIES = 3;
+const BASE_DELAY_MS = 1000;
+
+/**
+ * Retry a function with exponential backoff.
+ * Retries on transient errors (rate limits, server errors).
+ */
+async function withRetry<T>(
+	fn: () => Promise<T>,
+	label: string,
+	maxRetries = MAX_RETRIES,
+): Promise<T> {
+	let lastError: Error | null = null;
+
+	for (let attempt = 1; attempt <= maxRetries; attempt++) {
+		try {
+			return await fn();
+		} catch (err) {
+			lastError = err as Error;
+			const isRetryable =
+				lastError.message?.includes("429") ||
+				lastError.message?.includes("500") ||
+				lastError.message?.includes("503") ||
+				lastError.message?.includes("ECONNRESET") ||
+				lastError.message?.includes("timeout");
+
+			if (!isRetryable || attempt === maxRetries) {
+				throw lastError;
+			}
+
+			const delay = BASE_DELAY_MS * 2 ** (attempt - 1);
+			console.warn(
+				`[${label}] Attempt ${attempt}/${maxRetries} failed, retrying in ${delay}ms: ${lastError.message}`,
+			);
+			await new Promise((resolve) => setTimeout(resolve, delay));
+		}
+	}
+
+	throw lastError;
+}
 
 /**
  * GeminiSummaryService
@@ -64,9 +105,9 @@ export class GeminiSummaryService {
 		);
 
 		try {
-			const summary = await GeminiSummaryService.callGemini(
-				GEMINI_API_KEY,
-				submission,
+			const summary = await withRetry(
+				() => GeminiSummaryService.callGemini(GEMINI_API_KEY, submission),
+				"GEMINI:SUMMARY",
 			);
 
 			// Save summary to database
@@ -94,9 +135,10 @@ export class GeminiSummaryService {
 			}
 		} catch (err) {
 			console.error(
-				`[GEMINI:SUMMARY] Failed for "${submission.title}":`,
+				`[GEMINI:SUMMARY] Failed for "${submission.title}" after ${MAX_RETRIES} attempts:`,
 				(err as Error).message,
 			);
+			throw err; // Re-throw so the worker can mark status as "failed"
 		}
 	}
 
@@ -121,34 +163,50 @@ export class GeminiSummaryService {
 			`[GEMINI:SUMMARY] Regenerating summary for "${submission.title}" (${submissionId})...`,
 		);
 
-		const summary = await GeminiSummaryService.callGemini(
-			GEMINI_API_KEY,
-			submission,
-		);
-
+		// Mark as generating
 		await Submission.findByIdAndUpdate(submissionId, {
-			aiSummary: summary,
+			summaryStatus: "generating",
+			summaryError: null,
 		});
 
-		console.log(
-			`[GEMINI:SUMMARY] ✅ Summary regenerated for "${submission.title}"`,
-		);
-
-		// Regenerate voice too
 		try {
-			await GeminiSummaryService.generateVoiceSummary(
-				GEMINI_API_KEY,
-				submissionId,
-				summary.executiveSummary,
+			const summary = await withRetry(
+				() => GeminiSummaryService.callGemini(GEMINI_API_KEY, submission),
+				"GEMINI:REGEN",
 			);
-		} catch (ttsErr) {
-			console.error(
-				`[GEMINI:TTS] Voice regeneration failed for ${submissionId}:`,
-				(ttsErr as Error).message,
-			);
-		}
 
-		return summary;
+			await Submission.findByIdAndUpdate(submissionId, {
+				aiSummary: summary,
+				summaryStatus: "completed",
+				summaryError: null,
+			});
+
+			console.log(
+				`[GEMINI:SUMMARY] ✅ Summary regenerated for "${submission.title}"`,
+			);
+
+			// Regenerate voice too
+			try {
+				await GeminiSummaryService.generateVoiceSummary(
+					GEMINI_API_KEY,
+					submissionId,
+					summary.executiveSummary,
+				);
+			} catch (ttsErr) {
+				console.error(
+					`[GEMINI:TTS] Voice regeneration failed for ${submissionId}:`,
+					(ttsErr as Error).message,
+				);
+			}
+
+			return summary;
+		} catch (err) {
+			await Submission.findByIdAndUpdate(submissionId, {
+				summaryStatus: "failed",
+				summaryError: (err as Error).message,
+			});
+			throw err;
+		}
 	}
 
 	/**
@@ -221,8 +279,49 @@ Return ONLY a valid JSON object — no markdown fences, no explanation, nothing 
 	}
 
 	/**
+	 * Wrap raw PCM (signed 16-bit LE, mono) audio data in a WAV container.
+	 * Gemini TTS returns audio/L16;rate=24000 — raw PCM without headers.
+	 */
+	private static pcmToWav(
+		pcmBuffer: Buffer,
+		sampleRate = 24000,
+		channels = 1,
+		bitsPerSample = 16,
+	): Buffer {
+		const byteRate = (sampleRate * channels * bitsPerSample) / 8;
+		const blockAlign = (channels * bitsPerSample) / 8;
+		const dataSize = pcmBuffer.length;
+		const headerSize = 44;
+		const fileSize = headerSize + dataSize;
+
+		const header = Buffer.alloc(headerSize);
+
+		// RIFF header
+		header.write("RIFF", 0);
+		header.writeUInt32LE(fileSize - 8, 4);
+		header.write("WAVE", 8);
+
+		// fmt sub-chunk
+		header.write("fmt ", 12);
+		header.writeUInt32LE(16, 16); // Sub-chunk size (16 for PCM)
+		header.writeUInt16LE(1, 20); // Audio format (1 = PCM)
+		header.writeUInt16LE(channels, 22);
+		header.writeUInt32LE(sampleRate, 24);
+		header.writeUInt32LE(byteRate, 28);
+		header.writeUInt16LE(blockAlign, 32);
+		header.writeUInt16LE(bitsPerSample, 34);
+
+		// data sub-chunk
+		header.write("data", 36);
+		header.writeUInt32LE(dataSize, 40);
+
+		return Buffer.concat([header, pcmBuffer]);
+	}
+
+	/**
 	 * Generate a TTS voice narration of the executive summary using Gemini.
-	 * Stores the base64 audio as a data URL on the submission.
+	 * Uploads audio to Cloudinary if configured, otherwise falls back to
+	 * base64 data URL stored directly on the submission.
 	 */
 	private static async generateVoiceSummary(
 		apiKey: string,
@@ -237,20 +336,24 @@ Return ONLY a valid JSON object — no markdown fences, no explanation, nothing 
 
 		const ai = new GoogleGenAI({ apiKey });
 
-		const response = await ai.models.generateContent({
-			model: GEMINI_TTS_MODEL,
-			contents: `Read the following startup pitch summary aloud in a clear, professional, and engaging tone suitable for investors reviewing the pitch:\n\n"${executiveSummary}"`,
-			config: {
-				responseModalities: ["AUDIO"],
-				speechConfig: {
-					voiceConfig: {
-						prebuiltVoiceConfig: {
-							voiceName: "Kore",
+		const response = await withRetry(
+			() =>
+				ai.models.generateContent({
+					model: GEMINI_TTS_MODEL,
+					contents: `Read the following startup pitch summary aloud in a clear, professional, and engaging tone suitable for investors reviewing the pitch:\n\n"${executiveSummary}"`,
+					config: {
+						responseModalities: ["AUDIO"],
+						speechConfig: {
+							voiceConfig: {
+								prebuiltVoiceConfig: {
+									voiceName: "Kore",
+								},
+							},
 						},
 					},
-				},
-			},
-		});
+				}),
+			"GEMINI:TTS",
+		);
 
 		// Extract inline audio data from Gemini response
 		const parts = response.candidates?.[0]?.content?.parts;
@@ -272,18 +375,72 @@ Return ONLY a valid JSON object — no markdown fences, no explanation, nothing 
 			mimeType: string;
 		};
 
-		// Store as a data URL — avoids needing Cloudinary for small audio
-		// Gemini TTS typically returns audio/L16 (raw PCM) or audio/mp3
-		const resolvedMime = mimeType || "audio/mp3";
-		const dataUrl = `data:${resolvedMime};base64,${data}`;
+		// Gemini TTS typically returns raw PCM as audio/L16;rate=24000
+		const isRawPcm =
+			!mimeType ||
+			mimeType.includes("L16") ||
+			mimeType.includes("pcm") ||
+			mimeType.includes("raw");
+
+		// Parse sample rate from mimeType if present (e.g. "audio/L16;rate=24000")
+		let sampleRate = 24000;
+		const rateMatch = mimeType?.match(/rate=(\d+)/);
+		if (rateMatch) {
+			sampleRate = Number.parseInt(rateMatch[1], 10);
+		}
+
+		const rawBuffer = Buffer.from(data, "base64");
+
+		// Convert raw PCM to WAV so browsers and Cloudinary can handle it
+		const wavBuffer = isRawPcm
+			? GeminiSummaryService.pcmToWav(rawBuffer, sampleRate)
+			: rawBuffer;
+
+		let voiceUrl: string;
+
+		// Upload to Cloudinary if configured, otherwise fallback to base64 data URL
+		if (isCloudinaryConfigured) {
+			try {
+				const uploadResult = await new Promise<{ secure_url: string }>(
+					(resolve, reject) => {
+						const stream = cloudinary.uploader.upload_stream(
+							{
+								resource_type: "video", // Cloudinary uses "video" for audio
+								folder: "sepms/voice-summaries",
+								public_id: `voice_${submissionId}`,
+								format: "wav",
+								overwrite: true,
+							},
+							(error, result) => {
+								if (error) reject(error);
+								else resolve(result as { secure_url: string });
+							},
+						);
+						stream.end(wavBuffer);
+					},
+				);
+				voiceUrl = uploadResult.secure_url;
+				console.log(
+					`[GEMINI:TTS] ✅ Voice uploaded to Cloudinary for ${submissionId}`,
+				);
+			} catch (uploadErr) {
+				console.warn(
+					`[GEMINI:TTS] Cloudinary upload failed, falling back to data URL:`,
+					(uploadErr as Error).message,
+				);
+				// Fallback: store as base64 data URL with correct WAV mime
+				voiceUrl = `data:audio/wav;base64,${wavBuffer.toString("base64")}`;
+			}
+		} else {
+			// Fallback: store as data URL
+			voiceUrl = `data:audio/wav;base64,${wavBuffer.toString("base64")}`;
+		}
 
 		await Submission.findByIdAndUpdate(submissionId, {
-			voiceSummaryUrl: dataUrl,
+			voiceSummaryUrl: voiceUrl,
 		});
 
-		console.log(
-			`[GEMINI:TTS] ✅ Voice summary saved for ${submissionId} (${Math.round(data.length / 1024)}KB)`,
-		);
+		console.log(`[GEMINI:TTS] ✅ Voice summary saved for ${submissionId}`);
 	}
 
 	/**

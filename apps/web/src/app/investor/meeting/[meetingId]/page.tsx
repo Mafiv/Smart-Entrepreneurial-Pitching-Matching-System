@@ -13,10 +13,15 @@ import { Track } from "livekit-client";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 
 const API = (
 	process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api"
@@ -61,11 +66,11 @@ export default function MeetingRoomPage() {
 			if (data.status === "success") {
 				setToken(data.token);
 			} else {
-				toast.error(data.message ?? "Failed to get meeting token");
+				showErrorToast(data.message ?? "Failed to get meeting token");
 				router.push("/investor/matches");
 			}
 		} catch {
-			toast.error("Network error joining meeting");
+			showErrorToast("Network error joining meeting");
 			router.push("/investor/matches");
 		} finally {
 			setLoading(false);

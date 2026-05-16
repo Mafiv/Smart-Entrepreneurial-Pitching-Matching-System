@@ -130,7 +130,9 @@ router.post(
 			//    originally created with email/password — different Firebase UID, same email)
 			const email = req.firebaseUser?.email;
 			if (email) {
-				const existingByEmail = await User.findOne({ email });
+				const existingByEmail = await User.findOne({
+					email: email.toLowerCase(),
+				});
 
 				if (existingByEmail) {
 					// Link the new Firebase UID to the existing account so future

@@ -3,7 +3,6 @@
 import { Heart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +17,12 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { INVESTOR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 
 interface Submission {
 	_id: string;
@@ -122,14 +127,14 @@ export default function SavedPitchesPage() {
 				// Revert Optimistic Update
 				setSubmissions(originalSubmissions);
 				setSelectedPitch(originalSelected);
-				toast.error(data.message || "Failed to unsave pitch");
+				showErrorToast(data.message || "Failed to unsave pitch");
 			}
 		} catch (err) {
 			console.error("Failed to toggle save", err);
 			// Revert Optimistic Update
 			setSubmissions(originalSubmissions);
 			setSelectedPitch(originalSelected);
-			toast.error("An error occurred while unsaving the pitch");
+			showErrorToast("An error occurred while unsaving the pitch");
 		}
 	};
 

@@ -15,7 +15,6 @@ import {
 	Users,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import { MilestoneActionCard } from "@/components/milestones/MilestoneActionCard";
 import { MilestoneStatusBadge } from "@/components/milestones/MilestoneStatusBadge";
@@ -28,6 +27,12 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { ENTREPRENEUR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 import { cn } from "@/lib/utils";
 
 const API = (
@@ -239,13 +244,13 @@ export default function EntrepreneurMilestonesPage() {
 				);
 				setMilestones(list);
 			} else if (!res.ok) {
-				toast.error(data.message ?? "Failed to load milestones");
+				showErrorToast(data.message ?? "Failed to load milestones");
 			} else {
 				setMilestones([]);
 			}
 		} catch (error) {
 			console.error("Fetch error:", error);
-			toast.error("Network error loading milestones");
+			showErrorToast("Network error loading milestones");
 		} finally {
 			setLoading(false);
 		}

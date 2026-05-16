@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +26,12 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { INVESTOR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -121,10 +126,10 @@ export default function InvestorMatchesPage() {
 			if (data.status === "success") {
 				setMatches(data.matches);
 			} else {
-				toast.error("Failed to load matches");
+				showErrorToast("Failed to load matches");
 			}
 		} catch {
-			toast.error("Network error loading matches");
+			showErrorToast("Network error loading matches");
 		} finally {
 			setLoading(false);
 		}
@@ -154,7 +159,7 @@ export default function InvestorMatchesPage() {
 			);
 			const data = await res.json();
 			if (data.status === "success") {
-				toast.success(
+				showSuccessToast(
 					status === "accepted"
 						? "Match accepted — redirecting to chat"
 						: "Match declined",
@@ -167,10 +172,10 @@ export default function InvestorMatchesPage() {
 					router.push(`/investor/messages?open=${data.conversationId}`);
 				}
 			} else {
-				toast.error(data.message ?? "Failed to respond");
+				showErrorToast(data.message ?? "Failed to respond");
 			}
 		} catch {
-			toast.error("Network error");
+			showErrorToast("Network error");
 		} finally {
 			setResponding(null);
 		}

@@ -45,7 +45,7 @@ export const authenticate = async (
 		// If no user found by UID, try by email (handles provider linking:
 		// e.g., admin created via email/password now signing in with Google)
 		if (!user && decodedToken.email) {
-			user = await User.findOne({ email: decodedToken.email });
+			user = await User.findOne({ email: decodedToken.email.toLowerCase() });
 			if (user) {
 				// Link the new Firebase UID to the existing account
 				user.firebaseUid = decodedToken.uid;

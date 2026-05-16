@@ -530,4 +530,68 @@ router.post(
 	SubmissionController.generateSummary,
 );
 
+/**
+ * @openapi
+ * /api/submissions/{id}/summary-status:
+ *   get:
+ *     tags: [Submissions]
+ *     summary: Lightweight poll for AI summary generation status
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Summary status
+ *       404:
+ *         description: Submission not found
+ */
+router.get(
+	"/:id/summary-status",
+	authenticate,
+	SubmissionController.getSummaryStatus,
+);
+
+/**
+ * @openapi
+ * /api/submissions/{id}/video-status:
+ *   patch:
+ *     tags: [Submissions]
+ *     summary: Admin approve, flag, or reject a pitch video
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [videoStatus]
+ *             properties:
+ *               videoStatus:
+ *                 type: string
+ *                 enum: [approved, flagged, rejected]
+ *               videoFlagReason:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Video status updated
+ */
+router.patch(
+	"/:id/video-status",
+	authenticate,
+	authorize("admin", "super_admin"),
+	SubmissionController.updateVideoStatus,
+);
+
 export default router;

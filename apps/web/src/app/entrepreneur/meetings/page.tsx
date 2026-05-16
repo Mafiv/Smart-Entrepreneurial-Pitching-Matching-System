@@ -3,7 +3,6 @@
 import { CalendarDays, Clock, Loader2, Video } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +11,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ENTREPRENEUR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 
 interface Meeting {
 	_id: string;
@@ -54,10 +59,10 @@ export default function EntrepreneurMeetingsPage() {
 			if (data.status === "success") {
 				setMeetings(data.meetings);
 			} else {
-				toast.error("Failed to load meetings");
+				showErrorToast("Failed to load meetings");
 			}
 		} catch {
-			toast.error("Network error loading meetings");
+			showErrorToast("Network error loading meetings");
 		} finally {
 			setLoading(false);
 		}

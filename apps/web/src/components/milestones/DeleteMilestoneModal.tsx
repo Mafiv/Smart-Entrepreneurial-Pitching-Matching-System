@@ -2,7 +2,6 @@
 
 import { AlertTriangle, Loader2, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -13,6 +12,12 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 import type { Milestone } from "./MilestoneTimeline";
 
 interface DeleteMilestoneModalProps {
@@ -51,14 +56,14 @@ export function DeleteMilestoneModal({
 			const data = await res.json();
 
 			if (data.status === "success") {
-				toast.success("Milestone deleted successfully.");
+				showSuccessToast("Milestone deleted successfully.");
 				onSuccess();
 				onClose();
 			} else {
-				toast.error(data.message ?? "Failed to delete milestone.");
+				showErrorToast(data.message ?? "Failed to delete milestone.");
 			}
 		} catch {
-			toast.error("Network error. Please try again.");
+			showErrorToast("Network error. Please try again.");
 		} finally {
 			setLoading(false);
 		}
