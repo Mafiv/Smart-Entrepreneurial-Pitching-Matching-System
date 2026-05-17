@@ -238,16 +238,16 @@ function SignUpForm() {
 								{role === "entrepreneur" && (
 									<div className="space-y-2">
 										<Label htmlFor="companyName">
-											Company{" "}
+											{t.auth.companyLabel}{" "}
 											<span className="text-muted-foreground font-normal ml-1">
-												(Optional)
+												{t.auth.optionalLabel}
 											</span>
 										</Label>
 										<Input
 											id="companyName"
 											type="text"
 											className="h-11 border-border/50 bg-background"
-											placeholder="Ethio Tech PLC"
+											placeholder={t.auth.companyPlaceholder}
 											value={companyName}
 											onChange={(e) => setCompanyName(e.target.value)}
 											disabled={loading}
@@ -258,16 +258,16 @@ function SignUpForm() {
 								{role === "investor" && (
 									<div className="space-y-2">
 										<Label htmlFor="fundName">
-											Org / Fund{" "}
+											{t.auth.orgFundLabel}{" "}
 											<span className="text-muted-foreground font-normal ml-1">
-												(Optional)
+												{t.auth.optionalLabel}
 											</span>
 										</Label>
 										<Input
 											id="fundName"
 											type="text"
 											className="h-11 border-border/50 bg-background"
-											placeholder="Addis Capital Group"
+											placeholder={t.auth.orgFundPlaceholder}
 											value={fundName}
 											onChange={(e) => setFundName(e.target.value)}
 											disabled={loading}
@@ -305,7 +305,7 @@ function SignUpForm() {
 									/>
 								</div>
 								<div className="space-y-2">
-									<Label htmlFor="confirmPassword">Confirm</Label>
+									<Label htmlFor="confirmPassword">{t.auth.confirmLabel}</Label>
 									<Input
 										id="confirmPassword"
 										type="password"
