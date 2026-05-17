@@ -50,30 +50,12 @@ class _InvestorShellState extends State<InvestorShell> {
     );
 
     _pages = <Widget>[
-      BlocProvider<FeedBloc>(
-        create: (_) => sl<FeedBloc>(),
-        child: const FeedPage(),
-      ),
-      BlocProvider<SavedPitchesBloc>(
-        create: (_) => sl<SavedPitchesBloc>(),
-        child: const SavedPitchesPage(),
-      ),
-      BlocProvider<MatchQueueBloc>(
-        create: (_) => sl<MatchQueueBloc>(),
-        child: const MatchQueuePage(),
-      ),
-      BlocProvider<PortfolioBloc>(
-        create: (_) => sl<PortfolioBloc>(),
-        child: const PortfolioPage(),
-      ),
-      BlocProvider<MessagingBloc>(
-        create: (_) => sl<MessagingBloc>(),
-        child: const MessageCenterPage(),
-      ),
-      BlocProvider<InvestorProfileBloc>(
-        create: (_) => sl<InvestorProfileBloc>(),
-        child: const InvestorProfilePage(),
-      ),
+      const FeedPage(),
+      const SavedPitchesPage(),
+      const MatchQueuePage(),
+      const PortfolioPage(),
+      const MessageCenterPage(),
+      const InvestorProfilePage(),
     ];
   }
 
@@ -89,65 +71,88 @@ class _InvestorShellState extends State<InvestorShell> {
       value: _drawerBloc,
       child: BlocBuilder<drawer_bloc.DrawerBloc, drawer_bloc.DrawerState>(
         builder: (context, drawerState) {
-          return Scaffold(
-            drawer: drawerState is drawer_bloc.DrawerLoaded
-                ? AppDrawer(
-                    userInfo: drawerState.userInfo,
-                    items: drawerState.items,
-                    selectedItemId: drawerState.selectedItemId,
-                    onItemTap: (item) {
-                      _drawerBloc.add(drawer_bloc.DrawerItemSelected(item.id));
-                      _handleDrawerNavigation(item, context);
-                      Navigator.pop(context); // Close drawer
-                    },
-                    onEditProfile: () {
-                      Navigator.pop(context);
-                      setState(
-                          () => _index = 5); // Profile page index for investor
-                    },
-                    onLogout: () {
-                      Navigator.pop(context);
-                      // TODO: Implement logout logic
-                    },
-                  )
-                : null,
-            extendBody: true,
-            body: IndexedStack(index: _index, children: _pages),
-            bottomNavigationBar: AppBottomNav(
-              selectedIndex: _index,
-              onDestinationSelected: (i) => setState(() => _index = i),
-              destinations: const <AppBottomNavDestination>[
-                AppBottomNavDestination(
-                  icon: Icons.view_list_outlined,
-                  selectedIcon: Icons.view_list,
-                  label: 'Feed',
-                ),
-                AppBottomNavDestination(
-                  icon: Icons.bookmark_outline,
-                  selectedIcon: Icons.bookmark,
-                  label: 'Saved',
-                ),
-                AppBottomNavDestination(
-                  icon: Icons.handshake_outlined,
-                  selectedIcon: Icons.handshake,
-                  label: 'Matches',
-                ),
-                AppBottomNavDestination(
-                  icon: Icons.trending_up_outlined,
-                  selectedIcon: Icons.trending_up,
-                  label: 'Portfolio',
-                ),
-                AppBottomNavDestination(
-                  icon: Icons.chat_bubble_outline,
-                  selectedIcon: Icons.chat_bubble,
-                  label: 'Messages',
-                ),
-                AppBottomNavDestination(
-                  icon: Icons.person_outline,
-                  selectedIcon: Icons.person,
-                  label: 'Profile',
-                ),
-              ],
+          return MultiBlocProvider(
+            providers: [
+              BlocProvider<FeedBloc>(
+                create: (_) => sl<FeedBloc>(),
+              ),
+              BlocProvider<SavedPitchesBloc>(
+                create: (_) => sl<SavedPitchesBloc>(),
+              ),
+              BlocProvider<MatchQueueBloc>(
+                create: (_) => sl<MatchQueueBloc>(),
+              ),
+              BlocProvider<PortfolioBloc>(
+                create: (_) => sl<PortfolioBloc>(),
+              ),
+              BlocProvider<MessagingBloc>(
+                create: (_) => sl<MessagingBloc>(),
+              ),
+              BlocProvider<InvestorProfileBloc>(
+                create: (_) => sl<InvestorProfileBloc>(),
+              ),
+            ],
+            child: Scaffold(
+              drawer: drawerState is drawer_bloc.DrawerLoaded
+                  ? AppDrawer(
+                      userInfo: drawerState.userInfo,
+                      items: drawerState.items,
+                      selectedItemId: drawerState.selectedItemId,
+                      onItemTap: (item) {
+                        _drawerBloc
+                            .add(drawer_bloc.DrawerItemSelected(item.id));
+                        _handleDrawerNavigation(item, context);
+                        Navigator.pop(context); // Close drawer
+                      },
+                      onEditProfile: () {
+                        Navigator.pop(context);
+                        setState(() =>
+                            _index = 5); // Profile page index for investor
+                      },
+                      onLogout: () {
+                        Navigator.pop(context);
+                        // TODO: Implement logout logic
+                      },
+                    )
+                  : null,
+              extendBody: true,
+              body: IndexedStack(index: _index, children: _pages),
+              bottomNavigationBar: AppBottomNav(
+                selectedIndex: _index,
+                onDestinationSelected: (i) => setState(() => _index = i),
+                destinations: const <AppBottomNavDestination>[
+                  AppBottomNavDestination(
+                    icon: Icons.view_list_outlined,
+                    selectedIcon: Icons.view_list,
+                    label: 'Feed',
+                  ),
+                  AppBottomNavDestination(
+                    icon: Icons.bookmark_outline,
+                    selectedIcon: Icons.bookmark,
+                    label: 'Saved',
+                  ),
+                  AppBottomNavDestination(
+                    icon: Icons.handshake_outlined,
+                    selectedIcon: Icons.handshake,
+                    label: 'Matches',
+                  ),
+                  AppBottomNavDestination(
+                    icon: Icons.trending_up_outlined,
+                    selectedIcon: Icons.trending_up,
+                    label: 'Portfolio',
+                  ),
+                  AppBottomNavDestination(
+                    icon: Icons.chat_bubble_outline,
+                    selectedIcon: Icons.chat_bubble,
+                    label: 'Messages',
+                  ),
+                  AppBottomNavDestination(
+                    icon: Icons.person_outline,
+                    selectedIcon: Icons.person,
+                    label: 'Profile',
+                  ),
+                ],
+              ),
             ),
           );
         },

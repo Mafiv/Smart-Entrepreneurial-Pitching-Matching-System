@@ -9,7 +9,7 @@ class ApiConfig {
   /// **Mock email sign-in:** use an address whose local part (before `@`) is
   /// `investor`, e.g. `investor@test.com`, with any password to open the investor
   /// shell. Any other local part behaves as entrepreneur.
-  static const bool useMockData = true;
+  static const bool useMockData = false;
 
   /// Artificial latency to better simulate real network calls in mock mode.
   static const Duration mockLatency = Duration(milliseconds: 350);
@@ -43,7 +43,8 @@ class ApiConfig {
   static String get submissionsFeedBrowse => '/submissions/feed/browse';
   static String submissionById(String id) => '/submissions/$id';
   static String submissionSubmit(String id) => '/submissions/$id/submit';
-  static String submissionCompleteness(String id) => '/submissions/$id/completeness';
+  static String submissionCompleteness(String id) =>
+      '/submissions/$id/completeness';
 
   /// Matching endpoints
   static String matchingRun(String submissionId) =>
@@ -101,10 +102,8 @@ class ApiConfig {
   static String get milestones => Urls.listMilestones;
   static String milestoneById(String id) =>
       Urls.buildUrl(Urls.updateMilestone, id);
-  static String milestoneEvidence(String id) =>
-      '/milestones/$id/evidence';
-  static String milestoneVerify(String id) =>
-      '/milestones/$id/verify';
+  static String milestoneEvidence(String id) => '/milestones/$id/evidence';
+  static String milestoneVerify(String id) => '/milestones/$id/verify';
 
   /// Connection timeouts
   static const Duration connectTimeout = Duration(seconds: 30);

@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/widgets/app_bottom_nav.dart';
-import '../../../entrepreneur_profile/presentation/bloc/entrepreneur_profile_bloc.dart';
-import '../../../entrepreneur_profile/presentation/pages/entrepreneur_profile_page.dart';
 import '../../../../core/di/injection_container.dart';
-import '../../../submissions/presentation/bloc/submissions_bloc.dart';
-import '../../../submissions/presentation/pages/my_submissions_page.dart';
 import '../../../dashboard/presentation/bloc/dashboard_bloc.dart';
 import '../../../dashboard/presentation/pages/entrepreneur_dashboard_page.dart';
+import '../../../submissions/presentation/bloc/submissions_bloc.dart';
+import '../../../submissions/presentation/pages/my_submissions_page.dart';
 import '../../../messaging/presentation/bloc/messaging_bloc.dart';
 import '../../../messaging/presentation/pages/message_center_page.dart';
+import '../../../entrepreneur_profile/presentation/bloc/entrepreneur_profile_bloc.dart';
+import '../../../entrepreneur_profile/presentation/pages/entrepreneur_profile_page.dart';
 import '../../../navigation/drawer/drawer.dart';
 import '../../../navigation/drawer/bloc/drawer_bloc.dart' as drawer_bloc;
 
@@ -46,23 +46,10 @@ class _EntrepreneurShellState extends State<EntrepreneurShell> {
     );
 
     _pages = <Widget>[
-      BlocProvider(
-        create: (_) =>
-            sl<DashboardBloc>()..add(const DashboardStatsRequested()),
-        child: const EntrepreneurDashboardPage(),
-      ),
-      BlocProvider<SubmissionsBloc>(
-        create: (_) => sl<SubmissionsBloc>(),
-        child: const MySubmissionsPage(),
-      ),
-      BlocProvider<MessagingBloc>(
-        create: (_) => sl<MessagingBloc>(),
-        child: const MessageCenterPage(),
-      ),
-      BlocProvider<EntrepreneurProfileBloc>(
-        create: (_) => sl<EntrepreneurProfileBloc>(),
-        child: const EntrepreneurProfilePage(),
-      ),
+      const EntrepreneurDashboardPage(),
+      const MySubmissionsPage(),
+      const MessageCenterPage(),
+      const EntrepreneurProfilePage(),
     ];
   }
 
@@ -78,54 +65,72 @@ class _EntrepreneurShellState extends State<EntrepreneurShell> {
       value: _drawerBloc,
       child: BlocBuilder<drawer_bloc.DrawerBloc, drawer_bloc.DrawerState>(
         builder: (context, drawerState) {
-          return Scaffold(
-            drawer: drawerState is drawer_bloc.DrawerLoaded
-                ? AppDrawer(
-                    userInfo: drawerState.userInfo,
-                    items: drawerState.items,
-                    selectedItemId: drawerState.selectedItemId,
-                    onItemTap: (item) {
-                      _drawerBloc.add(drawer_bloc.DrawerItemSelected(item.id));
-                      _handleDrawerNavigation(item, context);
-                      Navigator.pop(context); // Close drawer
-                    },
-                    onEditProfile: () {
-                      Navigator.pop(context);
-                      setState(() => _index = 3); // Profile page index
-                    },
-                    onLogout: () {
-                      Navigator.pop(context);
-                      // TODO: Implement logout logic
-                    },
-                  )
-                : null,
-            extendBody: true,
-            body: IndexedStack(index: _index, children: _pages),
-            bottomNavigationBar: AppBottomNav(
-              selectedIndex: _index,
-              onDestinationSelected: (i) => setState(() => _index = i),
-              destinations: const <AppBottomNavDestination>[
-                AppBottomNavDestination(
-                  icon: Icons.home_outlined,
-                  selectedIcon: Icons.home,
-                  label: 'Home',
-                ),
-                AppBottomNavDestination(
-                  icon: Icons.description_outlined,
-                  selectedIcon: Icons.description,
-                  label: 'Pitches',
-                ),
-                AppBottomNavDestination(
-                  icon: Icons.chat_bubble_outline,
-                  selectedIcon: Icons.chat_bubble,
-                  label: 'Messages',
-                ),
-                AppBottomNavDestination(
-                  icon: Icons.person_outline,
-                  selectedIcon: Icons.person,
-                  label: 'Profile',
-                ),
-              ],
+          return MultiBlocProvider(
+            providers: [
+              BlocProvider<DashboardBloc>(
+                create: (_) =>
+                    sl<DashboardBloc>()..add(const DashboardStatsRequested()),
+              ),
+              BlocProvider<SubmissionsBloc>(
+                create: (_) => sl<SubmissionsBloc>(),
+              ),
+              BlocProvider<MessagingBloc>(
+                create: (_) => sl<MessagingBloc>(),
+              ),
+              BlocProvider<EntrepreneurProfileBloc>(
+                create: (_) => sl<EntrepreneurProfileBloc>(),
+              ),
+            ],
+            child: Scaffold(
+              drawer: drawerState is drawer_bloc.DrawerLoaded
+                  ? AppDrawer(
+                      userInfo: drawerState.userInfo,
+                      items: drawerState.items,
+                      selectedItemId: drawerState.selectedItemId,
+                      onItemTap: (item) {
+                        _drawerBloc
+                            .add(drawer_bloc.DrawerItemSelected(item.id));
+                        _handleDrawerNavigation(item, context);
+                        Navigator.pop(context); // Close drawer
+                      },
+                      onEditProfile: () {
+                        Navigator.pop(context);
+                        setState(() => _index = 3); // Profile page index
+                      },
+                      onLogout: () {
+                        Navigator.pop(context);
+                        // TODO: Implement logout logic
+                      },
+                    )
+                  : null,
+              extendBody: true,
+              body: IndexedStack(index: _index, children: _pages),
+              bottomNavigationBar: AppBottomNav(
+                selectedIndex: _index,
+                onDestinationSelected: (i) => setState(() => _index = i),
+                destinations: const <AppBottomNavDestination>[
+                  AppBottomNavDestination(
+                    icon: Icons.home_outlined,
+                    selectedIcon: Icons.home,
+                    label: 'Home',
+                  ),
+                  AppBottomNavDestination(
+                    icon: Icons.description_outlined,
+                    selectedIcon: Icons.description,
+                    label: 'Pitches',
+                  ),
+                  AppBottomNavDestination(
+                    icon: Icons.chat_bubble_outline,
+                    selectedIcon: Icons.chat_bubble,
+                    label: 'Messages',
+                  ),
+                  AppBottomNavDestination(
+                    icon: Icons.person_outline,
+                    selectedIcon: Icons.person,
+                    label: 'Profile',
+                  ),
+                ],
+              ),
             ),
           );
         },
