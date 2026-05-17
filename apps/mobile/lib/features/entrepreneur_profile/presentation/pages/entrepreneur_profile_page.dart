@@ -30,6 +30,7 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage>
   final _companyReg = TextEditingController();
   final _sector = TextEditingController();
   final _stage = TextEditingController();
+  final _companyDescription = TextEditingController();
 
   // Document file states
   File? _nationalIdFile;
@@ -53,6 +54,7 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage>
     _companyReg.dispose();
     _sector.dispose();
     _stage.dispose();
+    _companyDescription.dispose();
     super.dispose();
   }
 
@@ -122,31 +124,47 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage>
   }
 
   void _saveVerificationDocuments(EntrepreneurProfileEntity profile) {
-    // Simplified implementation - just update with placeholder URLs
-    // In a real implementation, you would upload files first
-    String nationalIdUrl = profile.nationalIdUrl;
-    String businessLicenseUrl = profile.businessLicenseUrl;
-    String tinNumber = profile.tinNumber;
+    // Save company details first
+    final patch = <String, dynamic>{};
+    if (_companyName.text.trim().isNotEmpty &&
+        _companyName.text.trim() != profile.companyName) {
+      patch['companyName'] = _companyName.text.trim();
+    }
+    if (_companyDescription.text.trim().isNotEmpty &&
+        _companyDescription.text.trim() != (profile.description ?? '')) {
+      patch['description'] = _companyDescription.text.trim();
+    }
+    if (patch.isNotEmpty) {
+      context.read<EntrepreneurProfileBloc>().add(
+            EntrepreneurProfileUpdateRequested(patch),
+          );
+    }
 
+    // Upload documents
     if (_nationalIdFile != null) {
-      nationalIdUrl = 'uploaded_national_id_url';
+      context.read<EntrepreneurProfileBloc>().add(
+            EntrepreneurProfileKycUploadRequested(
+              file: _nationalIdFile!,
+              type: 'nationalId',
+            ),
+          );
     }
-
     if (_businessLicenseFile != null) {
-      businessLicenseUrl = 'uploaded_business_license_url';
+      context.read<EntrepreneurProfileBloc>().add(
+            EntrepreneurProfileKycUploadRequested(
+              file: _businessLicenseFile!,
+              type: 'businessLicense',
+            ),
+          );
     }
-
     if (_tinCertificateFile != null) {
-      tinNumber = 'uploaded_tin_url';
+      context.read<EntrepreneurProfileBloc>().add(
+            EntrepreneurProfileKycUploadRequested(
+              file: _tinCertificateFile!,
+              type: 'tinCertificate',
+            ),
+          );
     }
-
-    context.read<EntrepreneurProfileBloc>().add(
-          EntrepreneurProfileVerificationDocumentsUpdateRequested(
-            nationalIdUrl: nationalIdUrl,
-            businessLicenseUrl: businessLicenseUrl,
-            tinNumber: tinNumber,
-          ),
-        );
   }
 
   Widget _logoutSection({EdgeInsets? margin}) {
@@ -221,6 +239,7 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage>
                 _companyName.text = profile.companyName;
                 _sector.text = profile.businessSector;
                 _stage.text = profile.businessStage;
+                _companyDescription.text = profile.description ?? '';
               }
             },
             builder: (context, state) {
@@ -307,10 +326,7 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage>
                 );
               }
 
-              return SizedBox(
-                height: MediaQuery.of(context).size.height - 200,
-                child: _buildView(state),
-              );
+              return _buildView(state);
             },
           ),
         ),
@@ -400,86 +416,71 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage>
   Widget _buildView(EntrepreneurProfileState state) {
     final profile = state.profile!;
     final theme = Theme.of(context);
-    return Column(
-      children: [
-        Container(
-          padding: AppSpacing.paddingMd,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+    return SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 100),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            padding: AppSpacing.paddingMd,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+              ),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
             ),
-            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-          ),
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 28,
-                backgroundColor: Colors.white.withValues(alpha: 0.2),
-                child: Text(
-                  profile.fullName.isNotEmpty
-                      ? profile.fullName[0].toUpperCase()
-                      : 'E',
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 28,
+                  backgroundColor: Colors.white.withValues(alpha: 0.2),
+                  child: Text(
+                    profile.fullName.isNotEmpty
+                        ? profile.fullName[0].toUpperCase()
+                        : 'E',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      profile.fullName.isNotEmpty
-                          ? profile.fullName
-                          : 'Founder',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        profile.fullName,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      profile.companyName,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.9),
+                      const SizedBox(height: 4),
+                      Text(
+                        profile.companyName,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.9),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        AppSpacing.gapMd,
-        TabBar(
-          controller: _tabController,
-          labelColor: theme.colorScheme.primary,
-          unselectedLabelColor: AppColors.mutedForeground,
-          indicatorColor: theme.colorScheme.primary,
-          tabs: const [
-            Tab(text: 'Personal Info'),
-            Tab(text: 'Verification'),
-          ],
-        ),
-        AppSpacing.gapMd,
-        Expanded(
-          child: TabBarView(
-            controller: _tabController,
-            children: [
-              _buildPersonalInfoTab(profile, theme),
-              _buildVerificationTab(profile, theme),
-            ],
-          ),
-        ),
-      ],
+          AppSpacing.gapMd,
+          _buildPersonalInfoTab(profile, theme),
+          AppSpacing.gapLg,
+          _buildVerificationTab(profile, theme),
+        ],
+      ),
     );
   }
 
   Widget _buildPersonalInfoTab(EntrepreneurProfileEntity profile, ThemeData theme) {
-    return ListView(
-      padding: const EdgeInsets.only(bottom: 100),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
           'Details',
@@ -628,16 +629,28 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage>
   }
 
   Widget _buildVerificationTab(EntrepreneurProfileEntity profile, ThemeData theme) {
-    return ListView(
-      padding: const EdgeInsets.only(bottom: 100),
+    // Get auth bloc to check email verification status
+    final authState = context.watch<AuthBloc>().state;
+    final emailVerified = authState.isAuthenticated && authState.user?.emailVerified == true;
+
+    final hasGovId = _nationalIdFile != null || profile.nationalIdUrl.isNotEmpty;
+    final hasBusinessDocs = (_businessLicenseFile != null || profile.businessLicenseUrl.isNotEmpty) &&
+                           (_tinCertificateFile != null || profile.tinNumber.isNotEmpty);
+
+    final steps = [
+      {'label': 'Email Verified', 'done': emailVerified},
+      {'label': 'Government ID', 'done': hasGovId},
+      {'label': 'Business Documents', 'done': hasBusinessDocs},
+      {'label': 'Admin Approved', 'done': profile.isVerified},
+    ];
+    final completedCount = steps.where((s) => s['done'] as bool).length;
+    final progress = (completedCount / steps.length) * 100;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Verification Status Card
+        // Verification Progress Card
         Card(
-          color: profile.isVerified
-              ? const Color(0xFFECFDF5)
-              : profile.isPending
-                  ? const Color(0xFFEFF6FF)
-                  : const Color(0xFFFFFBEB),
           child: Padding(
             padding: AppSpacing.paddingMd,
             child: Column(
@@ -646,46 +659,133 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage>
                 Row(
                   children: [
                     Icon(
-                      profile.isVerified
-                          ? Icons.verified
-                          : profile.isPending
-                              ? Icons.pending
-                              : Icons.warning_amber_rounded,
-                      color: profile.isVerified
-                          ? const Color(0xFF10B981)
-                          : profile.isPending
-                              ? const Color(0xFF3B82F6)
-                              : const Color(0xFFF59E0B),
+                      Icons.shield,
+                      color: theme.colorScheme.primary,
+                      size: 20,
                     ),
                     AppSpacing.gapSm,
                     Text(
-                      profile.isVerified
-                          ? 'Verified'
-                          : profile.isPending
-                              ? 'Under Review'
-                              : 'Incomplete',
+                      'Verification Status',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
                         color: profile.isVerified
-                            ? const Color(0xFF10B981)
+                            ? const Color(0xFF10B981).withValues(alpha: 0.1)
                             : profile.isPending
-                                ? const Color(0xFF3B82F6)
-                                : const Color(0xFFF59E0B),
+                                ? const Color(0xFF3B82F6).withValues(alpha: 0.1)
+                                : AppColors.mutedForeground.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: profile.isVerified
+                              ? const Color(0xFF10B981).withValues(alpha: 0.2)
+                              : profile.isPending
+                                  ? const Color(0xFF3B82F6).withValues(alpha: 0.2)
+                                  : AppColors.border,
+                        ),
+                      ),
+                      child: Text(
+                        profile.isVerified
+                            ? '✓ Verified'
+                            : profile.isPending
+                                ? '⏳ Under Review'
+                                : 'Incomplete',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: profile.isVerified
+                              ? const Color(0xFF10B981)
+                              : profile.isPending
+                                  ? const Color(0xFF3B82F6)
+                                  : AppColors.mutedForeground,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                AppSpacing.gapSm,
-                Text(
-                  profile.isVerified
-                      ? 'Your identity and business documents have been verified.'
-                      : profile.isPending
-                          ? 'Your documents are being reviewed by an administrator.'
-                          : 'Complete your verification to access all features.',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.mutedForeground,
-                  ),
+                AppSpacing.gapMd,
+                // Progress bar
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Progress',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: AppColors.mutedForeground,
+                          ),
+                        ),
+                        Text(
+                          '${progress.round()}%',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: AppColors.mutedForeground,
+                          ),
+                        ),
+                      ],
+                    ),
+                    AppSpacing.gapXs,
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: progress / 100,
+                        backgroundColor: AppColors.border,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          theme.colorScheme.primary,
+                        ),
+                        minHeight: 8,
+                      ),
+                    ),
+                  ],
                 ),
+                AppSpacing.gapMd,
+                // Steps
+                ...steps.map((step) {
+                  final done = step['done'] as bool;
+                  final label = step['label'] as String;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Row(
+                      children: [
+                        if (done)
+                          Icon(
+                            Icons.check_circle,
+                            color: const Color(0xFF10B981),
+                            size: 16,
+                          )
+                        else if (profile.isPending && label == 'Admin Approved')
+                          Icon(
+                            Icons.access_time,
+                            color: const Color(0xFF3B82F6),
+                            size: 16,
+                          )
+                        else
+                          Container(
+                            width: 16,
+                            height: 16,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: AppColors.mutedForeground.withValues(alpha: 0.2),
+                                width: 2,
+                              ),
+                            ),
+                          ),
+                        AppSpacing.gapSm,
+                        Text(
+                          label,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: done ? theme.colorScheme.onSurface : AppColors.mutedForeground,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
                 if (profile.rejectionReason.isNotEmpty) ...[
                   AppSpacing.gapSm,
                   Container(
@@ -694,11 +794,23 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage>
                       color: const Color(0xFFFEE2E2),
                       borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                     ),
-                    child: Text(
-                      profile.rejectionReason,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: const Color(0xFFDC2626),
-                      ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          color: const Color(0xFFDC2626),
+                          size: 16,
+                        ),
+                        AppSpacing.gapSm,
+                        Expanded(
+                          child: Text(
+                            profile.rejectionReason,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: const Color(0xFFDC2626),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -708,7 +820,7 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage>
         ),
         AppSpacing.gapLg,
 
-        // Document Upload Section
+        // Identity Verification
         Text(
           'Identity Verification',
           style: theme.textTheme.titleMedium?.copyWith(
@@ -724,8 +836,8 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage>
         ),
         AppSpacing.gapMd,
         _DocumentUploadCard(
-          label: 'Government ID',
-          description: 'National ID, Driving License, or Passport',
+          label: 'Government-Issued ID',
+          description: 'PDF or Image · Max 10MB',
           file: _nationalIdFile,
           existingUrl: profile.nationalIdUrl,
           onPick: () => _pickFile(
@@ -733,26 +845,28 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage>
             allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
           ),
           onRemove: () => setState(() => _nationalIdFile = null),
+          required: true,
         ),
         AppSpacing.gapLg,
 
+        // Business Documents
         Text(
-          'Business Verification',
+          'Business Documents',
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w800,
           ),
         ),
         AppSpacing.gapSm,
         Text(
-          'Upload your business license and TIN certificate.',
+          'Upload your business registration certificate and TIN certificate.',
           style: theme.textTheme.bodySmall?.copyWith(
             color: AppColors.mutedForeground,
           ),
         ),
         AppSpacing.gapMd,
         _DocumentUploadCard(
-          label: 'Business License',
-          description: 'Certificate of incorporation or business license',
+          label: 'Business Registration Certificate',
+          description: 'PDF or Image · Certificate of Incorporation',
           file: _businessLicenseFile,
           existingUrl: profile.businessLicenseUrl,
           onPick: () => _pickFile(
@@ -760,11 +874,12 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage>
             allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
           ),
           onRemove: () => setState(() => _businessLicenseFile = null),
+          required: true,
         ),
         AppSpacing.gapMd,
         _DocumentUploadCard(
           label: 'TIN Certificate',
-          description: 'Tax Identification Number certificate',
+          description: 'PDF or Image · Tax Identification Number',
           file: _tinCertificateFile,
           existingUrl: profile.tinNumber,
           onPick: () => _pickFile(
@@ -772,14 +887,58 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage>
             allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
           ),
           onRemove: () => setState(() => _tinCertificateFile = null),
+          required: true,
+        ),
+        AppSpacing.gapLg,
+
+        // Company Details
+        Text(
+          'Company Details',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        AppSpacing.gapMd,
+        Material(
+          color: AppColors.card,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+            side: const BorderSide(color: AppColors.border),
+          ),
+          child: Padding(
+            padding: AppSpacing.paddingMd,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AppTextField(
+                  label: 'Company Name',
+                  controller: _companyName,
+                  prefixIcon: Icons.business_outlined,
+                  enabled: !profile.isVerified,
+                ),
+                AppSpacing.gapMd,
+                AppTextField(
+                  label: 'Brief Description',
+                  controller: _companyDescription,
+                  prefixIcon: Icons.description_outlined,
+                  enabled: !profile.isVerified,
+                  maxLines: 3,
+                ),
+              ],
+            ),
+          ),
         ),
         AppSpacing.gapLg,
 
         // Save Button
-        AppButton(
-          text: 'Save Documents',
-          onPressed: () => _saveVerificationDocuments(profile),
-        ),
+        if (!profile.isVerified)
+          AppButton(
+            text: profile.status == 'unverified'
+                ? 'Save & Submit for Review'
+                : 'Save Changes',
+            onPressed: () => _saveVerificationDocuments(profile),
+          ),
       ],
     );
   }
@@ -792,6 +951,7 @@ class _DocumentUploadCard extends StatelessWidget {
   final String? existingUrl;
   final VoidCallback onPick;
   final VoidCallback onRemove;
+  final bool required;
 
   const _DocumentUploadCard({
     required this.label,
@@ -800,6 +960,7 @@ class _DocumentUploadCard extends StatelessWidget {
     required this.existingUrl,
     required this.onPick,
     required this.onRemove,
+    this.required = false,
   });
 
   @override
@@ -915,8 +1076,8 @@ class _DocumentUploadCard extends StatelessWidget {
                           color: AppColors.mutedForeground.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                         ),
-                        child: const Icon(
-                          Icons.cloud_upload_outlined,
+                        child: Icon(
+                          Icons.upload_file_outlined,
                           color: AppColors.mutedForeground,
                           size: 20,
                         ),
@@ -941,13 +1102,22 @@ class _DocumentUploadCard extends StatelessWidget {
                           ],
                         ),
                       ),
+                      if (required)
+                        Text(
+                          '*',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.error,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      AppSpacing.gapSm,
                       const Icon(
-                        Icons.chevron_right,
+                        Icons.chevron_right_rounded,
                         color: AppColors.mutedForeground,
                       ),
                     ],
                   ),
                 ),
-    );
-  }
-}
+        );
+      }
+    }

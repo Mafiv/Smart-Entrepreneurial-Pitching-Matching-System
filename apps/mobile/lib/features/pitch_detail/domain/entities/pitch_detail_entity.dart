@@ -97,11 +97,11 @@ class PitchFinancials extends Equatable {
     }
     return PitchFinancials(
       monthlyRecurringRevenue:
-          (json['monthlyRecurringRevenue'] ?? json['mrr']) as double?,
-      totalRevenue: (json['totalRevenue'] ?? json['total_revenue']) as double?,
-      burnRate: (json['burnRate'] ?? json['burn_rate']) as double?,
+          _toDouble(json['monthlyRecurringRevenue'] ?? json['mrr']),
+      totalRevenue: _toDouble(json['totalRevenue'] ?? json['total_revenue']),
+      burnRate: _toDouble(json['burnRate'] ?? json['burn_rate']),
       runway: (json['runway']) as int?,
-      marketSize: (json['marketSize'] ?? json['market_size']) as double?,
+      marketSize: _toDouble(json['marketSize'] ?? json['market_size']),
       currency: (json['currency']) as String?,
     );
   }
@@ -137,11 +137,11 @@ class AIMatchContext extends Equatable {
     }
     return AIMatchContext(
       rationale: (json['aiRationale'] ?? json['rationale']) as String?,
-      overallScore: (json['score'] ?? json['overall_score']) as double?,
+      overallScore: _toDouble(json['score'] ?? json['overall_score']),
       scoreBreakdown: json['scoreBreakdown'] != null
           ? Map<String, double>.from(
               (json['scoreBreakdown'] as Map).cast<String, dynamic>().map(
-                    (k, v) => MapEntry(k, (v as num).toDouble()),
+                    (k, v) => MapEntry(k, _toDouble(v) ?? 0.0),
                   ),
             )
           : null,
@@ -206,7 +206,7 @@ class PitchDetailEntity extends Equatable {
       summary: (json['summary'] ?? '') as String,
       sector: (json['sector'] ?? '') as String,
       stage: (json['stage'] ?? '') as String,
-      targetAmount: (json['targetAmount'] ?? json['target_amount']) as double?,
+      targetAmount: _toDouble(json['targetAmount'] ?? json['target_amount']),
       currency: (json['currency'] ?? 'ETB') as String,
       problemStatement: (json['problemStatement'] ??
           json['problem_statement'] ??
@@ -230,7 +230,7 @@ class PitchDetailEntity extends Equatable {
       matchContext: AIMatchContext.fromJson(
         json['matchContext'] as Map<String, dynamic>?,
       ),
-      aiScore: (json['aiScore'] ?? json['ai_score']) as double?,
+      aiScore: _toDouble(json['aiScore'] ?? json['ai_score']),
       isSaved: (json['isSaved'] ?? json['is_saved'] ?? false) as bool,
       submittedAt: json['submittedAt'] != null
           ? DateTime.parse(json['submittedAt'] as String)
@@ -267,4 +267,20 @@ class PitchDetailEntity extends Equatable {
         createdAt,
         updatedAt,
       ];
+}
+
+/// Safe conversion helper for dynamic to double
+double? _toDouble(dynamic value) {
+  if (value == null) return null;
+  if (value is double) return value;
+  if (value is int) return value.toDouble();
+  if (value is String) {
+    try {
+      return double.parse(value);
+    } catch (_) {
+      return null;
+    }
+  }
+  if (value is num) return value.toDouble();
+  return null;
 }

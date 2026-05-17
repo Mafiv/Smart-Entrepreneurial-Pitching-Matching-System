@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../../../../core/widgets/verification_required_widget.dart';
+import '../../../entrepreneur_profile/presentation/bloc/entrepreneur_profile_bloc.dart';
 import '../../../earnings/domain/entities/payout_entry_entity.dart';
 import '../../../earnings/domain/entities/pending_milestone_entity.dart';
 import '../bloc/earnings_bloc.dart';
@@ -21,6 +23,7 @@ class _EntrepreneurEarningsPageState extends State<EntrepreneurEarningsPage> {
   void initState() {
     super.initState();
     context.read<EarningsBloc>().add(const EarningsSummaryRequested());
+    context.read<EntrepreneurProfileBloc>().add(const EntrepreneurProfileLoaded());
   }
 
   @override
@@ -58,156 +61,167 @@ class _EntrepreneurEarningsPageState extends State<EntrepreneurEarningsPage> {
         ],
       ),
       body: SafeArea(
-        child: BlocConsumer<EarningsBloc, EarningsState>(
-          listener: (context, state) {
-            // Handle any side effects if needed
-          },
-          builder: (context, state) {
-            if (state.status == EarningsStatus.loading) {
-              return const Center(child: CircularProgressIndicator());
+        child: BlocBuilder<EntrepreneurProfileBloc, EntrepreneurProfileState>(
+          builder: (context, profileState) {
+            final profile = profileState.profile;
+            final isVerified = profile?.isVerified ?? false;
+
+            if (!isVerified) {
+              return const VerificationRequiredWidget();
             }
 
-            if (state.status == EarningsStatus.error) {
-              return Center(
-                child: Padding(
-                  padding: AppSpacing.paddingLg,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.error_outline_rounded,
-                        size: 48,
-                        color: theme.colorScheme.error.withValues(alpha: 0.8),
-                      ),
-                      AppSpacing.gapMd,
-                      Text(
-                        state.error ?? 'Failed to load earnings',
-                        style: theme.textTheme.bodyLarge,
-                        textAlign: TextAlign.center,
-                      ),
-                      AppSpacing.gapLg,
-                      AppButton(
-                        text: 'Try again',
-                        onPressed: () {
-                          context
-                              .read<EarningsBloc>()
-                              .add(const EarningsSummaryRequested());
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }
+            return BlocConsumer<EarningsBloc, EarningsState>(
+              listener: (context, state) {
+                // Handle any side effects if needed
+              },
+              builder: (context, state) {
+                if (state.status == EarningsStatus.loading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-            return ListView(
-              padding: AppSpacing.screenPadding.copyWith(bottom: 100),
-              children: [
-                // Stats Cards
-                Row(
-                  children: [
-                    Expanded(
-                      child: _EarningsStatCard(
-                        icon: Icons.account_balance_wallet_outlined,
-                        label: 'Total Received',
-                        value: 'ETB ${state.totalReceived.toStringAsFixed(0)}',
-                        subtitle: 'Successfully disbursed to your account',
-                        color: const Color(0xFF10B981),
-                      ),
-                    ),
-                    AppSpacing.gapMd,
-                    Expanded(
-                      child: _EarningsStatCard(
-                        icon: Icons.schedule_outlined,
-                        label: 'Pending Release',
-                        value: 'ETB ${state.pendingRelease.toStringAsFixed(0)}',
-                        subtitle: 'Funds verified but waiting for admin payout',
-                        color: const Color(0xFFF59E0B),
-                      ),
-                    ),
-                  ],
-                ),
-
-                AppSpacing.gapLg,
-
-                // Awaiting Disbursement Section
-                if (state.pendingMilestones.isNotEmpty) ...[
-                  Card(
-                    color: const Color(0xFFFFFBEB),
+                if (state.status == EarningsStatus.error) {
+                  return Center(
                     child: Padding(
-                      padding: AppSpacing.paddingMd,
+                      padding: AppSpacing.paddingLg,
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.schedule,
-                                color: const Color(0xFFF59E0B),
-                                size: 20,
-                              ),
-                              AppSpacing.gapSm,
-                              Text(
-                                'Awaiting Disbursement',
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                  color: const Color(0xFF92400E),
-                                ),
-                              ),
-                            ],
+                          Icon(
+                            Icons.error_outline_rounded,
+                            size: 48,
+                            color: theme.colorScheme.error.withValues(alpha: 0.8),
                           ),
                           AppSpacing.gapMd,
-                          ...state.pendingMilestones.map((milestone) {
-                            if (milestone is! PendingMilestoneEntity) {
-                              return const SizedBox.shrink();
-                            }
-                            return _PendingMilestoneCard(milestone: milestone);
-                          }),
+                          Text(
+                            state.error ?? 'Failed to load earnings',
+                            style: theme.textTheme.bodyLarge,
+                            textAlign: TextAlign.center,
+                          ),
+                          AppSpacing.gapLg,
+                          AppButton(
+                            text: 'Try again',
+                            onPressed: () {
+                              context
+                                  .read<EarningsBloc>()
+                                  .add(const EarningsSummaryRequested());
+                            },
+                          ),
                         ],
                       ),
                     ),
-                  ),
-                  AppSpacing.gapLg,
-                ],
+                  );
+                }
 
-                // Payout History
-                Text(
-                  'Payout History',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                AppSpacing.gapMd,
-                Card(
-                  child: state.recentPayouts.isEmpty
-                      ? Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 48),
-                          child: Center(
-                            child: Text(
-                              'No payout history found yet.',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: AppColors.mutedForeground,
-                              ),
-                            ),
+                return ListView(
+                  padding: AppSpacing.screenPadding.copyWith(bottom: 100),
+                  children: [
+                    // Stats Cards
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _EarningsStatCard(
+                            icon: Icons.account_balance_wallet_outlined,
+                            label: 'Total Received',
+                            value: 'ETB ${state.totalReceived.toStringAsFixed(0)}',
+                            subtitle: 'Successfully disbursed to your account',
+                            color: const Color(0xFF10B981),
                           ),
-                        )
-                      : Column(
-                          children: [
-                            ...state.recentPayouts.asMap().entries.map((entry) {
-                              final index = entry.key;
-                              final payout = entry.value;
-                              if (payout is! PayoutEntryEntity) {
-                                return const SizedBox.shrink();
-                              }
-                              return _PayoutHistoryItem(
-                                payout: payout,
-                                isLast: index == state.recentPayouts.length - 1,
-                              );
-                            }),
-                          ],
                         ),
-                ),
-              ],
+                        AppSpacing.gapMd,
+                        Expanded(
+                          child: _EarningsStatCard(
+                            icon: Icons.schedule_outlined,
+                            label: 'Pending Release',
+                            value: 'ETB ${state.pendingRelease.toStringAsFixed(0)}',
+                            subtitle: 'Funds verified but waiting for admin payout',
+                            color: const Color(0xFFF59E0B),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    AppSpacing.gapLg,
+
+                    // Awaiting Disbursement Section
+                    if (state.pendingMilestones.isNotEmpty) ...[
+                      Card(
+                        color: const Color(0xFFFFFBEB),
+                        child: Padding(
+                          padding: AppSpacing.paddingMd,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.schedule,
+                                    color: const Color(0xFFF59E0B),
+                                    size: 20,
+                                  ),
+                                  AppSpacing.gapSm,
+                                  Text(
+                                    'Awaiting Disbursement',
+                                    style: theme.textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      color: const Color(0xFF92400E),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              AppSpacing.gapMd,
+                              ...state.pendingMilestones.map((milestone) {
+                                if (milestone is! PendingMilestoneEntity) {
+                                  return const SizedBox.shrink();
+                                }
+                                return _PendingMilestoneCard(milestone: milestone);
+                              }),
+                            ],
+                          ),
+                        ),
+                      ),
+                      AppSpacing.gapLg,
+                    ],
+
+                    // Payout History
+                    Text(
+                      'Payout History',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    AppSpacing.gapMd,
+                    Card(
+                      child: state.recentPayouts.isEmpty
+                          ? Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 48),
+                              child: Center(
+                                child: Text(
+                                  'No payout history found yet.',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: AppColors.mutedForeground,
+                                  ),
+                                ),
+                              ),
+                            )
+                          : Column(
+                              children: [
+                                ...state.recentPayouts.asMap().entries.map((entry) {
+                                  final index = entry.key;
+                                  final payout = entry.value;
+                                  if (payout is! PayoutEntryEntity) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return _PayoutHistoryItem(
+                                    payout: payout,
+                                    isLast: index == state.recentPayouts.length - 1,
+                                  );
+                                }),
+                              ],
+                            ),
+                    ),
+                  ],
+                );
+              },
             );
           },
         ),

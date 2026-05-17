@@ -29,8 +29,15 @@ class SendMessageUseCase {
   Future<Either<Failure, MessageEntity>> call(
     String conversationId, {
     required String body,
+    String type = 'text',
+    String? attachmentUrl,
   }) =>
-      _repo.sendMessage(conversationId, body: body);
+      _repo.sendMessage(
+        conversationId,
+        body: body,
+        type: type,
+        attachmentUrl: attachmentUrl,
+      );
 }
 
 class MarkConversationReadUseCase {
@@ -38,6 +45,21 @@ class MarkConversationReadUseCase {
   MarkConversationReadUseCase(this._repo);
   Future<Either<Failure, Unit>> call(String conversationId) =>
       _repo.markConversationRead(conversationId);
+}
+
+class ReportConversationUseCase {
+  final MessagingRepository _repo;
+  ReportConversationUseCase(this._repo);
+  Future<Either<Failure, Unit>> call(
+    String conversationId, {
+    required String reason,
+    String? details,
+  }) =>
+      _repo.reportConversation(
+        conversationId,
+        reason: reason,
+        details: details,
+      );
 }
 
 class UnreadCountUseCase {

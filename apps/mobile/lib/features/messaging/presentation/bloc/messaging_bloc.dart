@@ -14,6 +14,7 @@ class MessagingBloc extends Bloc<MessagingEvent, MessagingState> {
   final ListMessagesUseCase _listMessages;
   final SendMessageUseCase _sendMessage;
   final MarkConversationReadUseCase _markRead;
+  final ReportConversationUseCase _reportConversation;
   final UnreadCountUseCase _unreadCount;
   final ListNotificationsUseCase _listNotifications;
   final MarkNotificationReadUseCase _markNotificationRead;
@@ -23,6 +24,7 @@ class MessagingBloc extends Bloc<MessagingEvent, MessagingState> {
     required ListMessagesUseCase listMessages,
     required SendMessageUseCase sendMessage,
     required MarkConversationReadUseCase markRead,
+    required ReportConversationUseCase reportConversation,
     required UnreadCountUseCase unreadCount,
     required ListNotificationsUseCase listNotifications,
     required MarkNotificationReadUseCase markNotificationRead,
@@ -30,6 +32,7 @@ class MessagingBloc extends Bloc<MessagingEvent, MessagingState> {
         _listMessages = listMessages,
         _sendMessage = sendMessage,
         _markRead = markRead,
+        _reportConversation = reportConversation,
         _unreadCount = unreadCount,
         _listNotifications = listNotifications,
         _markNotificationRead = markNotificationRead,
@@ -38,6 +41,7 @@ class MessagingBloc extends Bloc<MessagingEvent, MessagingState> {
     on<MessagesRequested>(_onMessages);
     on<MessageSendRequested>(_onSend);
     on<ConversationReadRequested>(_onMarkRead);
+    on<ConversationReportRequested>(_onReport);
     on<UnreadCountRequested>(_onUnread);
     on<NotificationsRequested>(_onNotifications);
     on<NotificationReadRequested>(_onNotificationRead);
@@ -59,10 +63,20 @@ class MessagingBloc extends Bloc<MessagingEvent, MessagingState> {
   }
 
   Future<void> _onMessages(MessagesRequested event, Emitter<MessagingState> emit) async {
-    emit(state.copyWith(status: MessagingStatus.loading, error: null));
-    final result = await _listMessages(event.conversationId, page: event.page, limit: event.limit);
+    if (!event.silent) {
+      emit(state.copyWith(status: MessagingStatus.loading, error: null));
+    }
+    final result = await _listMessages(
+      event.conversationId,
+      page: event.page,
+      limit: event.limit,
+    );
     result.fold(
-      (f) => emit(state.copyWith(status: MessagingStatus.error, error: f.message)),
+      (f) {
+        if (!event.silent) {
+          emit(state.copyWith(status: MessagingStatus.error, error: f.message));
+        }
+      },
       (items) => emit(state.copyWith(
         status: MessagingStatus.messagesLoaded,
         conversationId: event.conversationId,
@@ -72,11 +86,46 @@ class MessagingBloc extends Bloc<MessagingEvent, MessagingState> {
   }
 
   Future<void> _onSend(MessageSendRequested event, Emitter<MessagingState> emit) async {
-    emit(state.copyWith(status: MessagingStatus.loading, error: null));
-    final result = await _sendMessage(event.conversationId, body: event.body);
+    emit(state.copyWith(isSending: true, error: null));
+    final result = await _sendMessage(
+      event.conversationId,
+      body: event.body,
+      type: event.type,
+      attachmentUrl: event.attachmentUrl,
+    );
     result.fold(
-      (f) => emit(state.copyWith(status: MessagingStatus.error, error: f.message)),
-      (_) => add(MessagesRequested(event.conversationId)),
+      (f) => emit(state.copyWith(
+        isSending: false,
+        status: MessagingStatus.error,
+        error: f.message,
+      )),
+      (_) {
+        emit(state.copyWith(isSending: false));
+        add(MessagesRequested(event.conversationId, silent: true));
+      },
+    );
+  }
+
+  Future<void> _onReport(
+    ConversationReportRequested event,
+    Emitter<MessagingState> emit,
+  ) async {
+    emit(state.copyWith(isSending: true, error: null));
+    final result = await _reportConversation(
+      event.conversationId,
+      reason: event.reason,
+      details: event.details,
+    );
+    result.fold(
+      (f) => emit(state.copyWith(
+        isSending: false,
+        status: MessagingStatus.error,
+        error: f.message,
+      )),
+      (_) => emit(state.copyWith(
+        isSending: false,
+        status: MessagingStatus.reportSubmitted,
+      )),
     );
   }
 

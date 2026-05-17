@@ -111,13 +111,43 @@ class PitchFinancialsModel {
     }
     return PitchFinancialsModel(
       monthlyRecurringRevenue:
-          (json['monthlyRecurringRevenue'] ?? json['mrr']) as double?,
-      totalRevenue: (json['totalRevenue'] ?? json['total_revenue']) as double?,
-      burnRate: (json['burnRate'] ?? json['burn_rate']) as double?,
-      runway: (json['runway']) as int?,
-      marketSize: (json['marketSize'] ?? json['market_size']) as double?,
+          _toDouble(json['monthlyRecurringRevenue'] ?? json['mrr']),
+      totalRevenue: _toDouble(json['totalRevenue'] ?? json['total_revenue']),
+      burnRate: _toDouble(json['burnRate'] ?? json['burn_rate']),
+      runway: _toInt(json['runway']),
+      marketSize: _toDouble(json['marketSize'] ?? json['market_size']),
       currency: (json['currency']) as String?,
     );
+  }
+
+  static int? _toInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+    if (value is String) {
+      try {
+        return int.parse(value);
+      } catch (_) {
+        return null;
+      }
+    }
+    if (value is num) return value.toInt();
+    return null;
+  }
+
+  static double? _toDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) {
+      try {
+        return double.parse(value);
+      } catch (_) {
+        return null;
+      }
+    }
+    if (value is num) return value.toDouble();
+    return null;
   }
 
   PitchFinancials toPitchFinancials() {
@@ -144,6 +174,20 @@ class AIMatchContextModel {
     this.scoreBreakdown,
     this.summary,
   });
+  static double? _toDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) {
+      try {
+        return double.parse(value);
+      } catch (_) {
+        return null;
+      }
+    }
+    if (value is num) return value.toDouble();
+    return null;
+  }
 
   factory AIMatchContextModel.fromJson(Map<String, dynamic>? json) {
     if (json == null) {
@@ -151,11 +195,11 @@ class AIMatchContextModel {
     }
     return AIMatchContextModel(
       rationale: (json['aiRationale'] ?? json['rationale']) as String?,
-      overallScore: (json['score'] ?? json['overall_score']) as double?,
+      overallScore: _toDouble(json['score'] ?? json['overall_score']),
       scoreBreakdown: json['scoreBreakdown'] != null
           ? Map<String, double>.from(
               (json['scoreBreakdown'] as Map).cast<String, dynamic>().map(
-                    (k, v) => MapEntry(k, (v as num).toDouble()),
+                    (k, v) => MapEntry(k, _toDouble(v) ?? 0.0),
                   ),
             )
           : null,
@@ -219,20 +263,30 @@ class PitchDetailModel extends PitchDetailEntity {
         );
 
   factory PitchDetailModel.fromJson(Map<String, dynamic> json) {
+    // Handle nested problem object
+    final problem = json['problem'] as Map<String, dynamic>?;
+    final solution = json['solution'] as Map<String, dynamic>?;
+    
     return PitchDetailModel(
       id: (json['_id'] ?? json['id'] ?? '') as String,
       title: (json['title'] ?? '') as String,
       summary: (json['summary'] ?? '') as String,
       sector: (json['sector'] ?? '') as String,
       stage: (json['stage'] ?? '') as String,
-      targetAmount: (json['targetAmount'] ?? json['target_amount']) as double?,
+      targetAmount: _toDouble(json['targetAmount'] ?? json['target_amount']),
       currency: (json['currency'] ?? 'ETB') as String,
       problemStatement: (json['problemStatement'] ??
           json['problem_statement'] ??
+          problem?['statement'] ??
           '') as String,
-      solution: (json['solution'] ?? '') as String,
+      solution: (json['solution'] is String 
+          ? json['solution'] as String
+          : solution?['description'] ?? 
+            json['solution'] ?? 
+            '') as String,
       competitiveAdvantage: (json['competitiveAdvantage'] ??
           json['competitive_advantage'] ??
+          solution?['competitiveAdvantage'] ??
           '') as String,
       financials: PitchFinancialsModel.fromJson(
         json['financials'] as Map<String, dynamic>?,
@@ -249,7 +303,7 @@ class PitchDetailModel extends PitchDetailEntity {
       matchContext: AIMatchContextModel.fromJson(
         json['matchContext'] as Map<String, dynamic>?,
       ).toAIMatchContext(),
-      aiScore: (json['aiScore'] ?? json['ai_score']) as double?,
+      aiScore: _toDouble(json['aiScore'] ?? json['ai_score']),
       isSaved: (json['isSaved'] ?? json['is_saved'] ?? false) as bool,
       submittedAt: json['submittedAt'] != null
           ? DateTime.parse(json['submittedAt'] as String)
@@ -261,6 +315,21 @@ class PitchDetailModel extends PitchDetailEntity {
           ? DateTime.parse(json['updatedAt'] as String)
           : DateTime.now(),
     );
+  }
+
+  static double? _toDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) {
+      try {
+        return double.parse(value);
+      } catch (_) {
+        return null;
+      }
+    }
+    if (value is num) return value.toDouble();
+    return null;
   }
 
   factory PitchDetailModel.fromEntity(PitchDetailEntity entity) {

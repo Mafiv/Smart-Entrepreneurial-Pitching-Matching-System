@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 
 import '../../../../core/config/api_config.dart';
@@ -16,6 +18,10 @@ abstract class EntrepreneurProfileRemoteDataSource {
     required String businessStage,
   });
   Future<EntrepreneurProfileModel> updateProfile(Map<String, dynamic> patch);
+  Future<String> uploadKycDocument({
+    required File file,
+    required String type,
+  });
 }
 
 class EntrepreneurProfileRemoteDataSourceImpl
@@ -185,6 +191,45 @@ class EntrepreneurProfileRemoteDataSourceImpl
       final msg =
           data is Map<String, dynamic> ? data['message'] as String? : null;
       throw ServerFailure(message: msg ?? e.message ?? 'Failed to update profile');
+    }
+  }
+
+  @override
+  Future<String> uploadKycDocument({
+    required File file,
+    required String type,
+  }) async {
+    if (ApiConfig.useMockData) {
+      await Future<void>.delayed(ApiConfig.mockLatency);
+      return 'https://example.com/mock/${type}_${DateTime.now().millisecondsSinceEpoch}';
+    }
+    try {
+      final form = FormData.fromMap({
+        'file': await MultipartFile.fromFile(file.path),
+        'type': type,
+      });
+      final res = await _dio.post(ApiConfig.upload, data: form);
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        final data = res.data;
+        if (data is Map<String, dynamic>) {
+          final fileObj = (data['file'] as Map?)?.cast<String, dynamic>();
+          final url = fileObj?['url'] as String?;
+          if (url != null && url.isNotEmpty) return url;
+          final topUrl = data['url'] as String?;
+          if (topUrl != null && topUrl.isNotEmpty) return topUrl;
+        }
+        throw const ServerFailure(message: 'Upload returned no URL');
+      }
+      throw ServerFailure(message: 'Upload failed (HTTP ${res.statusCode})');
+    } on DioException catch (e) {
+      final status = e.response?.statusCode;
+      if (status == 401 || status == 403) {
+        throw const AuthFailure(message: 'Not authorized');
+      }
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Upload failed');
     }
   }
 }

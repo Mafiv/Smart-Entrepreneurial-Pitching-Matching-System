@@ -10,6 +10,13 @@ class ListMySubmissionsUseCase {
   Future<Either<Failure, List<SubmissionEntity>>> call() => _repo.listMySubmissions();
 }
 
+class GetSubmissionByIdUseCase {
+  final SubmissionsRepository _repo;
+  GetSubmissionByIdUseCase(this._repo);
+  Future<Either<Failure, SubmissionEntity>> call(String id) =>
+      _repo.getById(id);
+}
+
 class CreateDraftUseCase {
   final SubmissionsRepository _repo;
   CreateDraftUseCase(this._repo);

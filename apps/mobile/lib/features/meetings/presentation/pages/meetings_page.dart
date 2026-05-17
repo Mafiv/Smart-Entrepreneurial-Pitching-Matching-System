@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../../../../core/widgets/verification_required_widget.dart';
+import '../../../entrepreneur_profile/presentation/bloc/entrepreneur_profile_bloc.dart';
 import '../meeting_display.dart';
 import '../bloc/meetings_bloc.dart';
 import 'meeting_room_page.dart';
@@ -27,6 +29,7 @@ class _MeetingsPageState extends State<MeetingsPage> {
   void initState() {
     super.initState();
     context.read<MeetingsBloc>().add(const MeetingsRequested());
+    context.read<EntrepreneurProfileBloc>().add(const EntrepreneurProfileLoaded());
   }
 
   void _scheduleDialog() {
@@ -146,103 +149,114 @@ class _MeetingsPageState extends State<MeetingsPage> {
         ],
       ),
       body: SafeArea(
-        child: BlocBuilder<MeetingsBloc, MeetingsState>(
-          builder: (context, state) {
-            if (state.isLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (state.status == MeetingsStatus.error) {
-              return EmptyStateView(
-                icon: Icons.event_busy_rounded,
-                title: 'Could not load meetings',
-                message: state.error ?? 'Please try again.',
-                actionLabel: 'Retry',
-                onAction: _refresh,
-              );
-            }
-            if (state.items.isEmpty) {
-              return EmptyStateView(
-                icon: Icons.event_available_rounded,
-                title: 'No meetings',
-                message: _status != null
-                    ? 'No meetings for this status filter.'
-                    : 'Schedule your first meeting to align with investors.',
-                actionLabel: _status != null ? 'Clear filter' : 'Schedule',
-                onAction:
-                    _status != null ? () => _setStatus(null) : _scheduleDialog,
-              );
+        child: BlocBuilder<EntrepreneurProfileBloc, EntrepreneurProfileState>(
+          builder: (context, profileState) {
+            final profile = profileState.profile;
+            final isVerified = profile?.isVerified ?? false;
+
+            if (!isVerified) {
+              return const VerificationRequiredWidget();
             }
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: AppSpacing.screenPaddingHorizontal
-                      .copyWith(top: AppSpacing.sm),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        _CategoryChip(
-                          label: 'All',
-                          selected: _category == 'all',
-                          onTap: () => _setCategory('all'),
+            return BlocBuilder<MeetingsBloc, MeetingsState>(
+              builder: (context, state) {
+                if (state.isLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (state.status == MeetingsStatus.error) {
+                  return EmptyStateView(
+                    icon: Icons.event_busy_rounded,
+                    title: 'Could not load meetings',
+                    message: state.error ?? 'Please try again.',
+                    actionLabel: 'Retry',
+                    onAction: _refresh,
+                  );
+                }
+                if (state.items.isEmpty) {
+                  return EmptyStateView(
+                    icon: Icons.event_available_rounded,
+                    title: 'No meetings',
+                    message: _status != null
+                        ? 'No meetings for this status filter.'
+                        : 'Schedule your first meeting to align with investors.',
+                    actionLabel: _status != null ? 'Clear filter' : 'Schedule',
+                    onAction:
+                        _status != null ? () => _setStatus(null) : _scheduleDialog,
+                  );
+                }
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: AppSpacing.screenPaddingHorizontal
+                          .copyWith(top: AppSpacing.sm),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            _CategoryChip(
+                              label: 'All',
+                              selected: _category == 'all',
+                              onTap: () => _setCategory('all'),
+                            ),
+                            _CategoryChip(
+                              label: 'Upcoming',
+                              selected: _category == 'upcoming',
+                              onTap: () => _setCategory('upcoming'),
+                            ),
+                            _CategoryChip(
+                              label: 'Past',
+                              selected: _category == 'past',
+                              onTap: () => _setCategory('past'),
+                            ),
+                          ],
                         ),
-                        _CategoryChip(
-                          label: 'Upcoming',
-                          selected: _category == 'upcoming',
-                          onTap: () => _setCategory('upcoming'),
-                        ),
-                        _CategoryChip(
-                          label: 'Past',
-                          selected: _category == 'past',
-                          onTap: () => _setCategory('past'),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-                AppSpacing.gapSm,
-                Padding(
-                  padding: AppSpacing.screenPaddingHorizontal,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        _StatusChip(
-                          label: 'All',
-                          selected: _status == null,
-                          onTap: () => _setStatus(null),
+                    AppSpacing.gapSm,
+                    Padding(
+                      padding: AppSpacing.screenPaddingHorizontal,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            _StatusChip(
+                              label: 'All',
+                              selected: _status == null,
+                              onTap: () => _setStatus(null),
+                            ),
+                            _StatusChip(
+                              label: 'Scheduled',
+                              selected: _status == 'scheduled',
+                              onTap: () => _setStatus('scheduled'),
+                            ),
+                            _StatusChip(
+                              label: 'Ongoing',
+                              selected: _status == 'ongoing',
+                              onTap: () => _setStatus('ongoing'),
+                            ),
+                            _StatusChip(
+                              label: 'Completed',
+                              selected: _status == 'completed',
+                              onTap: () => _setStatus('completed'),
+                            ),
+                            _StatusChip(
+                              label: 'Cancelled',
+                              selected: _status == 'cancelled',
+                              onTap: () => _setStatus('cancelled'),
+                            ),
+                          ],
                         ),
-                        _StatusChip(
-                          label: 'Scheduled',
-                          selected: _status == 'scheduled',
-                          onTap: () => _setStatus('scheduled'),
-                        ),
-                        _StatusChip(
-                          label: 'Ongoing',
-                          selected: _status == 'ongoing',
-                          onTap: () => _setStatus('ongoing'),
-                        ),
-                        _StatusChip(
-                          label: 'Completed',
-                          selected: _status == 'completed',
-                          onTap: () => _setStatus('completed'),
-                        ),
-                        _StatusChip(
-                          label: 'Cancelled',
-                          selected: _status == 'cancelled',
-                          onTap: () => _setStatus('cancelled'),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-                AppSpacing.gapMd,
-                Expanded(
-                  child: _buildMeetingsList(state.items),
-                ),
-              ],
+                    AppSpacing.gapMd,
+                    Expanded(
+                      child: _buildMeetingsList(state.items),
+                    ),
+                  ],
+                );
+              },
             );
           },
         ),

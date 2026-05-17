@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../../../../core/widgets/verification_required_widget.dart';
+import '../../../entrepreneur_profile/presentation/bloc/entrepreneur_profile_bloc.dart';
 import '../../domain/entities/invitation_entity.dart';
 import '../invitation_display.dart';
 import '../bloc/invitations_bloc.dart';
@@ -32,6 +34,7 @@ class _InvitationsPageState extends State<InvitationsPage> {
     context
         .read<InvitationsBloc>()
         .add(const InvitationsRequested(direction: 'all'));
+    context.read<EntrepreneurProfileBloc>().add(const EntrepreneurProfileLoaded());
   }
 
   void _setDirection(String v) {
@@ -77,254 +80,265 @@ class _InvitationsPageState extends State<InvitationsPage> {
         ],
       ),
       body: SafeArea(
-        child: BlocBuilder<InvitationsBloc, InvitationsState>(
-          builder: (context, state) {
-            if (state.isLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (state.status == InvitationsStatus.error) {
-              return EmptyStateView(
-                icon: Icons.mail_outline_rounded,
-                title: 'Could not load invitations',
-                message: state.error ?? 'Please try again.',
-                actionLabel: 'Retry',
-                onAction: _refresh,
-              );
+        child: BlocBuilder<EntrepreneurProfileBloc, EntrepreneurProfileState>(
+          builder: (context, profileState) {
+            final profile = profileState.profile;
+            final isVerified = profile?.isVerified ?? false;
+
+            if (!isVerified) {
+              return const VerificationRequiredWidget();
             }
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: AppSpacing.screenPaddingHorizontal
-                      .copyWith(top: AppSpacing.sm),
-                  child: Text(
-                    'Filter by direction and status',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.mutedForeground,
+            return BlocBuilder<InvitationsBloc, InvitationsState>(
+              builder: (context, state) {
+                if (state.isLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (state.status == InvitationsStatus.error) {
+                  return EmptyStateView(
+                    icon: Icons.mail_outline_rounded,
+                    title: 'Could not load invitations',
+                    message: state.error ?? 'Please try again.',
+                    actionLabel: 'Retry',
+                    onAction: _refresh,
+                  );
+                }
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: AppSpacing.screenPaddingHorizontal
+                          .copyWith(top: AppSpacing.sm),
+                      child: Text(
+                        'Filter by direction and status',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppColors.mutedForeground,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                AppSpacing.gapSm,
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  padding: AppSpacing.screenPaddingHorizontal,
-                  child: Row(
-                    children: [
-                      _FilterChip(
-                        label: 'All',
-                        selected: _direction == 'all',
-                        onTap: () => _setDirection('all'),
+                    AppSpacing.gapSm,
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      padding: AppSpacing.screenPaddingHorizontal,
+                      child: Row(
+                        children: [
+                          _FilterChip(
+                            label: 'All',
+                            selected: _direction == 'all',
+                            onTap: () => _setDirection('all'),
+                          ),
+                          _FilterChip(
+                            label: 'Sent',
+                            selected: _direction == 'sent',
+                            onTap: () => _setDirection('sent'),
+                          ),
+                          _FilterChip(
+                            label: 'Received',
+                            selected: _direction == 'received',
+                            onTap: () => _setDirection('received'),
+                          ),
+                        ],
                       ),
-                      _FilterChip(
-                        label: 'Sent',
-                        selected: _direction == 'sent',
-                        onTap: () => _setDirection('sent'),
+                    ),
+                    AppSpacing.gapSm,
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      padding: AppSpacing.screenPaddingHorizontal,
+                      child: Row(
+                        children: [
+                          _FilterChip(
+                            label: 'Any status',
+                            selected: _status == null,
+                            onTap: () => _setStatus(null),
+                          ),
+                          _FilterChip(
+                            label: 'Pending',
+                            selected: _status == 'pending',
+                            onTap: () => _setStatus('pending'),
+                          ),
+                          _FilterChip(
+                            label: 'Accepted',
+                            selected: _status == 'accepted',
+                            onTap: () => _setStatus('accepted'),
+                          ),
+                          _FilterChip(
+                            label: 'Declined',
+                            selected: _status == 'declined',
+                            onTap: () => _setStatus('declined'),
+                          ),
+                          _FilterChip(
+                            label: 'Cancelled',
+                            selected: _status == 'cancelled',
+                            onTap: () => _setStatus('cancelled'),
+                          ),
+                          _FilterChip(
+                            label: 'Expired',
+                            selected: _status == 'expired',
+                            onTap: () => _setStatus('expired'),
+                          ),
+                        ],
                       ),
-                      _FilterChip(
-                        label: 'Received',
-                        selected: _direction == 'received',
-                        onTap: () => _setDirection('received'),
-                      ),
-                    ],
-                  ),
-                ),
-                AppSpacing.gapSm,
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  padding: AppSpacing.screenPaddingHorizontal,
-                  child: Row(
-                    children: [
-                      _FilterChip(
-                        label: 'Any status',
-                        selected: _status == null,
-                        onTap: () => _setStatus(null),
-                      ),
-                      _FilterChip(
-                        label: 'Pending',
-                        selected: _status == 'pending',
-                        onTap: () => _setStatus('pending'),
-                      ),
-                      _FilterChip(
-                        label: 'Accepted',
-                        selected: _status == 'accepted',
-                        onTap: () => _setStatus('accepted'),
-                      ),
-                      _FilterChip(
-                        label: 'Declined',
-                        selected: _status == 'declined',
-                        onTap: () => _setStatus('declined'),
-                      ),
-                      _FilterChip(
-                        label: 'Cancelled',
-                        selected: _status == 'cancelled',
-                        onTap: () => _setStatus('cancelled'),
-                      ),
-                      _FilterChip(
-                        label: 'Expired',
-                        selected: _status == 'expired',
-                        onTap: () => _setStatus('expired'),
-                      ),
-                    ],
-                  ),
-                ),
-                AppSpacing.gapMd,
-                Expanded(
-                  child: state.items.isEmpty
-                      ? EmptyStateView(
-                          icon: Icons.inbox_rounded,
-                          title: 'No invitations',
-                          message: _status != null || _direction != 'all'
-                              ? 'Nothing matches these filters. Try broadening your search.'
-                              : 'You do not have any invitations in this view yet.',
-                          actionLabel:
-                              _status != null || _direction != 'all'
-                                  ? 'Reset filters'
-                                  : 'Refresh',
-                          onAction: _status != null || _direction != 'all'
-                              ? () {
-                                  setState(() {
-                                    _direction = 'all';
-                                    _status = null;
-                                  });
-                                  _refresh();
-                                }
-                              : _refresh,
-                        )
-                      : ListView.separated(
-                          padding: AppSpacing.screenPadding.copyWith(bottom: 32),
-                          itemCount: state.items.length,
-                          separatorBuilder: (_, __) => AppSpacing.gapMd,
-                          itemBuilder: (context, i) {
-                            final inv = state.items[i];
-                            final message = inv.message ?? '';
-                            final accent = invitationStatusColor(inv.status);
-                            final canRespond =
-                                inv.id.isNotEmpty &&
-                                inv.status == InvitationStatus.pending;
+                    ),
+                    AppSpacing.gapMd,
+                    Expanded(
+                      child: state.items.isEmpty
+                          ? EmptyStateView(
+                              icon: Icons.inbox_rounded,
+                              title: 'No invitations',
+                              message: _status != null || _direction != 'all'
+                                  ? 'Nothing matches these filters. Try broadening your search.'
+                                  : 'You do not have any invitations in this view yet.',
+                              actionLabel:
+                                  _status != null || _direction != 'all'
+                                      ? 'Reset filters'
+                                      : 'Refresh',
+                              onAction: _status != null || _direction != 'all'
+                                  ? () {
+                                      setState(() {
+                                        _direction = 'all';
+                                        _status = null;
+                                      });
+                                      _refresh();
+                                    }
+                                  : _refresh,
+                            )
+                          : ListView.separated(
+                              padding: AppSpacing.screenPadding.copyWith(bottom: 32),
+                              itemCount: state.items.length,
+                              separatorBuilder: (_, __) => AppSpacing.gapMd,
+                              itemBuilder: (context, i) {
+                                final inv = state.items[i];
+                                final message = inv.message ?? '';
+                                final accent = invitationStatusColor(inv.status);
+                                final canRespond =
+                                    inv.id.isNotEmpty &&
+                                    inv.status == InvitationStatus.pending;
 
-                            return InkWell(
-                              onTap: () => _showInvestorProfileModal(inv),
-                              borderRadius: BorderRadius.circular(
-                                AppSpacing.radiusLg,
-                              ),
-                              child: Material(
-                                color: AppColors.card,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
+                                return InkWell(
+                                  onTap: () => _showInvestorProfileModal(inv),
                                   borderRadius: BorderRadius.circular(
                                     AppSpacing.radiusLg,
                                   ),
-                                  side: const BorderSide(color: AppColors.border),
-                                ),
-                                child: Padding(
-                                  padding: AppSpacing.paddingMd,
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: DecoratedBox(
-                                          decoration: BoxDecoration(
-                                            color: accent.withValues(alpha: 0.12),
-                                            borderRadius: BorderRadius.circular(
-                                              AppSpacing.radiusFull,
-                                            ),
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: AppSpacing.md,
-                                              vertical: AppSpacing.xs,
-                                            ),
-                                            child: Text(
-                                              invitationStatusLabel(inv.status)
-                                                  .toUpperCase(),
-                                              style: theme.textTheme.labelSmall
-                                                  ?.copyWith(
-                                                color: accent,
-                                                fontWeight: FontWeight.w800,
-                                                letterSpacing: 0.35,
+                                  child: Material(
+                                    color: AppColors.card,
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(
+                                        AppSpacing.radiusLg,
+                                      ),
+                                      side: const BorderSide(color: AppColors.border),
+                                    ),
+                                    child: Padding(
+                                      padding: AppSpacing.paddingMd,
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        children: [
+                                          Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: DecoratedBox(
+                                              decoration: BoxDecoration(
+                                                color: accent.withValues(alpha: 0.12),
+                                                borderRadius: BorderRadius.circular(
+                                                  AppSpacing.radiusFull,
+                                                ),
+                                              ),
+                                              child: Padding(
+                                                padding: const EdgeInsets.symmetric(
+                                                  horizontal: AppSpacing.md,
+                                                  vertical: AppSpacing.xs,
+                                                ),
+                                                child: Text(
+                                                  invitationStatusLabel(inv.status)
+                                                      .toUpperCase(),
+                                                  style: theme.textTheme.labelSmall
+                                                      ?.copyWith(
+                                                    color: accent,
+                                                    fontWeight: FontWeight.w800,
+                                                    letterSpacing: 0.35,
+                                                  ),
+                                                ),
                                               ),
                                             ),
                                           ),
-                                        ),
-                                      ),
-                                      if (message.isNotEmpty) ...[
-                                        AppSpacing.gapSm,
-                                        Text(
-                                          message,
-                                          style: theme.textTheme.bodyMedium
-                                              ?.copyWith(height: 1.45),
-                                        ),
-                                      ],
-                                      AppSpacing.gapMd,
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: FilledButton.tonal(
-                                              onPressed: !canRespond
-                                                  ? null
-                                                  : () => context
-                                                      .read<InvitationsBloc>()
-                                                      .add(
-                                                        InvitationRespondRequested(
-                                                          invitationId: inv.id,
-                                                          status: 'accepted',
-                                                        ),
-                                                      ),
-                                              child: const Text('Accept'),
+                                          if (message.isNotEmpty) ...[
+                                            AppSpacing.gapSm,
+                                            Text(
+                                              message,
+                                              style: theme.textTheme.bodyMedium
+                                                  ?.copyWith(height: 1.45),
                                             ),
-                                          ),
-                                          const SizedBox(width: AppSpacing.sm),
-                                          Expanded(
-                                            child: OutlinedButton(
-                                              onPressed: !canRespond
-                                                  ? null
-                                                  : () => context
-                                                      .read<InvitationsBloc>()
-                                                      .add(
-                                                        InvitationRespondRequested(
-                                                          invitationId: inv.id,
-                                                          status: 'declined',
+                                          ],
+                                          AppSpacing.gapMd,
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: FilledButton.tonal(
+                                                  onPressed: !canRespond
+                                                      ? null
+                                                      : () => context
+                                                          .read<InvitationsBloc>()
+                                                          .add(
+                                                            InvitationRespondRequested(
+                                                              invitationId: inv.id,
+                                                              status: 'accepted',
+                                                            ),
+                                                          ),
+                                                  child: const Text('Accept'),
+                                                ),
+                                              ),
+                                              const SizedBox(width: AppSpacing.sm),
+                                              Expanded(
+                                                child: OutlinedButton(
+                                                  onPressed: !canRespond
+                                                      ? null
+                                                      : () => context
+                                                          .read<InvitationsBloc>()
+                                                          .add(
+                                                            InvitationRespondRequested(
+                                                              invitationId: inv.id,
+                                                              status: 'declined',
+                                                            ),
+                                                          ),
+                                                  child: const Text('Decline'),
+                                                ),
+                                              ),
+                                              IconButton(
+                                                tooltip: 'Cancel invitation',
+                                                onPressed: !canRespond
+                                                    ? null
+                                                    : () => context
+                                                        .read<InvitationsBloc>()
+                                                        .add(
+                                                          InvitationCancelRequested(
+                                                            inv.id,
+                                                          ),
                                                         ),
-                                                      ),
-                                              child: const Text('Decline'),
-                                            ),
+                                                icon: const Icon(
+                                                  Icons.cancel_outlined,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                          IconButton(
-                                            tooltip: 'Cancel invitation',
-                                            onPressed: !canRespond
-                                                ? null
-                                                : () => context
-                                                    .read<InvitationsBloc>()
-                                                    .add(
-                                                      InvitationCancelRequested(
-                                                        inv.id,
-                                                      ),
-                                                    ),
-                                            icon: const Icon(
-                                              Icons.cancel_outlined,
+                                          AppSpacing.gapSm,
+                                          Text(
+                                            'Ref: ${inv.id.isEmpty ? '—' : inv.id}',
+                                            style: theme.textTheme.bodySmall?.copyWith(
+                                              color: AppColors.mutedForeground,
                                             ),
                                           ),
                                         ],
                                       ),
-                                      AppSpacing.gapSm,
-                                      Text(
-                                        'Ref: ${inv.id.isEmpty ? '—' : inv.id}',
-                                        style: theme.textTheme.bodySmall?.copyWith(
-                                          color: AppColors.mutedForeground,
-                                        ),
-                                      ),
-                                    ],
+                                    ),
                                   ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                ),
-              ],
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                );
+              },
             );
           },
         ),

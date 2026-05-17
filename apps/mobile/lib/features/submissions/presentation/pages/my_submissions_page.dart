@@ -10,6 +10,7 @@ import '../../../matching/presentation/pages/match_results_page.dart';
 import '../../domain/entities/submission_entity.dart';
 import '../submission_display.dart';
 import '../bloc/submissions_bloc.dart';
+import 'pitch_creation_page.dart';
 
 class MySubmissionsPage extends StatefulWidget {
   const MySubmissionsPage({super.key});
@@ -29,52 +30,16 @@ class _MySubmissionsPageState extends State<MySubmissionsPage> {
     context.read<SubmissionsBloc>().add(const MySubmissionsRequested());
   }
 
-  void _createDraftDialog() {
-    final title = TextEditingController();
-    final sector = TextEditingController();
-    final stage = TextEditingController();
-
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('New pitch draft'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AppTextField(label: 'Title', controller: title),
-              AppSpacing.gapSm,
-              AppTextField(label: 'Sector', controller: sector),
-              AppSpacing.gapSm,
-              AppTextField(
-                label: 'Stage',
-                hint: 'idea / mvp / early-revenue / scaling',
-                controller: stage,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              context.read<SubmissionsBloc>().add(
-                    SubmissionDraftCreated(
-                      title: title.text.trim(),
-                      sector: sector.text.trim(),
-                      stage: stage.text.trim(),
-                    ),
-                  );
-            },
-            child: const Text('Create'),
-          ),
-        ],
+  void _openCreatePitch({String? editId}) {
+    Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => PitchCreationPage(editId: editId),
       ),
-    );
+    ).then((submitted) {
+      if (mounted) {
+        _reload();
+      }
+    });
   }
 
   Color _statusAccent(SubmissionStatus status) {
@@ -123,7 +88,7 @@ class _MySubmissionsPageState extends State<MySubmissionsPage> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _createDraftDialog,
+        onPressed: () => _openCreatePitch(),
         icon: const Icon(Icons.add_rounded),
         label: const Text('New pitch'),
       ),
@@ -149,7 +114,7 @@ class _MySubmissionsPageState extends State<MySubmissionsPage> {
                 message:
                     'Create your first draft to shape your story and submit when you are ready for investors.',
                 actionLabel: 'New pitch',
-                onAction: _createDraftDialog,
+                onAction: () => _openCreatePitch(),
               );
             }
 
@@ -179,7 +144,7 @@ class _MySubmissionsPageState extends State<MySubmissionsPage> {
                       borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.03),
+                          color: Colors.black.withValues(alpha: 0.03),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -228,10 +193,8 @@ class _MySubmissionsPageState extends State<MySubmissionsPage> {
                               child: OutlinedButton(
                                 onPressed: s.id.isEmpty
                                     ? null
-                                    : () => context.read<SubmissionsBloc>().add(
-                                          SubmissionCompletenessRequested(s.id),
-                                        ),
-                                child: const Text('Completeness'),
+                                    : () => _openCreatePitch(editId: s.id),
+                                child: const Text('Edit'),
                               ),
                             ),
                             const SizedBox(width: AppSpacing.sm),

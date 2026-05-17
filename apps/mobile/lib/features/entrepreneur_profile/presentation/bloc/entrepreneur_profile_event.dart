@@ -58,3 +58,16 @@ class EntrepreneurProfileVerificationDocumentsUpdateRequested
   List<Object?> get props => [nationalIdUrl, businessLicenseUrl, tinNumber];
 }
 
+class EntrepreneurProfileKycUploadRequested extends EntrepreneurProfileEvent {
+  final File file;
+  final String type;
+
+  const EntrepreneurProfileKycUploadRequested({
+    required this.file,
+    required this.type,
+  });
+
+  @override
+  List<Object?> get props => [file, type];
+}
+

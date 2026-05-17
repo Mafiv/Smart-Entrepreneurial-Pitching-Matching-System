@@ -188,8 +188,6 @@ class _VerificationBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Tooltip(
       message: 'Verified User',
       child: Container(

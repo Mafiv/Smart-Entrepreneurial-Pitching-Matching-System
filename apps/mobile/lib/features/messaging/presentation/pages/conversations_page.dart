@@ -62,7 +62,10 @@ class ConversationsPage extends StatelessWidget {
                           MaterialPageRoute<void>(
                             builder: (_) => BlocProvider.value(
                               value: context.read<MessagingBloc>(),
-                              child: ChatPage(conversationId: c.id),
+                              child: ChatPage(
+                              conversationId: c.id,
+                              conversation: c,
+                            ),
                             ),
                           ),
                         );

@@ -62,8 +62,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         _dioClient = dioClient;
 
   @override
-  Stream<User?> get authStateChanges =>
-      ApiConfig.useMockData ? const Stream<User?>.empty() : _firebaseAuth.authStateChanges();
+  Stream<User?> get authStateChanges => ApiConfig.useMockData
+      ? const Stream<User?>.empty()
+      : _firebaseAuth.authStateChanges();
 
   @override
   User? get currentFirebaseUser =>
@@ -157,7 +158,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await Future<void>.delayed(ApiConfig.mockLatency);
       _mockCurrentUser = _buildMockSignedInUser(
         email: 'google.demo@sepms.app',
-        fullName: role == UserRole.investor ? 'Demo Investor' : 'Demo Entrepreneur',
+        fullName:
+            role == UserRole.investor ? 'Demo Investor' : 'Demo Entrepreneur',
         role: role,
       );
       return _mockCurrentUser!;
@@ -380,7 +382,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
       throw ServerFailure(
         message: e.response?.data is Map<String, dynamic>
-            ? ((e.response!.data as Map<String, dynamic>)['message'] as String?) ??
+            ? ((e.response!.data as Map<String, dynamic>)['message']
+                    as String?) ??
                 (e.message ?? 'Could not reach the server')
             : (e.message ?? 'Could not reach the server'),
       );
@@ -404,7 +407,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (ApiConfig.useMockData) {
         await Future<void>.delayed(ApiConfig.mockLatency);
         final fbUser = _firebaseAuth.currentUser;
-        final uid = fbUser?.uid ?? 'user_mock_${DateTime.now().millisecondsSinceEpoch}';
+        final uid =
+            fbUser?.uid ?? 'user_mock_${DateTime.now().millisecondsSinceEpoch}';
         return MockBackend.mockUser(
           uid: uid,
           email: fbUser?.email,

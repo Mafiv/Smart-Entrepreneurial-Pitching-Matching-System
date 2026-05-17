@@ -53,29 +53,6 @@ class PitchPreviewCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppColors.primary.withValues(alpha: 0.12),
-                  AppColors.primary.withValues(alpha: 0.06),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-            ),
-            child: const SizedBox(
-              width: 44,
-              height: 44,
-              child: Icon(
-                Icons.rocket_launch_outlined,
-                color: AppColors.primary,
-                size: 22,
-              ),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

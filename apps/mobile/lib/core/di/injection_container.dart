@@ -358,9 +358,15 @@ Future<void> initDependencies() async {
       () =>
           UpdateEntrepreneurProfileUseCase(sl<EntrepreneurProfileRepository>()),
     );
+    sl.registerLazySingleton(
+      () =>
+          UploadKycDocumentUseCase(sl<EntrepreneurProfileRepository>()),
+    );
 
     sl.registerLazySingleton(
         () => ListMySubmissionsUseCase(sl<SubmissionsRepository>()));
+    sl.registerLazySingleton(
+        () => GetSubmissionByIdUseCase(sl<SubmissionsRepository>()));
     sl.registerLazySingleton(
         () => CreateDraftUseCase(sl<SubmissionsRepository>()));
     sl.registerLazySingleton(
@@ -408,6 +414,8 @@ Future<void> initDependencies() async {
         () => SendMessageUseCase(sl<MessagingRepository>()));
     sl.registerLazySingleton(
         () => MarkConversationReadUseCase(sl<MessagingRepository>()));
+    sl.registerLazySingleton(
+        () => ReportConversationUseCase(sl<MessagingRepository>()));
     sl.registerLazySingleton(
         () => UnreadCountUseCase(sl<MessagingRepository>()));
     sl.registerLazySingleton(
@@ -532,6 +540,7 @@ Future<void> initDependencies() async {
         getProfile: sl<GetEntrepreneurProfileUseCase>(),
         create: sl<CreateEntrepreneurProfileUseCase>(),
         update: sl<UpdateEntrepreneurProfileUseCase>(),
+        uploadKyc: sl<UploadKycDocumentUseCase>(),
       ),
     );
 
@@ -580,6 +589,7 @@ Future<void> initDependencies() async {
         listMessages: sl<ListMessagesUseCase>(),
         sendMessage: sl<SendMessageUseCase>(),
         markRead: sl<MarkConversationReadUseCase>(),
+        reportConversation: sl<ReportConversationUseCase>(),
         unreadCount: sl<UnreadCountUseCase>(),
         listNotifications: sl<ListNotificationsUseCase>(),
         markNotificationRead: sl<MarkNotificationReadUseCase>(),

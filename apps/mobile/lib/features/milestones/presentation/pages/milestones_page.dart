@@ -6,6 +6,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../../../../core/widgets/verification_required_widget.dart';
+import '../../../entrepreneur_profile/presentation/bloc/entrepreneur_profile_bloc.dart';
 import '../milestone_display.dart';
 import '../bloc/milestones_bloc.dart';
 import '../../../payment/presentation/bloc/payment_bloc.dart';
@@ -22,6 +24,7 @@ class _MilestonesPageState extends State<MilestonesPage> {
   void initState() {
     super.initState();
     context.read<MilestonesBloc>().add(const MilestonesRequested());
+    context.read<EntrepreneurProfileBloc>().add(const EntrepreneurProfileLoaded());
   }
 
   void _reload() {
@@ -403,135 +406,146 @@ class _MilestonesPageState extends State<MilestonesPage> {
         ],
       ),
       body: SafeArea(
-        child: BlocListener<PaymentBloc, PaymentState>(
-          listener: (context, paymentState) {
-            if (paymentState.status == PaymentStatus.paymentInitiated) {
-              final checkoutUrl = paymentState.paymentResponse?.checkoutUrl;
-              if (checkoutUrl != null && checkoutUrl.isNotEmpty) {
-                launchUrl(Uri.parse(checkoutUrl),
-                    mode: LaunchMode.externalApplication);
-              }
-            } else if (paymentState.status == PaymentStatus.error) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                    content:
-                        Text(paymentState.errorMessage ?? 'Payment failed')),
-              );
+        child: BlocBuilder<EntrepreneurProfileBloc, EntrepreneurProfileState>(
+          builder: (context, profileState) {
+            final profile = profileState.profile;
+            final isVerified = profile?.isVerified ?? false;
+
+            if (!isVerified) {
+              return const VerificationRequiredWidget();
             }
-          },
-          child: BlocBuilder<MilestonesBloc, MilestonesState>(
-            builder: (context, state) {
-              if (state.isLoading) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (state.status == MilestonesStatus.error) {
-                return EmptyStateView(
-                  icon: Icons.flag_outlined,
-                  title: 'Could not load milestones',
-                  message: state.error ?? 'Please try again.',
-                  actionLabel: 'Retry',
-                  onAction: _reload,
-                );
-              }
-              if (state.items.isEmpty) {
-                return EmptyStateView(
-                  icon: Icons.flag_circle_outlined,
-                  title: 'No milestones',
-                  message:
-                      'Create milestones to track deliverables with investors.',
-                  actionLabel: 'Add milestone',
-                  onAction: _createDialog,
-                );
-              }
 
-              return ListView.separated(
-                padding: AppSpacing.screenPadding.copyWith(bottom: 32),
-                itemCount: state.items.length,
-                separatorBuilder: (_, __) => AppSpacing.gapMd,
-                itemBuilder: (context, i) {
-                  final m = state.items[i];
-                  final statusLabel = milestoneStatusLabel(m.status);
+            return BlocListener<PaymentBloc, PaymentState>(
+              listener: (context, paymentState) {
+                if (paymentState.status == PaymentStatus.paymentInitiated) {
+                  final checkoutUrl = paymentState.paymentResponse?.checkoutUrl;
+                  if (checkoutUrl != null && checkoutUrl.isNotEmpty) {
+                    launchUrl(Uri.parse(checkoutUrl),
+                        mode: LaunchMode.externalApplication);
+                  }
+                } else if (paymentState.status == PaymentStatus.error) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content:
+                            Text(paymentState.errorMessage ?? 'Payment failed')),
+                  );
+                }
+              },
+              child: BlocBuilder<MilestonesBloc, MilestonesState>(
+                builder: (context, state) {
+                  if (state.isLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (state.status == MilestonesStatus.error) {
+                    return EmptyStateView(
+                      icon: Icons.flag_outlined,
+                      title: 'Could not load milestones',
+                      message: state.error ?? 'Please try again.',
+                      actionLabel: 'Retry',
+                      onAction: _reload,
+                    );
+                  }
+                  if (state.items.isEmpty) {
+                    return EmptyStateView(
+                      icon: Icons.flag_circle_outlined,
+                      title: 'No milestones',
+                      message:
+                          'Create milestones to track deliverables with investors.',
+                      actionLabel: 'Add milestone',
+                      onAction: _createDialog,
+                    );
+                  }
 
-                  return Material(
-                    color: AppColors.card,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-                      side: const BorderSide(color: AppColors.border),
-                    ),
-                    child: Padding(
-                      padding: AppSpacing.paddingMd,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Row(
+                  return ListView.separated(
+                    padding: AppSpacing.screenPadding.copyWith(bottom: 32),
+                    itemCount: state.items.length,
+                    separatorBuilder: (_, __) => AppSpacing.gapMd,
+                    itemBuilder: (context, i) {
+                      final m = state.items[i];
+                      final statusLabel = milestoneStatusLabel(m.status);
+
+                      return Material(
+                        color: AppColors.card,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                          side: const BorderSide(color: AppColors.border),
+                        ),
+                        child: Padding(
+                          padding: AppSpacing.paddingMd,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Expanded(
-                                child: Text(
-                                  m.title.isEmpty ? 'Milestone' : m.title,
-                                  style: theme.textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                              DecoratedBox(
-                                decoration: BoxDecoration(
-                                  color:
-                                      AppColors.warning.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(
-                                    AppSpacing.radiusFull,
-                                  ),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: AppSpacing.sm,
-                                    vertical: AppSpacing.xs,
-                                  ),
-                                  child: Text(
-                                    statusLabel.toUpperCase(),
-                                    style: theme.textTheme.labelSmall?.copyWith(
-                                      color: AppColors.warning,
-                                      fontWeight: FontWeight.w800,
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      m.title.isEmpty ? 'Milestone' : m.title,
+                                      style: theme.textTheme.titleSmall?.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                      ),
                                     ),
                                   ),
+                                  DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      color:
+                                          AppColors.warning.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(
+                                        AppSpacing.radiusFull,
+                                      ),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: AppSpacing.sm,
+                                        vertical: AppSpacing.xs,
+                                      ),
+                                      child: Text(
+                                        statusLabel.toUpperCase(),
+                                        style: theme.textTheme.labelSmall?.copyWith(
+                                          color: AppColors.warning,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (m.amount > 0) ...[
+                                AppSpacing.gapSm,
+                                Text(
+                                  '${m.amount} ${m.currency}',
+                                  style: theme.textTheme.bodyMedium,
                                 ),
+                              ],
+                              AppSpacing.gapMd,
+                              Wrap(
+                                spacing: AppSpacing.sm,
+                                runSpacing: AppSpacing.sm,
+                                children: [
+                                  OutlinedButton(
+                                    onPressed: m.id.isEmpty
+                                        ? null
+                                        : () => _evidenceDialog(m.id),
+                                    child: const Text('Evidence'),
+                                  ),
+                                  FilledButton.tonal(
+                                    onPressed: m.id.isEmpty
+                                        ? null
+                                        : () => _verifyDialog(m.id, m),
+                                    child: const Text('Verify'),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                          if (m.amount > 0) ...[
-                            AppSpacing.gapSm,
-                            Text(
-                              '${m.amount} ${m.currency}',
-                              style: theme.textTheme.bodyMedium,
-                            ),
-                          ],
-                          AppSpacing.gapMd,
-                          Wrap(
-                            spacing: AppSpacing.sm,
-                            runSpacing: AppSpacing.sm,
-                            children: [
-                              OutlinedButton(
-                                onPressed: m.id.isEmpty
-                                    ? null
-                                    : () => _evidenceDialog(m.id),
-                                child: const Text('Evidence'),
-                              ),
-                              FilledButton.tonal(
-                                onPressed: m.id.isEmpty
-                                    ? null
-                                    : () => _verifyDialog(m.id, m),
-                                child: const Text('Verify'),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
+                        ),
+                      );
+                    },
                   );
                 },
-              );
-            },
-          ),
+              ),
+            );
+          },
         ),
       ),
     );

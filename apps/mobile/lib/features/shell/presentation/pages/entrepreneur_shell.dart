@@ -68,8 +68,7 @@ class _EntrepreneurShellState extends State<EntrepreneurShell> {
           return MultiBlocProvider(
             providers: [
               BlocProvider<DashboardBloc>(
-                create: (_) =>
-                    sl<DashboardBloc>()..add(const DashboardStatsRequested()),
+                create: (_) => sl<DashboardBloc>(),
               ),
               BlocProvider<SubmissionsBloc>(
                 create: (_) => sl<SubmissionsBloc>(),
@@ -85,28 +84,43 @@ class _EntrepreneurShellState extends State<EntrepreneurShell> {
               appBar: AppBar(
                 elevation: 0,
                 scrolledUnderElevation: 0,
+                leading: Builder(
+                  builder: (context) => IconButton(
+                    icon: const Icon(Icons.menu),
+                    onPressed: () => Scaffold.of(context).openDrawer(),
+                    tooltip: 'Open menu',
+                  ),
+                ),
               ),
-              drawer: drawerState is drawer_bloc.DrawerLoaded
-                  ? AppDrawer(
-                      userInfo: drawerState.userInfo,
-                      items: drawerState.items,
-                      selectedItemId: drawerState.selectedItemId,
-                      onItemTap: (item) {
-                        _drawerBloc
-                            .add(drawer_bloc.DrawerItemSelected(item.id));
-                        _handleDrawerNavigation(item, context);
-                        Navigator.pop(context); // Close drawer
-                      },
-                      onEditProfile: () {
-                        Navigator.pop(context);
-                        setState(() => _index = 3); // Profile page index
-                      },
-                      onLogout: () {
-                        Navigator.pop(context);
-                        // TODO: Implement logout logic
-                      },
-                    )
-                  : null,
+              drawer: AppDrawer(
+                userInfo: drawerState is drawer_bloc.DrawerLoaded
+                    ? drawerState.userInfo
+                    : const DrawerUserInfo(
+                        name: 'Entrepreneur User',
+                        role: UserRole.entrepreneur,
+                        isVerified: false,
+                        isPremium: false,
+                      ),
+                items: drawerState is drawer_bloc.DrawerLoaded
+                    ? drawerState.items
+                    : NavigationConfig.getEntrepreneurDrawerItems(),
+                selectedItemId: drawerState is drawer_bloc.DrawerLoaded
+                    ? drawerState.selectedItemId
+                    : null,
+                onItemTap: (item) {
+                  _drawerBloc.add(drawer_bloc.DrawerItemSelected(item.id));
+                  _handleDrawerNavigation(item, context);
+                  Navigator.pop(context); // Close drawer
+                },
+                onEditProfile: () {
+                  Navigator.pop(context);
+                  setState(() => _index = 3); // Profile page index
+                },
+                onLogout: () {
+                  Navigator.pop(context);
+                  // TODO: Implement logout logic
+                },
+              ),
               extendBody: true,
               body: IndexedStack(index: _index, children: _pages),
               bottomNavigationBar: AppBottomNav(

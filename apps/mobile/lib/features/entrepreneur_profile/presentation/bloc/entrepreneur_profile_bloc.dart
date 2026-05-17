@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -13,22 +15,26 @@ class EntrepreneurProfileBloc
   final GetEntrepreneurProfileUseCase _getProfile;
   final CreateEntrepreneurProfileUseCase _create;
   final UpdateEntrepreneurProfileUseCase _update;
+  final UploadKycDocumentUseCase _uploadKyc;
 
   EntrepreneurProfileBloc({
     required HasEntrepreneurProfileUseCase hasProfile,
     required GetEntrepreneurProfileUseCase getProfile,
     required CreateEntrepreneurProfileUseCase create,
     required UpdateEntrepreneurProfileUseCase update,
+    required UploadKycDocumentUseCase uploadKyc,
   })  : _hasProfile = hasProfile,
         _getProfile = getProfile,
         _create = create,
         _update = update,
+        _uploadKyc = uploadKyc,
         super(const EntrepreneurProfileState.initial()) {
     on<EntrepreneurProfileChecked>(_onCheck);
     on<EntrepreneurProfileLoaded>(_onLoad);
     on<EntrepreneurProfileCreateRequested>(_onCreate);
     on<EntrepreneurProfileUpdateRequested>(_onUpdate);
     on<EntrepreneurProfileVerificationDocumentsUpdateRequested>(_onUpdateVerificationDocuments);
+    on<EntrepreneurProfileKycUploadRequested>(_onKycUpload);
   }
 
   Future<void> _onCheck(
@@ -132,6 +138,36 @@ class EntrepreneurProfileBloc
         profile: profile,
         error: null,
       )),
+    );
+  }
+
+  Future<void> _onKycUpload(
+    EntrepreneurProfileKycUploadRequested event,
+    Emitter<EntrepreneurProfileState> emit,
+  ) async {
+    emit(state.copyWith(status: EntrepreneurProfileStatus.loading, error: null));
+    final result = await _uploadKyc(file: event.file, type: event.type);
+    result.fold(
+      (f) => emit(state.copyWith(
+        status: EntrepreneurProfileStatus.error,
+        error: f.message,
+      )),
+      (url) {
+        final patch = <String, dynamic>{};
+        if (event.type == 'nationalId') {
+          patch['nationalIdUrl'] = url;
+        } else if (event.type == 'businessLicense') {
+          patch['businessLicenseUrl'] = url;
+        }
+        if (patch.isNotEmpty) {
+          add(EntrepreneurProfileUpdateRequested(patch));
+        } else {
+          emit(state.copyWith(
+            status: EntrepreneurProfileStatus.loaded,
+            error: null,
+          ));
+        }
+      },
     );
   }
 }

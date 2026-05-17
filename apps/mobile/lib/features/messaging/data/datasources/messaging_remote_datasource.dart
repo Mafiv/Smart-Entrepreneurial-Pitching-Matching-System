@@ -27,6 +27,11 @@ abstract class MessagingRemoteDataSource {
     String? attachmentUrl,
   });
   Future<void> markConversationRead(String conversationId);
+  Future<void> reportConversation(
+    String conversationId, {
+    required String reason,
+    String? details,
+  });
 
   Future<int> unreadCount();
   Future<List<NotificationModel>> listNotifications();
@@ -199,6 +204,34 @@ class MessagingRemoteDataSourceImpl implements MessagingRemoteDataSource {
       final msg =
           data is Map<String, dynamic> ? data['message'] as String? : null;
       throw ServerFailure(message: msg ?? e.message ?? 'Failed to mark read');
+    }
+  }
+
+  @override
+  Future<void> reportConversation(
+    String conversationId, {
+    required String reason,
+    String? details,
+  }) async {
+    if (ApiConfig.useMockData) {
+      await Future<void>.delayed(ApiConfig.mockLatency);
+      return;
+    }
+    try {
+      final res = await _dio.post(
+        ApiConfig.conversationReport(conversationId),
+        data: {
+          'reason': reason,
+          if (details != null && details.isNotEmpty) 'details': details,
+        },
+      );
+      if (res.statusCode == 200 || res.statusCode == 201) return;
+      throw ServerFailure(message: 'Failed (HTTP ${res.statusCode})');
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      final msg =
+          data is Map<String, dynamic> ? data['message'] as String? : null;
+      throw ServerFailure(message: msg ?? e.message ?? 'Failed to submit report');
     }
   }
 

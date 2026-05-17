@@ -7,8 +7,13 @@ class NavigationConfig {
 
   // Route paths
   static const String dashboardRoute = '/dashboard';
+  static const String newPitchRoute = '/pitch/new';
   static const String mySubmissionsRoute = '/my-submissions';
   static const String messagingRoute = '/messaging';
+  static const String meetingsRoute = '/meetings';
+  static const String milestonesRoute = '/milestones';
+  static const String earningsRoute = '/earnings';
+  static const String invitationsRoute = '/invitations';
   static const String profileRoute = '/profile';
 
   // Extended features routes - Entrepreneur specific
@@ -38,30 +43,66 @@ class NavigationConfig {
       DrawerItemModel(
         id: 'dashboard',
         label: 'Dashboard',
-        icon: Icons.home_outlined,
-        selectedIcon: Icons.home_filled,
+        icon: Icons.dashboard_outlined,
+        selectedIcon: Icons.dashboard,
         route: dashboardRoute,
         roles: [UserRole.entrepreneur],
         analyticsEvent: 'drawer_item_tapped_dashboard',
       ),
       DrawerItemModel(
-        id: 'submissions',
-        label: 'My Pitches',
-        icon: Icons.description_outlined,
-        selectedIcon: Icons.description,
-        route: mySubmissionsRoute,
+        id: 'new_pitch',
+        label: 'New Pitch',
+        icon: Icons.edit_note_outlined,
+        selectedIcon: Icons.edit_note,
+        route: newPitchRoute,
         roles: [UserRole.entrepreneur],
-        analyticsEvent: 'drawer_item_tapped_submissions',
+        analyticsEvent: 'drawer_item_tapped_new_pitch',
       ),
       DrawerItemModel(
         id: 'messages',
         label: 'Messages',
-        icon: Icons.mail_outline,
-        selectedIcon: Icons.mail,
+        icon: Icons.message_outlined,
+        selectedIcon: Icons.message,
         route: messagingRoute,
         roles: [UserRole.entrepreneur],
         analyticsEvent: 'drawer_item_tapped_messages',
         badge: 0, // Can be updated dynamically
+      ),
+      DrawerItemModel(
+        id: 'meetings',
+        label: 'Meetings',
+        icon: Icons.calendar_today_outlined,
+        selectedIcon: Icons.calendar_today,
+        route: meetingsRoute,
+        roles: [UserRole.entrepreneur],
+        analyticsEvent: 'drawer_item_tapped_meetings',
+      ),
+      DrawerItemModel(
+        id: 'milestones',
+        label: 'Milestones',
+        icon: Icons.description_outlined,
+        selectedIcon: Icons.description,
+        route: milestonesRoute,
+        roles: [UserRole.entrepreneur],
+        analyticsEvent: 'drawer_item_tapped_milestones',
+      ),
+      DrawerItemModel(
+        id: 'earnings',
+        label: 'Earnings',
+        icon: Icons.account_balance_wallet_outlined,
+        selectedIcon: Icons.account_balance_wallet,
+        route: earningsRoute,
+        roles: [UserRole.entrepreneur],
+        analyticsEvent: 'drawer_item_tapped_earnings',
+      ),
+      DrawerItemModel(
+        id: 'invitations',
+        label: 'Invitations',
+        icon: Icons.mail_outlined,
+        selectedIcon: Icons.mail,
+        route: invitationsRoute,
+        roles: [UserRole.entrepreneur],
+        analyticsEvent: 'drawer_item_tapped_invitations',
       ),
       DrawerItemModel(
         id: 'profile',
@@ -86,6 +127,15 @@ class NavigationConfig {
       ),
 
       // Extended features for entrepreneurs
+      DrawerItemModel(
+        id: 'my_pitches',
+        label: 'My Pitches',
+        icon: Icons.folder_outlined,
+        selectedIcon: Icons.folder,
+        route: mySubmissionsRoute,
+        roles: [UserRole.entrepreneur],
+        analyticsEvent: 'drawer_item_tapped_my_pitches',
+      ),
       DrawerItemModel(
         id: 'analytics',
         label: 'Analytics & Performance',

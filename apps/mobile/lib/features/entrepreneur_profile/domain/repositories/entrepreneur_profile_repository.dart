@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dartz/dartz.dart';
 
 import '../../../../core/error/failures.dart';
@@ -16,5 +18,9 @@ abstract class EntrepreneurProfileRepository {
   Future<Either<Failure, EntrepreneurProfileEntity>> updateProfile(
     Map<String, dynamic> patch,
   );
+  Future<Either<Failure, String>> uploadKycDocument({
+    required File file,
+    required String type,
+  });
 }
 

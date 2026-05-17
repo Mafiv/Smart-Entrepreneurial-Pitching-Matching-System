@@ -94,6 +94,26 @@ class MessagingRepositoryImpl implements MessagingRepository {
   }
 
   @override
+  Future<Either<Failure, Unit>> reportConversation(
+    String conversationId, {
+    required String reason,
+    String? details,
+  }) async {
+    try {
+      await _remote.reportConversation(
+        conversationId,
+        reason: reason,
+        details: details,
+      );
+      return const Right(unit);
+    } on Failure catch (e) {
+      return Left(e);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, int>> unreadCount() async {
     try {
       final count = await _remote.unreadCount();

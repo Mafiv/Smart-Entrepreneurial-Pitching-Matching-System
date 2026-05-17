@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../meetings/presentation/bloc/meetings_bloc.dart';
 import '../../../meetings/presentation/pages/meeting_join_page.dart';
 import '../../domain/entities/pitch_detail_entity.dart';
 import 'pitch_detail_sections/documents_section.dart';
@@ -56,10 +59,13 @@ class PitchDetailContent extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => MeetingJoinPage(
-                      meetingId: pitch.id,
-                      meetingTitle: pitch.title,
-                      participantName: pitch.entrepreneur.fullName,
+                    builder: (context) => BlocProvider(
+                      create: (context) => sl<MeetingsBloc>(),
+                      child: MeetingJoinPage(
+                        meetingId: pitch.id,
+                        meetingTitle: pitch.title,
+                        participantName: pitch.entrepreneur.fullName,
+                      ),
                     ),
                   ),
                 );

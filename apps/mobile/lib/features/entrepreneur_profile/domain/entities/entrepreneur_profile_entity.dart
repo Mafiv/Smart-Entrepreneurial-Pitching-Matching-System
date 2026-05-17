@@ -8,6 +8,7 @@ class EntrepreneurProfileEntity extends Equatable {
   String get companyName => (data['companyName'] as String?) ?? '';
   String get businessSector => (data['businessSector'] as String?) ?? '';
   String get businessStage => (data['businessStage'] as String?) ?? '';
+  String? get description => (data['description'] as String?);
 
   // Verification document URLs
   String get nationalIdUrl => (data['nationalIdUrl'] as String?) ?? '';

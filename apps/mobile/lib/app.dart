@@ -12,7 +12,6 @@ import 'features/shell/presentation/pages/admin_shell.dart';
 import 'features/shell/presentation/pages/entrepreneur_shell.dart';
 import 'features/shell/presentation/pages/investor_shell.dart';
 import 'features/user_profile/presentation/bloc/user_profile_bloc.dart';
-import 'features/user_profile/presentation/pages/account_gate_page.dart';
 
 class SepmsApp extends StatelessWidget {
   const SepmsApp({super.key});
@@ -78,10 +77,6 @@ class AuthWrapper extends StatelessWidget {
       return const LoginPage();
     }
 
-    if (!user.isVerified) {
-      return AccountGatePage(user: user);
-    }
-
     // Use the convenience getters on UserEntity instead of a switch.
     // This avoids issues with enum switch exhaustiveness or constant
     // evaluation across different build targets.
@@ -93,8 +88,8 @@ class AuthWrapper extends StatelessWidget {
       return const AdminShell();
     }
 
-    // Fallback: if the role is somehow unrecognized, send to account gate.
-    return AccountGatePage(user: user);
+    // Fallback: if the role is somehow unrecognized, default to login.
+    return const LoginPage();
   }
 }
 

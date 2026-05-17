@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dartz/dartz.dart';
 
 import '../../../../core/error/failures.dart';
@@ -43,5 +45,15 @@ class UpdateEntrepreneurProfileUseCase {
     Map<String, dynamic> patch,
   ) =>
       _repo.updateProfile(patch);
+}
+
+class UploadKycDocumentUseCase {
+  final EntrepreneurProfileRepository _repo;
+  UploadKycDocumentUseCase(this._repo);
+  Future<Either<Failure, String>> call({
+    required File file,
+    required String type,
+  }) =>
+      _repo.uploadKycDocument(file: file, type: type);
 }
 

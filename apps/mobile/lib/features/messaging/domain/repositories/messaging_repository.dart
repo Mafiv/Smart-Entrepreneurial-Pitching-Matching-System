@@ -24,6 +24,11 @@ abstract class MessagingRepository {
     String? attachmentUrl,
   });
   Future<Either<Failure, Unit>> markConversationRead(String conversationId);
+  Future<Either<Failure, Unit>> reportConversation(
+    String conversationId, {
+    required String reason,
+    String? details,
+  });
 
   Future<Either<Failure, int>> unreadCount();
   Future<Either<Failure, List<NotificationEntity>>> listNotifications();

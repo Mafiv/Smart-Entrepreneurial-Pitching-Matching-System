@@ -6,6 +6,7 @@ enum MessagingStatus {
   conversationsLoaded,
   messagesLoaded,
   notificationsLoaded,
+  reportSubmitted,
   error,
 }
 
@@ -16,6 +17,7 @@ class MessagingState extends Equatable {
   final List<MessageEntity> messages;
   final List<NotificationEntity> notifications;
   final int unreadCount;
+  final bool isSending;
   final String? error;
 
   const MessagingState({
@@ -25,6 +27,7 @@ class MessagingState extends Equatable {
     this.messages = const [],
     this.notifications = const [],
     this.unreadCount = 0,
+    this.isSending = false,
     this.error,
   });
 
@@ -35,6 +38,7 @@ class MessagingState extends Equatable {
         messages = const [],
         notifications = const [],
         unreadCount = 0,
+        isSending = false,
         error = null;
 
   MessagingState copyWith({
@@ -44,6 +48,7 @@ class MessagingState extends Equatable {
     List<MessageEntity>? messages,
     List<NotificationEntity>? notifications,
     int? unreadCount,
+    bool? isSending,
     String? error,
   }) {
     return MessagingState(
@@ -53,6 +58,7 @@ class MessagingState extends Equatable {
       messages: messages ?? this.messages,
       notifications: notifications ?? this.notifications,
       unreadCount: unreadCount ?? this.unreadCount,
+      isSending: isSending ?? this.isSending,
       error: error,
     );
   }
@@ -67,6 +73,7 @@ class MessagingState extends Equatable {
         messages,
         notifications,
         unreadCount,
+        isSending,
         error,
       ];
 }

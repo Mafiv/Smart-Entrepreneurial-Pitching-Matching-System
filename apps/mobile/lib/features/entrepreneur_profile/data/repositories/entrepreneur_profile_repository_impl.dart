@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dartz/dartz.dart';
 
 import '../../../../core/error/failures.dart';
@@ -65,6 +67,21 @@ class EntrepreneurProfileRepositoryImpl implements EntrepreneurProfileRepository
     try {
       final profile = await _remote.updateProfile(patch);
       return Right(profile);
+    } on Failure catch (e) {
+      return Left(e);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> uploadKycDocument({
+    required File file,
+    required String type,
+  }) async {
+    try {
+      final url = await _remote.uploadKycDocument(file: file, type: type);
+      return Right(url);
     } on Failure catch (e) {
       return Left(e);
     } catch (e) {
