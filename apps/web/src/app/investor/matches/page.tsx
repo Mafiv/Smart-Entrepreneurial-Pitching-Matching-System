@@ -164,12 +164,12 @@ export default function InvestorMatchesPage() {
 						? "Match accepted — redirecting to chat"
 						: "Match declined",
 				);
-				setMatches((prev) =>
-					prev.map((m) => (m._id === matchId ? { ...m, status } : m)),
-				);
 				// On accept: go straight to the conversation
 				if (status === "accepted" && data.conversationId) {
 					router.push(`/investor/messages?open=${data.conversationId}`);
+				} else {
+					// Re-fetch so the list re-sorts with declined matches moved to bottom
+					fetchMatches();
 				}
 			} else {
 				showErrorToast(data.message ?? "Failed to respond");
