@@ -93,6 +93,10 @@ class _InvestorShellState extends State<InvestorShell> {
               ),
             ],
             child: Scaffold(
+              appBar: AppBar(
+                elevation: 0,
+                scrolledUnderElevation: 0,
+              ),
               drawer: drawerState is drawer_bloc.DrawerLoaded
                   ? AppDrawer(
                       userInfo: drawerState.userInfo,

@@ -71,16 +71,16 @@ class MatchResultEntity extends Equatable {
 
   factory MatchResultEntity.fromJson(Map<String, dynamic> json) {
     return MatchResultEntity(
-      id: (json['_id'] as String?) ?? (json['id'] as String?) ?? '',
-      submissionId: (json['submissionId'] as String?) ?? '',
-      entrepreneurId: (json['entrepreneurId'] as String?) ?? '',
-      investorId: (json['investorId'] as String?) ?? '',
+      id: _parseString(json['_id']) ?? _parseString(json['id']) ?? '',
+      submissionId: _parseString(json['submissionId']) ?? '',
+      entrepreneurId: _parseString(json['entrepreneurId']) ?? '',
+      investorId: _parseString(json['investorId']) ?? '',
       score: ((json['score'] as num?) ?? 0).toDouble(),
       rank: (json['rank'] as int?),
-      aiRationale: json['aiRationale'] as String?,
+      aiRationale: _parseString(json['aiRationale']),
       scoreBreakdown: ScoreBreakdown.fromJson(
           json['scoreBreakdown'] as Map<String, dynamic>?),
-      status: _parseStatus(json['status'] as String?),
+      status: _parseStatus(_parseString(json['status'])),
       matchedAt: _parseDate(json['matchedAt']) ?? DateTime.now(),
       expiresAt: _parseDate(json['expiresAt']),
       createdAt: _parseDate(json['createdAt']) ?? DateTime.now(),
@@ -120,6 +120,13 @@ class MatchResultEntity extends Equatable {
         createdAt,
         updatedAt,
       ];
+}
+
+String? _parseString(dynamic value) {
+  if (value == null) return null;
+  if (value is String) return value;
+  if (value is Map) return null; // Don't cast Map to String
+  return value.toString();
 }
 
 MatchStatus _parseStatus(String? status) {

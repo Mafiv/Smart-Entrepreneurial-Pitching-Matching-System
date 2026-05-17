@@ -256,14 +256,14 @@ class SubmissionEntity extends Equatable {
 
   factory SubmissionEntity.fromJson(Map<String, dynamic> json) {
     return SubmissionEntity(
-      id: (json['_id'] as String?) ?? (json['id'] as String?) ?? '',
-      entrepreneurId: (json['entrepreneurId'] as String?) ?? '',
-      title: (json['title'] as String?) ?? '',
-      summary: (json['summary'] as String?) ?? '',
-      sector: (json['sector'] as String?) ?? '',
-      stage: _parseStage(json['stage'] as String?),
+      id: _parseString(json['_id']) ?? _parseString(json['id']) ?? '',
+      entrepreneurId: _parseString(json['entrepreneurId']) ?? '',
+      title: _parseString(json['title']) ?? '',
+      summary: _parseString(json['summary']) ?? '',
+      sector: _parseString(json['sector']) ?? '',
+      stage: _parseStage(_parseString(json['stage'])),
       targetAmount: _parseNum(json['targetAmount'])?.toDouble(),
-      currency: (json['currency'] as String?) ?? 'USD',
+      currency: _parseString(json['currency']) ?? 'USD',
       problem:
           SubmissionProblem.fromJson(json['problem'] as Map<String, dynamic>?),
       solution: SubmissionSolution.fromJson(
@@ -279,8 +279,8 @@ class SubmissionEntity extends Equatable {
       aiScore: _parseNum(json['aiScore'])?.toDouble(),
       aiAnalysis: json['aiAnalysis'] as Map<String, dynamic>?,
       currentStep: ((json['currentStep'] as num?) ?? 1).toInt(),
-      status: _parseStatus(json['status'] as String?),
-      reviewNotes: json['reviewNotes'] as String?,
+      status: _parseStatus(_parseString(json['status'])),
+      reviewNotes: _parseString(json['reviewNotes']),
       submittedAt: _parseDate(json['submittedAt']),
       closedAt: _parseDate(json['closedAt']),
       createdAt: _parseDate(json['createdAt']) ?? DateTime.now(),
@@ -341,6 +341,13 @@ class SubmissionEntity extends Equatable {
 }
 
 // Helper functions
+String? _parseString(dynamic value) {
+  if (value == null) return null;
+  if (value is String) return value;
+  if (value is Map) return null; // Don't cast Map to String
+  return value.toString();
+}
+
 SubmissionStage _parseStage(String? stage) {
   switch (stage) {
     case 'mvp':
