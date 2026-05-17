@@ -67,6 +67,7 @@ function FileUploadCard({
 	onRemove: () => void;
 	required?: boolean;
 }) {
+	const { t } = useLanguage();
 	const hasFile = !!file;
 	const hasExisting = !!existingUrl;
 	const isComplete = hasFile || hasExisting;
@@ -87,7 +88,7 @@ function FileUploadCard({
 					<div className="flex-1 min-w-0">
 						<p className="text-sm font-medium truncate">{file.name}</p>
 						<p className="text-xs text-muted-foreground">
-							{(file.size / 1024 / 1024).toFixed(2)} MB — Ready to upload
+							{(file.size / 1024 / 1024).toFixed(2)} MB — {t.profile.readyToUpload}
 						</p>
 					</div>
 					<Button
@@ -108,7 +109,7 @@ function FileUploadCard({
 					<div className="flex-1 min-w-0">
 						<p className="text-sm font-medium">{label}</p>
 						<p className="text-xs text-green-600 dark:text-green-400">
-							Uploaded ✓
+							{t.profile.uploaded}
 						</p>
 					</div>
 					<Label htmlFor={id} className="cursor-pointer">
@@ -116,7 +117,7 @@ function FileUploadCard({
 							variant="outline"
 							className="text-xs cursor-pointer hover:bg-muted"
 						>
-							Replace
+							{t.profile.replace}
 						</Badge>
 						<Input
 							id={id}
@@ -169,11 +170,12 @@ function VerificationProgress({
 	emailVerified: boolean;
 	rejectionReason?: string;
 }) {
+	const { t } = useLanguage();
 	const steps = [
-		{ label: "Email Verified", done: emailVerified },
-		{ label: "Government ID", done: hasGovId },
-		{ label: "Business Documents", done: hasBusinessDocs },
-		{ label: "Admin Approved", done: status === "verified" },
+		{ label: t.profile.emailVerified, done: emailVerified },
+		{ label: t.profile.governmentId, done: hasGovId },
+		{ label: t.profile.businessDocuments, done: hasBusinessDocs },
+		{ label: t.profile.adminApproved, done: status === "verified" },
 	];
 	const completedCount = steps.filter((s) => s.done).length;
 	const progress = (completedCount / steps.length) * 100;
@@ -184,7 +186,7 @@ function VerificationProgress({
 				<div className="flex items-center justify-between">
 					<CardTitle className="text-base flex items-center gap-2">
 						<ShieldCheck className="h-4 w-4 text-primary" />
-						Verification Status
+						{t.profile.verificationStatus}
 					</CardTitle>
 					<Badge
 						variant={
@@ -203,17 +205,17 @@ function VerificationProgress({
 						}`}
 					>
 						{status === "verified"
-							? "✓ Verified"
+							? t.profile.verified
 							: status === "pending"
-								? "⏳ Under Review"
-								: "Incomplete"}
+								? t.profile.underReview
+								: t.profile.incomplete}
 					</Badge>
 				</div>
 			</CardHeader>
 			<CardContent className="space-y-4">
 				<div className="space-y-2">
 					<div className="flex justify-between text-xs text-muted-foreground">
-						<span>Progress</span>
+						<span>{t.profile.progress}</span>
 						<span>{Math.round(progress)}%</span>
 					</div>
 					<Progress value={progress} className="h-2" />
@@ -224,7 +226,7 @@ function VerificationProgress({
 						<div key={step.label} className="flex items-center gap-2.5">
 							{step.done ? (
 								<CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
-							) : status === "pending" && step.label === "Admin Approved" ? (
+							) : status === "pending" && step.label === t.profile.adminApproved ? (
 								<Clock className="h-4 w-4 text-blue-500 shrink-0 animate-pulse" />
 							) : (
 								<div className="h-4 w-4 rounded-full border-2 border-muted-foreground/20 shrink-0" />
@@ -244,7 +246,7 @@ function VerificationProgress({
 						className="mt-3 border-destructive/30 bg-destructive/5"
 					>
 						<AlertCircle className="h-4 w-4" />
-						<AlertTitle className="text-xs font-semibold">Rejected</AlertTitle>
+						<AlertTitle className="text-xs font-semibold">{t.profile.rejected}</AlertTitle>
 						<AlertDescription className="text-xs">
 							{rejectionReason}
 						</AlertDescription>
@@ -312,9 +314,9 @@ function EntrepreneurProfilePageInner() {
 			});
 			if (!res.ok) throw new Error("Failed to update profile");
 			await refreshUserProfile();
-			showSuccessToast("Profile updated successfully!");
+			showSuccessToast(t.profile.profileUpdated);
 		} catch (err: any) {
-			showErrorToast(err.message || "Failed to update profile");
+			showErrorToast(err.message || t.common.error);
 		} finally {
 			setSavingProfile(false);
 		}
@@ -439,7 +441,7 @@ function EntrepreneurProfilePageInner() {
 			setProfileData((prev: any) => ({ ...prev, ...payload }));
 			setFiles({});
 			await refreshUserProfile();
-			showSuccessToast("Documents saved successfully!");
+			showSuccessToast(t.profile.docsSaved);
 		} catch (err: any) {
 			setError(err.message);
 			showErrorToast(err.message);
@@ -487,7 +489,7 @@ function EntrepreneurProfilePageInner() {
 							{t.nav.profile}
 						</h1>
 						<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
-							Manage your personal information and verification documents
+							{t.profile.manageInfo}
 						</p>
 					</div>
 				</div>
@@ -499,11 +501,11 @@ function EntrepreneurProfilePageInner() {
 							<TabsList className="w-full justify-start h-10 mb-6">
 								<TabsTrigger value="personal" className="gap-1.5 text-xs">
 									<UserIcon className="h-3.5 w-3.5" />
-									Personal Info
+									{t.profile.personalInfo}
 								</TabsTrigger>
 								<TabsTrigger value="verification" className="gap-1.5 text-xs">
 									<ShieldCheck className="h-3.5 w-3.5" />
-									Verification
+									{t.profile.verification}
 									{userProfile?.status !== "verified" && (
 										<span className="ml-1 h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
 									)}
@@ -522,11 +524,10 @@ function EntrepreneurProfilePageInner() {
 										</div>
 										<div>
 											<p className="text-sm font-semibold text-green-700 dark:text-green-400">
-												Verification Complete
+												{t.profile.verificationComplete}
 											</p>
 											<p className="text-xs text-muted-foreground">
-												Your identity and business documents have been verified
-												by an administrator.
+												{t.profile.verificationCompleteDesc}
 											</p>
 										</div>
 									</div>
@@ -544,18 +545,17 @@ function EntrepreneurProfilePageInner() {
 									<CardHeader className="pb-3">
 										<CardTitle className="text-base flex items-center gap-2">
 											<IdCard className="h-4 w-4 text-primary" />
-											Identity Verification
+											{t.profile.identityVerification}
 										</CardTitle>
 										<CardDescription>
-											Upload a valid government-issued ID. Accepted: National ID
-											(Fayda / Kebele ID) or Driving License.
+											{t.profile.identityVerificationDesc}
 										</CardDescription>
 									</CardHeader>
 									<CardContent>
 										<FileUploadCard
 											id="gov-id"
-											label="Government-Issued ID"
-											description="PDF or Image · Max 10MB"
+											label={t.profile.governmentIssuedId}
+											description={t.profile.pdfOrImage}
 											file={files.governmentId}
 											existingUrl={profileData?.nationalIdUrl}
 											onChange={(e) => handleFileChange(e, "governmentId")}
@@ -570,18 +570,17 @@ function EntrepreneurProfilePageInner() {
 									<CardHeader className="pb-3">
 										<CardTitle className="text-base flex items-center gap-2">
 											<Building2 className="h-4 w-4 text-primary" />
-											Business Documents
+											{t.profile.businessDocsTitle}
 										</CardTitle>
 										<CardDescription>
-											Upload your business registration certificate and TIN
-											certificate from the Ethiopian Revenue Authority.
+											{t.profile.businessDocsDesc}
 										</CardDescription>
 									</CardHeader>
 									<CardContent className="space-y-3">
 										<FileUploadCard
 											id="biz-license"
-											label="Business Registration Certificate"
-											description="PDF or Image · Certificate of Incorporation"
+											label={t.profile.businessRegistration}
+											description={t.profile.businessRegDesc}
 											file={files.businessLicense}
 											existingUrl={profileData?.businessLicenseUrl}
 											onChange={(e) => handleFileChange(e, "businessLicense")}
@@ -590,8 +589,8 @@ function EntrepreneurProfilePageInner() {
 										/>
 										<FileUploadCard
 											id="tin-cert"
-											label="TIN Certificate"
-											description="PDF or Image · Tax Identification Number"
+											label={t.profile.tinCertificate}
+											description={t.profile.tinDesc}
 											file={files.tinCertificate}
 											existingUrl={profileData?.tinNumber}
 											onChange={(e) => handleFileChange(e, "tinCertificate")}
@@ -606,13 +605,13 @@ function EntrepreneurProfilePageInner() {
 									<CardHeader className="pb-3">
 										<CardTitle className="text-base flex items-center gap-2">
 											<Building2 className="h-4 w-4 text-primary" />
-											Company Details
+											{t.profile.companyDetails}
 										</CardTitle>
 									</CardHeader>
 									<CardContent className="space-y-4">
 										<div className="space-y-2">
 											<Label htmlFor="company-name" className="text-sm">
-												Company Name <span className="text-destructive">*</span>
+												{t.profile.companyName} <span className="text-destructive">*</span>
 											</Label>
 											<Input
 												id="company-name"
@@ -625,11 +624,11 @@ function EntrepreneurProfilePageInner() {
 										</div>
 										<div className="space-y-2">
 											<Label htmlFor="company-desc" className="text-sm">
-												Brief Description
+												{t.profile.briefDescription}
 											</Label>
 											<Input
 												id="company-desc"
-												placeholder="What does your company do?"
+												placeholder={t.profile.whatDoesCompanyDo}
 												value={companyDescription}
 												onChange={(e) => setCompanyDescription(e.target.value)}
 												className="h-10"
@@ -647,14 +646,14 @@ function EntrepreneurProfilePageInner() {
 												{saving ? (
 													<>
 														<Loader2 className="h-4 w-4 animate-spin" />
-														Saving...
+														{t.profile.saving}
 													</>
 												) : (
 													<>
 														<UploadCloud className="h-4 w-4" />
 														{userProfile?.status === "unverified"
-															? "Save & Submit for Review"
-															: "Save Changes"}
+															? t.profile.saveSubmitReview
+															: t.profile.saveChanges}
 													</>
 												)}
 											</Button>
@@ -668,17 +667,17 @@ function EntrepreneurProfilePageInner() {
 								<Card>
 									<CardHeader className="pb-3">
 										<CardTitle className="text-base">
-											Personal Information
+											{t.profile.personalInformation}
 										</CardTitle>
 										<CardDescription>
-											Update your account details below.
+											{t.profile.updateAccountDetails}
 										</CardDescription>
 									</CardHeader>
 									<CardContent className="space-y-6">
 										<div className="flex flex-col sm:flex-row items-start gap-6 pb-2">
 											<div className="shrink-0">
 												<Label className="text-sm text-muted-foreground block mb-3">
-													Profile Picture
+													{t.profile.profilePicture}
 												</Label>
 												<ProfilePictureUpload size="h-20 w-20" />
 											</div>
@@ -690,18 +689,18 @@ function EntrepreneurProfilePageInner() {
 											<div className="flex-1 grid gap-4 sm:grid-cols-2 w-full">
 												<div className="space-y-2">
 													<Label htmlFor="ent-edit-name" className="text-sm">
-														Full Name
+														{t.profile.fullName}
 													</Label>
 													<Input
 														id="ent-edit-name"
 														value={editName}
 														onChange={(e) => setEditName(e.target.value)}
-														placeholder="Your full name"
+														placeholder={t.profile.yourFullName}
 													/>
 												</div>
 												<div className="space-y-2">
 													<Label className="text-sm text-muted-foreground">
-														Email Address
+														{t.profile.emailAddress}
 													</Label>
 													<p className="text-sm font-medium flex items-center gap-1.5 pt-2">
 														{userProfile?.email}
@@ -710,12 +709,12 @@ function EntrepreneurProfilePageInner() {
 														)}
 													</p>
 													<p className="text-xs text-muted-foreground">
-														Email cannot be changed
+														{t.profile.emailCannotChange}
 													</p>
 												</div>
 												<div className="space-y-2">
 													<Label className="text-sm text-muted-foreground">
-														Role
+														{t.profile.role}
 													</Label>
 													<p className="text-sm font-medium capitalize pt-2">
 														{userProfile?.role}
@@ -723,7 +722,7 @@ function EntrepreneurProfilePageInner() {
 												</div>
 												<div className="space-y-2">
 													<Label className="text-sm text-muted-foreground">
-														Account Status
+														{t.profile.accountStatus}
 													</Label>
 													<div className="pt-2">
 														<Badge
@@ -754,11 +753,11 @@ function EntrepreneurProfilePageInner() {
 										>
 											{savingProfile ? (
 												<>
-													<Loader2 className="h-4 w-4 animate-spin" /> Saving...
+													<Loader2 className="h-4 w-4 animate-spin" /> {t.profile.saving}
 												</>
 											) : (
 												<>
-													<Save className="h-4 w-4" /> Save Changes
+													<Save className="h-4 w-4" /> {t.profile.saveChanges}
 												</>
 											)}
 										</Button>
@@ -769,21 +768,21 @@ function EntrepreneurProfilePageInner() {
 									<Card>
 										<CardHeader className="pb-3">
 											<CardTitle className="text-base">
-												Business Information
+												{t.profile.businessInformation}
 											</CardTitle>
 										</CardHeader>
 										<CardContent>
 											<div className="grid gap-4 sm:grid-cols-2">
 												<div className="space-y-2">
 													<Label className="text-sm text-muted-foreground">
-														Company
+														{t.profile.company}
 													</Label>
 													<p className="text-sm font-medium">{companyName}</p>
 												</div>
 												{companyDescription && (
 													<div className="space-y-2">
 														<Label className="text-sm text-muted-foreground">
-															Description
+															{t.profile.description}
 														</Label>
 														<p className="text-sm text-muted-foreground">
 															{companyDescription}
@@ -814,10 +813,9 @@ function EntrepreneurProfilePageInner() {
 							<Card className="border-blue-500/20 bg-blue-500/5">
 								<CardContent className="p-4 text-center space-y-3">
 									<Clock className="h-8 w-8 text-blue-500 mx-auto" />
-									<p className="text-sm font-medium">Under Review</p>
+									<p className="text-sm font-medium">{t.profile.underReviewStatus}</p>
 									<p className="text-xs text-muted-foreground">
-										Your documents are being reviewed. You'll be notified once
-										your account is approved.
+										{t.profile.docsBeingReviewed}
 									</p>
 									<Button
 										variant="outline"
@@ -825,7 +823,7 @@ function EntrepreneurProfilePageInner() {
 										className="w-full text-xs"
 										onClick={refreshUserProfile}
 									>
-										Check Status
+										{t.profile.checkStatus}
 									</Button>
 								</CardContent>
 							</Card>

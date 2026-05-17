@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/table";
 import { ADMIN_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -109,6 +110,7 @@ function initials(name?: string) {
 
 export default function AdminFinancePage() {
 	const { user } = useAuth();
+	const { t } = useLanguage();
 	const [data, setData] = useState<AdminFinanceData | null>(null);
 	const [loading, setLoading] = useState(true);
 
@@ -131,10 +133,10 @@ export default function AdminFinancePage() {
 			if (result.status === "success") {
 				setData(result.summary);
 			} else {
-				showErrorToast("Failed to load finance data");
+				showErrorToast(t.adminFinance.failedToLoadFinance);
 			}
 		} catch {
-			showErrorToast("Network error");
+			showErrorToast(t.adminFinance.networkError);
 		} finally {
 			setLoading(false);
 		}
@@ -162,15 +164,15 @@ export default function AdminFinancePage() {
 			});
 			const result = await res.json();
 			if (result.status === "success") {
-				showSuccessToast("Funds disbursed successfully");
+				showSuccessToast(t.adminFinance.fundsDisbursedSuccess);
 				setDisburseTarget(null);
 				setPaymentRef("");
 				fetchData(); // Refresh overview
 			} else {
-				showErrorToast(result.message || "Disbursement failed");
+				showErrorToast(result.message || t.adminFinance.disbursementFailed);
 			}
 		} catch {
-			showErrorToast("Network error");
+			showErrorToast(t.adminFinance.networkError);
 		} finally {
 			setActing(false);
 		}
@@ -178,7 +180,7 @@ export default function AdminFinancePage() {
 
 	if (loading) {
 		return (
-			<DashboardLayout navItems={ADMIN_NAV} title="Finance Oversight">
+			<DashboardLayout navItems={ADMIN_NAV} title={t.adminFinance.financeOversight}>
 				<div className="flex items-center justify-center min-h-[60vh]">
 					<Loader2 className="h-8 w-8 animate-spin text-primary" />
 				</div>
@@ -190,17 +192,16 @@ export default function AdminFinancePage() {
 
 	return (
 		<ProtectedRoute allowedRoles={["admin"]}>
-			<DashboardLayout navItems={ADMIN_NAV} title="Finance Oversight">
+			<DashboardLayout navItems={ADMIN_NAV} title={t.adminFinance.financeOversight}>
 				<div className="space-y-8">
 					{/* Header */}
 					<div>
 						<h1 className="text-3xl font-bold tracking-tight admin-header-gradient flex items-center gap-2">
 							<ShieldCheck className="h-8 w-8 text-primary" />
-							Finance Oversight
+							{t.adminFinance.financeOversight}
 						</h1>
 						<p className="text-muted-foreground mt-2">
-							Manage platform escrow, verify payouts, and monitor the global
-							ledger.
+							{t.adminFinance.financeOversightDesc}
 						</p>
 					</div>
 
@@ -209,7 +210,7 @@ export default function AdminFinancePage() {
 						<Card className="admin-stat-card border-l-4 border-l-amber-500 shadow-sm">
 							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 								<CardTitle className="text-sm font-medium">
-									Held in Escrow
+									{t.adminFinance.heldInEscrow}
 								</CardTitle>
 								<DollarSign className="h-4 w-4 text-amber-500" />
 							</CardHeader>
@@ -218,14 +219,14 @@ export default function AdminFinancePage() {
 									ETB {data.totalEscrowHeld.toLocaleString()}
 								</div>
 								<p className="text-xs text-muted-foreground mt-1">
-									Platform-wide active holdings
+									{t.adminFinance.heldInEscrowDesc}
 								</p>
 							</CardContent>
 						</Card>
 						<Card className="admin-stat-card border-l-4 border-l-emerald-500 shadow-sm">
 							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 								<CardTitle className="text-sm font-medium">
-									Total Disbursed
+									{t.adminFinance.totalDisbursed}
 								</CardTitle>
 								<CheckCircle2 className="h-4 w-4 text-emerald-500" />
 							</CardHeader>
@@ -234,14 +235,14 @@ export default function AdminFinancePage() {
 									ETB {data.totalDisbursed.toLocaleString()}
 								</div>
 								<p className="text-xs text-muted-foreground mt-1">
-									Released to entrepreneurs to date
+									{t.adminFinance.totalDisbursedDesc}
 								</p>
 							</CardContent>
 						</Card>
 						<Card className="admin-stat-card border-l-4 border-l-primary shadow-sm">
 							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 								<CardTitle className="text-sm font-medium">
-									Platform Revenue
+									{t.adminFinance.platformRevenue}
 								</CardTitle>
 								<TrendingUp className="h-4 w-4 text-primary" />
 							</CardHeader>
@@ -250,7 +251,7 @@ export default function AdminFinancePage() {
 									ETB {data.totalFees.toLocaleString()}
 								</div>
 								<p className="text-xs text-muted-foreground mt-1">
-									Cumulative platform service fees
+									{t.adminFinance.platformRevenueDesc}
 								</p>
 							</CardContent>
 						</Card>
@@ -268,10 +269,10 @@ export default function AdminFinancePage() {
 							<div className="space-y-1">
 								<CardTitle className="text-lg flex items-center gap-2">
 									<Send className="h-5 w-5 text-primary" />
-									Awaiting Disbursement
+									{t.adminFinance.awaitingDisbursement}
 								</CardTitle>
 								<p className="text-xs text-muted-foreground">
-									Verified milestones ready for payout to entrepreneurs.
+									{t.adminFinance.awaitingDisbursementDesc}
 								</p>
 							</div>
 							<Badge
@@ -279,17 +280,17 @@ export default function AdminFinancePage() {
 									data.awaitingDisbursement.length > 0 ? "default" : "secondary"
 								}
 							>
-								{data.awaitingDisbursement.length} Pending Actions
+								{data.awaitingDisbursement.length} {t.adminFinance.pendingActions}
 							</Badge>
 						</CardHeader>
 						<CardContent>
 							<Table>
 								<TableHeader>
 									<TableRow>
-										<TableHead>Milestone / Project</TableHead>
-										<TableHead>Recipients</TableHead>
-										<TableHead className="text-right">Amount</TableHead>
-										<TableHead className="text-right">Action</TableHead>
+										<TableHead>{t.adminFinance.milestoneProject}</TableHead>
+										<TableHead>{t.adminFinance.recipients}</TableHead>
+										<TableHead className="text-right">{t.adminFinance.amount}</TableHead>
+										<TableHead className="text-right">{t.adminFinance.action}</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
@@ -299,7 +300,7 @@ export default function AdminFinancePage() {
 												colSpan={4}
 												className="text-center py-8 text-muted-foreground italic"
 											>
-												No milestones are currently awaiting disbursement.
+												{t.adminFinance.noAwaitingDisbursement}
 											</TableCell>
 										</TableRow>
 									) : (
@@ -349,7 +350,7 @@ export default function AdminFinancePage() {
 														className="bg-emerald-600 hover:bg-emerald-700 shadow-sm"
 														onClick={() => setDisburseTarget(m)}
 													>
-														Pay Out
+														{t.adminFinance.payOut}
 													</Button>
 												</TableCell>
 											</TableRow>
@@ -368,16 +369,16 @@ export default function AdminFinancePage() {
 								<CardHeader>
 									<CardTitle className="flex items-center gap-2">
 										<ArrowRightLeft className="h-5 w-5 text-primary" />
-										Global Ledger
+										{t.adminFinance.globalLedger}
 									</CardTitle>
 								</CardHeader>
 								<CardContent>
 									<Table>
 										<TableHeader>
 											<TableRow>
-												<TableHead>Date</TableHead>
-												<TableHead>Event</TableHead>
-												<TableHead className="text-right">Amount</TableHead>
+												<TableHead>{t.adminFinance.date}</TableHead>
+												<TableHead>{t.adminFinance.event}</TableHead>
+												<TableHead className="text-right">{t.adminFinance.amount}</TableHead>
 											</TableRow>
 										</TableHeader>
 										<TableBody>
@@ -399,7 +400,7 @@ export default function AdminFinancePage() {
 															</Badge>
 															{entry.status === "completed" ? (
 																<Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200/50 text-[9px] h-4 px-1">
-																	Done
+																	{t.adminFinance.done}
 																</Badge>
 															) : (
 																<Badge
@@ -432,13 +433,13 @@ export default function AdminFinancePage() {
 								<CardHeader className="pb-3">
 									<CardTitle className="text-sm flex items-center gap-2">
 										<AlertCircle className="h-4 w-4 text-amber-500" />
-										Stuck Chapa Payments
+										{t.adminFinance.stuckChapaPayments}
 									</CardTitle>
 								</CardHeader>
 								<CardContent>
 									{data.pendingChapa.length === 0 ? (
 										<p className="text-xs text-muted-foreground py-4 text-center">
-											No stuck payments detected.
+											{t.adminFinance.noStuckPayments}
 										</p>
 									) : (
 										<div className="space-y-3">
@@ -482,10 +483,9 @@ export default function AdminFinancePage() {
 				>
 					<DialogContent>
 						<DialogHeader>
-							<DialogTitle>Confirm Milestone Payout</DialogTitle>
+							<DialogTitle>{t.adminFinance.confirmPayout}</DialogTitle>
 							<DialogDescription>
-								You are about to release funds from escrow to the entrepreneur.
-								Ensure you have verified any proof of work.
+								{t.adminFinance.confirmPayoutDesc}
 							</DialogDescription>
 						</DialogHeader>
 
@@ -494,13 +494,13 @@ export default function AdminFinancePage() {
 								<div className="grid grid-cols-2 gap-4 text-sm">
 									<div>
 										<Label className="text-xs uppercase text-muted-foreground">
-											Milestone
+											{t.adminFinance.milestone}
 										</Label>
 										<p className="font-semibold">{disburseTarget.title}</p>
 									</div>
 									<div className="text-right">
 										<Label className="text-xs uppercase text-muted-foreground">
-											Amount
+											{t.adminFinance.amount}
 										</Label>
 										<p className="font-bold text-lg text-primary">
 											ETB {disburseTarget.amount.toLocaleString()}
@@ -508,7 +508,7 @@ export default function AdminFinancePage() {
 									</div>
 									<div className="col-span-2">
 										<Label className="text-xs uppercase text-muted-foreground">
-											Recipient
+											{t.adminFinance.recipient}
 										</Label>
 										<div className="flex items-center gap-2 mt-1">
 											<Avatar className="h-7 w-7 rounded-md">
@@ -527,11 +527,11 @@ export default function AdminFinancePage() {
 
 						<div className="space-y-2">
 							<Label htmlFor="payment-ref">
-								Payment Reference (e.g. Bank Ref No.)
+								{t.adminFinance.paymentRef}
 							</Label>
 							<Input
 								id="payment-ref"
-								placeholder="Optional transaction reference..."
+								placeholder={t.adminFinance.paymentRefPlaceholder}
 								value={paymentRef}
 								onChange={(e) => setPaymentRef(e.target.value)}
 							/>
@@ -543,7 +543,7 @@ export default function AdminFinancePage() {
 								onClick={() => setDisburseTarget(null)}
 								disabled={acting}
 							>
-								Cancel
+								{t.common.cancel}
 							</Button>
 							<Button
 								className="bg-emerald-600 hover:bg-emerald-700"
@@ -555,7 +555,7 @@ export default function AdminFinancePage() {
 								) : (
 									<ShieldCheck className="h-4 w-4 mr-2" />
 								)}
-								Confirm Disbursement
+								{t.adminFinance.confirmDisbursement}
 							</Button>
 						</DialogFooter>
 					</DialogContent>

@@ -53,6 +53,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { ADMIN_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -168,6 +169,7 @@ function DocLink({
 
 export default function AdminUsersPage() {
 	const { user, userProfile } = useAuth();
+	const { t } = useLanguage();
 	const router = useRouter();
 	const isSuperAdmin = userProfile?.adminLevel === "super_admin";
 
@@ -322,10 +324,10 @@ export default function AdminUsersPage() {
 					<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 						<div>
 							<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient">
-								User Management
+								{t.admin.userManagement}
 							</h1>
 							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
-								View, search, and manage all platform users
+								{t.adminUsers.viewSearchManage}
 							</p>
 						</div>
 						<Badge
@@ -333,7 +335,7 @@ export default function AdminUsersPage() {
 							className="text-xs font-medium gap-1.5 py-1 px-3 w-fit"
 						>
 							<Users className="h-3.5 w-3.5" />
-							{loading ? "..." : `${total} Users`}
+							{loading ? "..." : `${total} ${t.nav.users}`}
 						</Badge>
 					</div>
 				</div>
@@ -343,7 +345,7 @@ export default function AdminUsersPage() {
 					<div className="relative flex-1 max-w-sm">
 						<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
 						<Input
-							placeholder="Search by name or email..."
+							placeholder={t.adminUsers.searchPlaceholder}
 							value={searchQuery}
 							onChange={(e) => setSearchQuery(e.target.value)}
 							className="pl-9 h-10"
@@ -351,25 +353,25 @@ export default function AdminUsersPage() {
 					</div>
 					<Select value={roleFilter} onValueChange={setRoleFilter}>
 						<SelectTrigger className="w-40">
-							<SelectValue placeholder="Filter role" />
+							<SelectValue placeholder={t.adminUsers.filterRole} />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value="all">All roles</SelectItem>
-							<SelectItem value="entrepreneur">Entrepreneur</SelectItem>
-							<SelectItem value="investor">Investor</SelectItem>
-							<SelectItem value="admin">Admin</SelectItem>
+							<SelectItem value="all">{t.adminUsers.allRoles}</SelectItem>
+							<SelectItem value="entrepreneur">{t.adminUsers.roleEntrepreneur}</SelectItem>
+							<SelectItem value="investor">{t.adminUsers.roleInvestor}</SelectItem>
+							<SelectItem value="admin">{t.adminUsers.roleAdmin}</SelectItem>
 						</SelectContent>
 					</Select>
 					<Select value={statusFilter} onValueChange={setStatusFilter}>
 						<SelectTrigger className="w-40">
-							<SelectValue placeholder="Filter status" />
+							<SelectValue placeholder={t.adminUsers.filterStatus} />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value="all">All statuses</SelectItem>
-							<SelectItem value="unverified">Unverified</SelectItem>
-							<SelectItem value="pending">Pending</SelectItem>
-							<SelectItem value="verified">Verified</SelectItem>
-							<SelectItem value="suspended">Suspended</SelectItem>
+							<SelectItem value="all">{t.adminUsers.allStatuses}</SelectItem>
+							<SelectItem value="unverified">{t.adminUsers.statusUnverified}</SelectItem>
+							<SelectItem value="pending">{t.adminUsers.statusPending}</SelectItem>
+							<SelectItem value="verified">{t.adminUsers.statusVerified}</SelectItem>
+							<SelectItem value="suspended">{t.adminUsers.statusSuspended}</SelectItem>
 						</SelectContent>
 					</Select>
 				</div>
@@ -378,8 +380,8 @@ export default function AdminUsersPage() {
 				<div className="flex items-center justify-between mb-4">
 					<p className="text-sm text-muted-foreground">
 						{loading
-							? "Loading..."
-							: `${total} user${total !== 1 ? "s" : ""} found`}
+							? t.common.loading
+							: `${total} ${t.adminUsers.usersFound}`}
 					</p>
 				</div>
 
@@ -388,12 +390,12 @@ export default function AdminUsersPage() {
 					<Table>
 						<TableHeader>
 							<TableRow>
-								<TableHead>User</TableHead>
-								<TableHead>Role</TableHead>
-								<TableHead>Status</TableHead>
-								<TableHead>Email Verified</TableHead>
-								<TableHead>Joined</TableHead>
-								<TableHead className="text-right">Actions</TableHead>
+								<TableHead>{t.adminUsers.userLabel}</TableHead>
+								<TableHead>{t.admin.role}</TableHead>
+								<TableHead>{t.admin.status}</TableHead>
+								<TableHead>{t.adminUsers.emailVerified}</TableHead>
+								<TableHead>{t.admin.joined}</TableHead>
+								<TableHead className="text-right">{t.admin.actions}</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
@@ -403,7 +405,7 @@ export default function AdminUsersPage() {
 										<div className="flex flex-col items-center gap-2">
 											<Loader2 className="h-6 w-6 animate-spin text-primary" />
 											<p className="text-sm text-muted-foreground">
-												Loading users...
+												{t.adminUsers.loadingUsers}
 											</p>
 										</div>
 									</TableCell>
@@ -414,10 +416,10 @@ export default function AdminUsersPage() {
 										<div className="flex flex-col items-center gap-2">
 											<Users className="h-8 w-8 text-muted-foreground/30" />
 											<p className="font-medium text-muted-foreground">
-												No users found
+												{t.admin.noUsersFound}
 											</p>
 											<p className="text-xs text-muted-foreground/60">
-												Try adjusting your filters
+												{t.adminUsers.tryAdjustingFilters}
 											</p>
 										</div>
 									</TableCell>
@@ -469,7 +471,7 @@ export default function AdminUsersPage() {
 														<Crown className="h-3 w-3 text-amber-500" />
 													)}
 													{u.adminLevel === "super_admin"
-														? "Super Admin"
+														? t.adminUsers.superAdmin
 														: u.role}
 												</Badge>
 											</TableCell>
@@ -495,7 +497,7 @@ export default function AdminUsersPage() {
 												{isProtected ? (
 													<div className="flex items-center justify-end gap-3">
 														<span className="text-xs text-muted-foreground">
-															Protected
+															{t.adminUsers.protectedUser}
 														</span>
 														<Button
 															size="sm"
@@ -507,7 +509,7 @@ export default function AdminUsersPage() {
 															}}
 														>
 															<MessageSquare className="h-3.5 w-3.5" />
-															<span className="hidden sm:inline">Message</span>
+															<span className="hidden sm:inline">{t.adminUsers.message}</span>
 														</Button>
 													</div>
 												) : (
@@ -522,7 +524,7 @@ export default function AdminUsersPage() {
 															}}
 														>
 															<MessageSquare className="h-3.5 w-3.5" />
-															<span className="hidden sm:inline">Message</span>
+															<span className="hidden sm:inline">{t.adminUsers.message}</span>
 														</Button>
 														<Button
 															size="sm"
@@ -534,7 +536,7 @@ export default function AdminUsersPage() {
 																fetchUserProfile(u._id);
 															}}
 														>
-															Manage
+															{t.adminUsers.manageUser}
 														</Button>
 													</div>
 												)}
@@ -551,8 +553,7 @@ export default function AdminUsersPage() {
 				{totalPages > 1 && (
 					<div className="flex items-center justify-between mt-6">
 						<p className="text-sm text-muted-foreground">
-							Page {page} of {totalPages} · {total} total user
-							{total !== 1 ? "s" : ""}
+							{t.adminUsers.pageInfo} {page} {t.adminUsers.ofInfo} {totalPages} · {total} {t.adminUsers.totalInfo}
 						</p>
 						<div className="flex items-center gap-1">
 							<Button
@@ -562,7 +563,7 @@ export default function AdminUsersPage() {
 								onClick={() => setPage((p) => Math.max(1, p - 1))}
 								className="gap-1 h-8 px-3"
 							>
-								<ChevronLeft className="h-4 w-4" /> Previous
+								<ChevronLeft className="h-4 w-4" /> {t.adminUsers.previous}
 							</Button>
 							{Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
 								let pg: number;
@@ -594,7 +595,7 @@ export default function AdminUsersPage() {
 								onClick={() => setPage((p) => p + 1)}
 								className="gap-1 h-8 px-3"
 							>
-								Next <ChevronRight className="h-4 w-4" />
+								{t.common.next} <ChevronRight className="h-4 w-4" />
 							</Button>
 						</div>
 					</div>
@@ -615,19 +616,18 @@ export default function AdminUsersPage() {
 								<DialogTitle className="flex items-center gap-2">
 									{actionUser?.status === "pending" ? (
 										<>
-											<ShieldCheck className="h-5 w-5 text-primary" /> KYC
-											Review
+											<ShieldCheck className="h-5 w-5 text-primary" />{" "}
+											{t.adminUsers.kycReview}
 										</>
 									) : (
 										<>
-											<Users className="h-5 w-5" /> Manage User
+											<Users className="h-5 w-5" /> {t.adminUsers.manageUser}
 										</>
 									)}
 								</DialogTitle>
 								{actionUser?.status === "pending" && (
 									<DialogDescription>
-										Review the submitted KYC documents and approve or reject
-										this user.
+										{t.adminUsers.kycReviewDesc}
 									</DialogDescription>
 								)}
 							</DialogHeader>
@@ -683,13 +683,14 @@ export default function AdminUsersPage() {
 									<Separator />
 									<div className="space-y-3">
 										<h4 className="text-sm font-semibold flex items-center gap-2">
-											<FileText className="h-4 w-4" /> KYC Documents
+											<FileText className="h-4 w-4" />{" "}
+											{t.adminUsers.kycDocuments}
 										</h4>
 										{loadingProfile ? (
 											<div className="flex items-center justify-center py-8">
 												<Loader2 className="h-5 w-5 animate-spin text-primary" />
 												<p className="ml-2 text-sm text-muted-foreground">
-													Loading documents...
+													{t.adminUsers.loadingDocs}
 												</p>
 											</div>
 										) : actionUserProfile &&
@@ -697,28 +698,28 @@ export default function AdminUsersPage() {
 											<div className="space-y-3">
 												<DocLink
 													url={actionUserProfile.nationalIdUrl}
-													label="Ethiopian National ID"
-													missing="National ID not uploaded"
+													label={t.adminUsers.ethiopianNationalId}
+													missing={t.adminUsers.nationalIdMissing}
 												/>
 												{actionUser.role === "entrepreneur" && (
 													<>
 														<DocLink
 															url={actionUserProfile.businessLicenseUrl}
-															label="Business License"
-															missing="Business license not uploaded"
+															label={t.adminUsers.businessLicense}
+															missing={t.adminUsers.businessLicenseMissing}
 														/>
 														<DocLink
 															url={actionUserProfile.tinNumber}
-															label="TIN Certificate"
-															missing="TIN certificate not uploaded"
+															label={t.adminUsers.tinCertificate}
+															missing={t.adminUsers.tinCertificateMissing}
 														/>
 													</>
 												)}
 												{actionUser.role === "investor" && (
 													<DocLink
 														url={actionUserProfile.accreditationDocumentUrl}
-														label="Financial Accreditation"
-														missing="Accreditation not uploaded"
+														label={t.adminUsers.financialAccreditation}
+														missing={t.adminUsers.accreditationMissing}
 													/>
 												)}
 											</div>
@@ -726,7 +727,7 @@ export default function AdminUsersPage() {
 											<div className="rounded-lg border border-dashed p-4 text-center">
 												<AlertCircle className="h-5 w-5 text-muted-foreground/50 mx-auto mb-2" />
 												<p className="text-sm text-muted-foreground">
-													No profile or documents found.
+													{t.adminUsers.noProfileFound}
 												</p>
 											</div>
 										)}
@@ -737,13 +738,13 @@ export default function AdminUsersPage() {
 										<>
 											<Separator />
 											<div className="space-y-3">
-												<h4 className="text-sm font-semibold">Quick Actions</h4>
+												<h4 className="text-sm font-semibold">{t.adminUsers.quickActions}</h4>
 												<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 													<Button
 														className="gap-2"
 														onClick={() => handleStatusUpdate("verified")}
 													>
-														<ShieldCheck className="h-4 w-4" /> Approve KYC
+														<ShieldCheck className="h-4 w-4" /> {t.adminUsers.approveKyc}
 													</Button>
 													<Button
 														variant="destructive"
@@ -756,7 +757,7 @@ export default function AdminUsersPage() {
 															handleStatusUpdate("unverified", rejectionReason);
 														}}
 													>
-														<ShieldX className="h-4 w-4" /> Reject KYC
+														<ShieldX className="h-4 w-4" /> {t.adminUsers.rejectKyc}
 													</Button>
 												</div>
 												{(newStatus === "reject-prompt" || rejectionReason) && (
@@ -765,11 +766,11 @@ export default function AdminUsersPage() {
 															htmlFor="rejection-reason"
 															className="text-sm font-medium text-destructive"
 														>
-															Rejection Reason (required)
+															{t.adminUsers.rejectionReasonRequired}
 														</Label>
 														<Textarea
 															id="rejection-reason"
-															placeholder="e.g. The National ID image is blurry..."
+															placeholder={t.adminUsers.rejectionReasonPlaceholder}
 															value={rejectionReason}
 															onChange={(e) =>
 																setRejectionReason(e.target.value)
@@ -788,7 +789,7 @@ export default function AdminUsersPage() {
 																	)
 																}
 															>
-																Confirm Rejection
+																{t.adminUsers.confirmRejection}
 															</Button>
 														)}
 													</div>
@@ -802,24 +803,24 @@ export default function AdminUsersPage() {
 										<>
 											<Separator />
 											<div className="space-y-2">
-												<div className="text-sm font-medium">Update Status</div>
+												<div className="text-sm font-medium">{t.adminUsers.updateStatus}</div>
 												<Select value={newStatus} onValueChange={setNewStatus}>
 													<SelectTrigger>
 														<SelectValue />
 													</SelectTrigger>
 													<SelectContent>
 														<SelectItem value="unverified">
-															Unverified
+															{t.adminUsers.statusUnverified}
 														</SelectItem>
-														<SelectItem value="pending">Pending</SelectItem>
-														<SelectItem value="verified">Verified</SelectItem>
-														<SelectItem value="suspended">Suspended</SelectItem>
+														<SelectItem value="pending">{t.adminUsers.statusPending}</SelectItem>
+														<SelectItem value="verified">{t.adminUsers.statusVerified}</SelectItem>
+														<SelectItem value="suspended">{t.adminUsers.statusSuspended}</SelectItem>
 													</SelectContent>
 												</Select>
 												{newStatus === "unverified" &&
 													actionUser.status !== "unverified" && (
 														<Textarea
-															placeholder="Optional: Provide a reason for rejection..."
+															placeholder={t.adminUsers.optionalReason}
 															value={rejectionReason}
 															onChange={(e) =>
 																setRejectionReason(e.target.value)
@@ -843,11 +844,11 @@ export default function AdminUsersPage() {
 										setRejectionReason("");
 									}}
 								>
-									Cancel
+									{t.common.cancel}
 								</Button>
 								{actionUser?.status !== "pending" && (
 									<Button onClick={() => handleStatusUpdate()}>
-										Save Changes
+										{t.common.save}
 									</Button>
 								)}
 							</DialogFooter>

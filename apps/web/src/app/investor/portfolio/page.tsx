@@ -71,21 +71,24 @@ const API = (
 	process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api"
 ).replace(/\/+$/, "");
 
-function typeConfig(type: string): {
+function typeConfig(
+	type: string,
+	t: Record<string, any>
+): {
 	label: string;
 	variant: "default" | "secondary" | "outline" | "destructive";
 } {
 	switch (type) {
 		case "escrow_hold":
-			return { label: "Escrow Hold", variant: "secondary" };
+			return { label: t.portfolio?.escrowHold || "Escrow Hold", variant: "secondary" };
 		case "escrow_release":
-			return { label: "Escrow Release", variant: "default" };
+			return { label: t.portfolio?.escrowRelease || "Escrow Release", variant: "default" };
 		case "platform_fee":
-			return { label: "Platform Fee", variant: "outline" };
+			return { label: t.portfolio?.platformFee || "Platform Fee", variant: "outline" };
 		case "milestone_payout":
-			return { label: "Payout", variant: "default" };
+			return { label: t.portfolio?.payout || "Payout", variant: "default" };
 		case "milestone_refund":
-			return { label: "Refund", variant: "destructive" };
+			return { label: t.portfolio?.refund || "Refund", variant: "destructive" };
 		default:
 			return { label: type, variant: "outline" };
 	}
@@ -111,10 +114,10 @@ export default function InvestorPortfolioPage() {
 			if (data.status === "success") {
 				setSummary(data.summary);
 			} else {
-				showErrorToast("Failed to load portfolio summary");
+				showErrorToast(t.portfolio.failedToLoad);
 			}
 		} catch {
-			showErrorToast("Network error");
+			showErrorToast(t.portfolio.networkError);
 		} finally {
 			setLoading(false);
 		}
@@ -147,7 +150,7 @@ export default function InvestorPortfolioPage() {
 							{t.nav.portfolio}
 						</h1>
 						<p className="text-muted-foreground mt-2">
-							Track your commitments, escrow holdings, and investment history.
+							{t.portfolio.subtitle}
 						</p>
 					</div>
 
@@ -156,7 +159,7 @@ export default function InvestorPortfolioPage() {
 						<Card className="admin-stat-card border-l-4 border-l-primary shadow-sm">
 							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 								<CardTitle className="text-sm font-medium">
-									Total Committed
+									{t.portfolio.totalCommitted}
 								</CardTitle>
 								<DollarSign className="h-4 w-4 text-primary" />
 							</CardHeader>
@@ -165,14 +168,14 @@ export default function InvestorPortfolioPage() {
 									ETB {summary.totalCommitted.toLocaleString()}
 								</div>
 								<p className="text-xs text-muted-foreground mt-1">
-									Total funds sent to escrow
+									{t.portfolio.totalCommittedDesc}
 								</p>
 							</CardContent>
 						</Card>
 						<Card className="admin-stat-card border-l-4 border-l-emerald-500 shadow-sm">
 							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 								<CardTitle className="text-sm font-medium">
-									Total Released
+									{t.portfolio.totalReleased}
 								</CardTitle>
 								<TrendingUp className="h-4 w-4 text-emerald-500" />
 							</CardHeader>
@@ -181,14 +184,14 @@ export default function InvestorPortfolioPage() {
 									ETB {summary.totalReleased.toLocaleString()}
 								</div>
 								<p className="text-xs text-muted-foreground mt-1">
-									Funds successfully paid to entrepreneurs
+									{t.portfolio.totalReleasedDesc}
 								</p>
 							</CardContent>
 						</Card>
 						<Card className="admin-stat-card border-l-4 border-l-amber-500 shadow-sm">
 							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 								<CardTitle className="text-sm font-medium">
-									Platform Fees
+									{t.portfolio.platformFees}
 								</CardTitle>
 								<BarChart3 className="h-4 w-4 text-amber-500" />
 							</CardHeader>
@@ -197,7 +200,7 @@ export default function InvestorPortfolioPage() {
 									ETB {summary.platformFeesPaid.toLocaleString()}
 								</div>
 								<p className="text-xs text-muted-foreground mt-1">
-									Total service fees paid to date
+									{t.portfolio.platformFeesDesc}
 								</p>
 							</CardContent>
 						</Card>
@@ -208,17 +211,17 @@ export default function InvestorPortfolioPage() {
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
 								<Briefcase className="h-5 w-5 text-primary" />
-								Per-Project Breakdown
+								{t.portfolio.perProjectBreakdown}
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
 							<Table>
 								<TableHeader>
 									<TableRow>
-										<TableHead>Project Title</TableHead>
-										<TableHead className="text-center">Milestones</TableHead>
-										<TableHead className="text-right">Total Invested</TableHead>
-										<TableHead className="text-right">Status</TableHead>
+										<TableHead>{t.portfolio.projectTitle}</TableHead>
+										<TableHead className="text-center">{t.portfolio.milestones}</TableHead>
+										<TableHead className="text-right">{t.portfolio.totalInvested}</TableHead>
+										<TableHead className="text-right">{t.portfolio.status}</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
@@ -228,7 +231,7 @@ export default function InvestorPortfolioPage() {
 												colSpan={4}
 												className="text-center py-8 text-muted-foreground"
 											>
-												No investment data available for projects.
+												{t.portfolio.noInvestmentData}
 											</TableCell>
 										</TableRow>
 									) : (
@@ -246,7 +249,7 @@ export default function InvestorPortfolioPage() {
 												<TableCell className="text-right">
 													<Badge variant="outline" className="capitalize">
 														{project.escrowStatus === "none"
-															? "Active"
+															? t.portfolio.active
 															: project.escrowStatus}
 													</Badge>
 												</TableCell>
@@ -263,18 +266,18 @@ export default function InvestorPortfolioPage() {
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
 								<History className="h-5 w-5 text-primary" />
-								Recent Transactions
+								{t.portfolio.recentTransactions}
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
 							<Table>
 								<TableHeader>
 									<TableRow>
-										<TableHead>Date</TableHead>
-										<TableHead>Description</TableHead>
-										<TableHead>Type</TableHead>
-										<TableHead className="text-right">Amount</TableHead>
-										<TableHead className="text-right">Status</TableHead>
+										<TableHead>{t.portfolio.date}</TableHead>
+										<TableHead>{t.portfolio.description}</TableHead>
+										<TableHead>{t.portfolio.type}</TableHead>
+										<TableHead className="text-right">{t.portfolio.amount}</TableHead>
+										<TableHead className="text-right">{t.portfolio.status}</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
@@ -284,12 +287,12 @@ export default function InvestorPortfolioPage() {
 												colSpan={5}
 												className="text-center py-8 text-muted-foreground"
 											>
-												No transaction history found.
+												{t.portfolio.noTransactions}
 											</TableCell>
 										</TableRow>
 									) : (
 										summary.recentLedger.map((entry) => {
-											const cfg = typeConfig(entry.type);
+											const cfg = typeConfig(entry.type, t);
 											return (
 												<TableRow key={entry._id}>
 													<TableCell className="text-muted-foreground">

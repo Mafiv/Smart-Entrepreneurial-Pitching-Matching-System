@@ -12,6 +12,7 @@ import {
 	Search,
 	Trash2,
 	XCircle,
+	Info,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
@@ -29,6 +30,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import en from "@/i18n/locales/en";
 import { Progress } from "@/components/ui/progress";
 import {
 	Select,
@@ -84,7 +86,17 @@ const STEPS = [
 
 function NewPitchPageInner() {
 	const { user, userProfile } = useAuth();
-	const { t } = useLanguage();
+	const { t, locale } = useLanguage();
+	const DualLabel = ({ htmlFor, labelKey }: { htmlFor?: string, labelKey: keyof typeof t.pitchNew }) => (
+		<Label htmlFor={htmlFor} className="flex items-center flex-wrap gap-1.5">
+			<span>{t.pitchNew[labelKey]}</span>
+			{locale !== "en" && (
+				<span className="text-muted-foreground/70 font-normal text-xs mt-0.5">
+					({en.pitchNew[labelKey]?.replace(" *", "")})
+				</span>
+			)}
+		</Label>
+	);
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const editId = searchParams.get("id");
@@ -97,7 +109,7 @@ function NewPitchPageInner() {
 			userProfile.role !== "admin"
 		) {
 			showErrorToast(
-				"You must complete KYC verification before creating pitches.",
+				t.pitchNew.kycRequired,
 			);
 			router.push("/entrepreneur/dashboard");
 		}
@@ -265,11 +277,11 @@ function NewPitchPageInner() {
 				await updateDraft(submissionId, token, stepData);
 			}
 
-			setSaveMessage("Draft saved ✓");
+			setSaveMessage(t.pitchNew.draftSaved);
 			setTimeout(() => setSaveMessage(""), 2000);
 		} catch (err) {
 			console.error("Save error:", err);
-			setSaveMessage("Failed to save");
+			setSaveMessage(t.pitchNew.failedToSave);
 		} finally {
 			setSaving(false);
 		}
@@ -376,7 +388,7 @@ function NewPitchPageInner() {
 				setUploadProgress(0);
 
 				if (file.size > 70 * 1024 * 1024) {
-					showErrorToast(`${file.name} exceeds the 70MB upload limit`);
+					showErrorToast(`${file.name} ${t.pitchNew.uploadExceedsLimit}`);
 					continue;
 				}
 
@@ -400,7 +412,7 @@ function NewPitchPageInner() {
 				if (!signatureRes.ok) {
 					const data = await signatureRes.json();
 					console.error("Signature fetch failed:", signatureRes.status, data);
-					showErrorToast(data.message || `Failed to prepare ${file.name}`);
+					showErrorToast(data.message || `${t.pitchNew.failedToPrepare} ${file.name}`);
 					continue;
 				}
 
@@ -449,7 +461,7 @@ function NewPitchPageInner() {
 					const { document } = await registerRes.json();
 					setUploadedDocs((prev) => [...prev, document]);
 					setUploadProgress(100);
-					showSuccessToast(`Uploaded: ${file.name}`);
+					showSuccessToast(`${t.pitchNew.uploaded}: ${file.name}`);
 				} else {
 					const data = await registerRes.json();
 					console.error(
@@ -457,12 +469,12 @@ function NewPitchPageInner() {
 						registerRes.status,
 						data,
 					);
-					showErrorToast(data.message || `Failed to register ${file.name}`);
+					showErrorToast(data.message || `${t.pitchNew.failedToRegister} ${file.name}`);
 				}
 			}
 		} catch (err) {
 			console.error("Upload error:", err);
-			showErrorToast("Upload failed");
+			showErrorToast(t.pitchNew.uploadFailed);
 		} finally {
 			setUploading(false);
 			setUploadProgress(0);
@@ -483,7 +495,7 @@ function NewPitchPageInner() {
 			});
 			if (res.ok) {
 				setUploadedDocs((prev) => prev.filter((d) => d._id !== docId));
-				showSuccessToast("Document removed");
+				showSuccessToast(t.pitchNew.documentRemoved);
 			}
 		} catch (err) {
 			console.error("Delete error:", err);
@@ -538,19 +550,19 @@ function NewPitchPageInner() {
 			case "processed":
 				return (
 					<Badge variant="default" className="gap-1 bg-emerald-600">
-						<CheckCircle2 className="h-3 w-3" /> Verified
+						<CheckCircle2 className="h-3 w-3" /> {t.pitchNew.verified}
 					</Badge>
 				);
 			case "processing":
 				return (
 					<Badge variant="secondary" className="gap-1">
-						<Loader2 className="h-3 w-3 animate-spin" /> Processing
+						<Loader2 className="h-3 w-3 animate-spin" /> {t.pitchNew.processing}
 					</Badge>
 				);
 			case "failed":
 				return (
 					<Badge variant="destructive" className="gap-1">
-						<XCircle className="h-3 w-3" /> Failed
+						<XCircle className="h-3 w-3" /> {t.pitchNew.failed}
 					</Badge>
 				);
 			case "flagged":
@@ -559,11 +571,11 @@ function NewPitchPageInner() {
 						variant="destructive"
 						className="gap-1 bg-amber-600 hover:bg-amber-700"
 					>
-						<XCircle className="h-3 w-3" /> Suspicious
+						<XCircle className="h-3 w-3" /> {t.pitchNew.suspicious}
 					</Badge>
 				);
 			default:
-				return <Badge variant="outline">Uploaded</Badge>;
+				return <Badge variant="outline">{t.pitchNew.uploaded}</Badge>;
 		}
 	};
 
@@ -583,7 +595,7 @@ function NewPitchPageInner() {
 										{t.nav.newPitch}
 									</h1>
 									<p className="text-sm text-muted-foreground font-medium">
-										Tell investors about your startup vision.
+										{t.pitchNew.tellInvestors}
 									</p>
 								</div>
 							</div>
@@ -604,12 +616,12 @@ function NewPitchPageInner() {
 									{saving ? (
 										<>
 											<Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-											<span className="inline">Saving...</span>
+											<span className="inline">{t.pitchNew.saving}</span>
 										</>
 									) : (
 										<>
 											<ClipboardList className="h-4 w-4 text-foreground" />
-											<span className="inline">Save Draft</span>
+											<span className="inline">{t.pitchNew.saveDraft}</span>
 										</>
 									)}
 								</Button>
@@ -623,7 +635,7 @@ function NewPitchPageInner() {
 						<aside className="w-full md:w-72 lg:w-80 border-b md:border-b-0 md:border-r border-border/50 shrink-0">
 							<div className="p-6 md:p-8 sticky top-6">
 								<h3 className="text-xs font-bold text-foreground/50 mb-8 uppercase tracking-widest">
-									Progress Tracker
+									{t.pitchNew.progressTracker}
 								</h3>
 								<div className="flex flex-col gap-8 relative">
 									{/* The vertical connecting line */}
@@ -662,11 +674,11 @@ function NewPitchPageInner() {
 													<p
 														className={`text-sm font-semibold transition-colors duration-300 ${isActive ? "text-foreground" : isCompleted ? "text-foreground/80" : "text-muted-foreground/60"}`}
 													>
-														{step.title}
+														{step.id === 1 ? t.pitchNew.overview : step.id === 2 ? t.pitchNew.problem : step.id === 3 ? t.pitchNew.solution : step.id === 4 ? t.pitchNew.businessModel : step.id === 5 ? t.pitchNew.financials : t.pitchNew.documents}
 													</p>
 													{isActive && (
 														<p className="text-xs text-muted-foreground font-medium animate-in fade-in slide-in-from-left-1 mt-0.5">
-															In Progress
+															{t.pitchNew.inProgress}
 														</p>
 													)}
 												</div>
@@ -681,24 +693,30 @@ function NewPitchPageInner() {
 						<div className="flex-1 flex flex-col bg-background/50 relative rounded-b-2xl md:rounded-b-none md:rounded-r-2xl">
 							{/* Form Content Area */}
 							<div className="p-4 sm:p-6 lg:p-10 max-w-4xl w-full mx-auto">
+								
+								{/* English Only Requirement Banner */}
+								<div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-900/50 dark:bg-blue-950/50 dark:text-blue-200 flex items-start gap-3">
+									<Info className="h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400 mt-0.5" />
+									<p>{t.pitchNew.englishOnlyWarning}</p>
+								</div>
+
 								{/* Step 1: Overview / Metadata */}
 								{currentStep === 1 && (
 									<Card className="bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden border border-border/50 shadow-sm rounded-2xl">
 										<CardHeader className="bg-background border-b border-border/40 pb-6 pt-8 px-6 sm:px-10">
 											<CardTitle className="text-xl sm:text-2xl font-bold flex items-center gap-3 text-foreground pb-1">
-												<ClipboardList className="h-6 w-6 text-primary" /> Pitch
-												Overview
+												<ClipboardList className="h-6 w-6 text-primary" /> {t.pitchNew.pitchOverview}
 											</CardTitle>
 											<CardDescription>
-												Start with the basics of your business pitch
+												{t.pitchNew.startWithBasics}
 											</CardDescription>
 										</CardHeader>
 										<CardContent className="px-6 sm:px-10 py-8 max-w-3xl space-y-8">
 											<div className="space-y-2">
-												<Label htmlFor="title">Pitch Title *</Label>
+												<DualLabel htmlFor="title" labelKey="pitchTitle" />
 												<Input
 													id="title"
-													placeholder="e.g., AI-Powered Supply Chain for East Africa"
+													placeholder={t.pitchNew.pitchTitlePlaceholder}
 													{...metadataForm.register("title")}
 												/>
 												{metadataForm.formState.errors.title && (
@@ -710,7 +728,7 @@ function NewPitchPageInner() {
 
 											<div className="grid gap-6 sm:grid-cols-2">
 												<div className="space-y-2">
-													<Label htmlFor="sector">Industry Sector *</Label>
+													<DualLabel htmlFor="sector" labelKey="industrySector" />
 													<Controller
 														name="sector"
 														control={metadataForm.control}
@@ -720,7 +738,7 @@ function NewPitchPageInner() {
 																onValueChange={field.onChange}
 															>
 																<SelectTrigger className="w-full">
-																	<SelectValue placeholder="Select a sector" />
+																	<SelectValue placeholder={t.pitchNew.selectSector} />
 																</SelectTrigger>
 																<SelectContent>
 																	{SECTORS.map((s) => (
@@ -735,7 +753,7 @@ function NewPitchPageInner() {
 												</div>
 
 												<div className="space-y-2">
-													<Label htmlFor="stage">Startup Stage *</Label>
+													<DualLabel htmlFor="stage" labelKey="startupStage" />
 													<Controller
 														name="stage"
 														control={metadataForm.control}
@@ -745,7 +763,7 @@ function NewPitchPageInner() {
 																onValueChange={field.onChange}
 															>
 																<SelectTrigger className="w-full">
-																	<SelectValue placeholder="Select a stage" />
+																	<SelectValue placeholder={t.pitchNew.selectStage} />
 																</SelectTrigger>
 																<SelectContent>
 																	{STAGES.map((s) => (
@@ -762,12 +780,12 @@ function NewPitchPageInner() {
 
 											<div className="space-y-2">
 												<Label htmlFor="targetAmount">
-													Target Funding Amount (ETB) *
+													{t.pitchNew.targetAmount}
 												</Label>
 												<Input
 													id="targetAmount"
 													type="number"
-													placeholder="e.g., 500000"
+													placeholder={t.pitchNew.targetAmountPlaceholder}
 													{...metadataForm.register("targetAmount", {
 														valueAsNumber: true,
 													})}
@@ -780,10 +798,10 @@ function NewPitchPageInner() {
 											</div>
 
 											<div className="space-y-2">
-												<Label htmlFor="summary">Executive Summary *</Label>
+												<DualLabel htmlFor="summary" labelKey="executiveSummary" />
 												<Textarea
 													id="summary"
-													placeholder="A concise overview of your business and what makes it compelling..."
+													placeholder={t.pitchNew.summaryPlaceholder}
 													rows={5}
 													{...metadataForm.register("summary")}
 												/>
@@ -796,11 +814,11 @@ function NewPitchPageInner() {
 
 											<div className="space-y-2">
 												<Label htmlFor="pitchVideoUrl">
-													Pitch Video URL (Optional)
+													{t.pitchNew.pitchVideoUrl}
 												</Label>
 												<Input
 													id="pitchVideoUrl"
-													placeholder="e.g., https://youtube.com/watch?v=..."
+													placeholder={t.pitchNew.videoUrlPlaceholder}
 													{...metadataForm.register("pitchVideoUrl")}
 												/>
 												{metadataForm.formState.errors.pitchVideoUrl && (
@@ -821,18 +839,18 @@ function NewPitchPageInner() {
 									<Card className="bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden border border-border/50 shadow-sm rounded-2xl">
 										<CardHeader className="bg-background border-b border-border/40 pb-6 pt-8 px-6 sm:px-10">
 											<CardTitle className="text-xl sm:text-2xl font-bold flex items-center gap-3 text-foreground pb-1">
-												<Search className="h-6 w-6 text-primary" /> The Problem
+												<Search className="h-6 w-6 text-primary" /> {t.pitchNew.theProblem}
 											</CardTitle>
 											<CardDescription>
-												Describe the problem your business solves
+												{t.pitchNew.describeProblem}
 											</CardDescription>
 										</CardHeader>
 										<CardContent className="px-6 sm:px-10 py-8 max-w-3xl space-y-8">
 											<div className="space-y-2">
-												<Label htmlFor="statement">Problem Statement *</Label>
+												<DualLabel htmlFor="statement" labelKey="problemStatement" />
 												<Textarea
 													id="statement"
-													placeholder="What specific problem exists in the market today?"
+													placeholder={t.pitchNew.problemPlaceholder}
 													rows={5}
 													{...problemForm.register("statement")}
 												/>
@@ -844,10 +862,10 @@ function NewPitchPageInner() {
 											</div>
 
 											<div className="space-y-2">
-												<Label htmlFor="targetMarket">Target Market *</Label>
+												<DualLabel htmlFor="targetMarket" labelKey="targetMarket" />
 												<Textarea
 													id="targetMarket"
-													placeholder="Who are your target customers? Describe demographics, segments..."
+													placeholder={t.pitchNew.targetMarketPlaceholder}
 													rows={3}
 													{...problemForm.register("targetMarket")}
 												/>
@@ -859,10 +877,10 @@ function NewPitchPageInner() {
 											</div>
 
 											<div className="space-y-2">
-												<Label htmlFor="marketSize">Market Size *</Label>
+												<DualLabel htmlFor="marketSize" labelKey="marketSize" />
 												<Textarea
 													id="marketSize"
-													placeholder="TAM / SAM / SOM — estimated market size in dollars..."
+													placeholder={t.pitchNew.marketSizePlaceholder}
 													rows={3}
 													{...problemForm.register("marketSize")}
 												/>
@@ -881,21 +899,20 @@ function NewPitchPageInner() {
 									<Card className="bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden border border-border/50 shadow-sm rounded-2xl">
 										<CardHeader className="bg-background border-b border-border/40 pb-6 pt-8 px-6 sm:px-10">
 											<CardTitle className="text-xl sm:text-2xl font-bold flex items-center gap-3 text-foreground pb-1">
-												<Lightbulb className="h-6 w-6 text-primary" /> Your
-												Solution
+												<Lightbulb className="h-6 w-6 text-primary" /> {t.pitchNew.yourSolution}
 											</CardTitle>
 											<CardDescription>
-												How does your product or service solve the problem?
+												{t.pitchNew.howSolves}
 											</CardDescription>
 										</CardHeader>
 										<CardContent className="px-6 sm:px-10 py-8 max-w-3xl space-y-8">
 											<div className="space-y-2">
 												<Label htmlFor="description">
-													Solution Description *
+													{t.pitchNew.solutionDescription}
 												</Label>
 												<Textarea
 													id="description"
-													placeholder="Describe your product/service and how it works..."
+													placeholder={t.pitchNew.solutionPlaceholder}
 													rows={5}
 													{...solutionForm.register("description")}
 												/>
@@ -908,11 +925,11 @@ function NewPitchPageInner() {
 
 											<div className="space-y-2">
 												<Label htmlFor="uniqueValue">
-													Unique Value Proposition *
+													{t.pitchNew.uniqueValue}
 												</Label>
 												<Textarea
 													id="uniqueValue"
-													placeholder="What makes your solution uniquely better than alternatives?"
+													placeholder={t.pitchNew.uniqueValuePlaceholder}
 													rows={3}
 													{...solutionForm.register("uniqueValue")}
 												/>
@@ -925,11 +942,11 @@ function NewPitchPageInner() {
 
 											<div className="space-y-2">
 												<Label htmlFor="competitiveAdvantage">
-													Competitive Advantage *
+													{t.pitchNew.competitiveAdvantage}
 												</Label>
 												<Textarea
 													id="competitiveAdvantage"
-													placeholder="What moats or barriers to entry do you have?"
+													placeholder={t.pitchNew.competitiveAdvantagePlaceholder}
 													rows={3}
 													{...solutionForm.register("competitiveAdvantage")}
 												/>
@@ -951,21 +968,20 @@ function NewPitchPageInner() {
 									<Card className="bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden border border-border/50 shadow-sm rounded-2xl">
 										<CardHeader className="bg-background border-b border-border/40 pb-6 pt-8 px-6 sm:px-10">
 											<CardTitle className="text-xl sm:text-2xl font-bold flex items-center gap-3 text-foreground pb-1">
-												<BarChart3 className="h-6 w-6 text-primary" /> Business
-												Model
+												<BarChart3 className="h-6 w-6 text-primary" /> {t.pitchNew.businessModelHeader}
 											</CardTitle>
 											<CardDescription>
-												How does your business make money?
+												{t.pitchNew.howMakesMoney}
 											</CardDescription>
 										</CardHeader>
 										<CardContent className="px-6 sm:px-10 py-8 max-w-3xl space-y-8">
 											<div className="space-y-2">
 												<Label htmlFor="revenueStreams">
-													Revenue Streams *
+													{t.pitchNew.revenueStreams}
 												</Label>
 												<Textarea
 													id="revenueStreams"
-													placeholder="How does your business generate revenue? (SaaS, marketplace, licensing...)"
+													placeholder={t.pitchNew.revenuePlaceholder}
 													rows={4}
 													{...businessForm.register("revenueStreams")}
 												/>
@@ -981,11 +997,11 @@ function NewPitchPageInner() {
 
 											<div className="space-y-2">
 												<Label htmlFor="pricingStrategy">
-													Pricing Strategy *
+													{t.pitchNew.pricingStrategy}
 												</Label>
 												<Textarea
 													id="pricingStrategy"
-													placeholder="How do you price your product/service? Include tiers if applicable..."
+													placeholder={t.pitchNew.pricingPlaceholder}
 													rows={3}
 													{...businessForm.register("pricingStrategy")}
 												/>
@@ -1001,11 +1017,11 @@ function NewPitchPageInner() {
 
 											<div className="space-y-2">
 												<Label htmlFor="customerAcquisition">
-													Customer Acquisition Strategy *
+													{t.pitchNew.customerAcquisition}
 												</Label>
 												<Textarea
 													id="customerAcquisition"
-													placeholder="How do you plan to acquire and retain customers?"
+													placeholder={t.pitchNew.acquisitionPlaceholder}
 													rows={3}
 													{...businessForm.register("customerAcquisition")}
 												/>
@@ -1028,29 +1044,29 @@ function NewPitchPageInner() {
 										<CardHeader className="bg-background border-b border-border/40 pb-6 pt-8 px-6 sm:px-10">
 											<CardTitle className="text-xl sm:text-2xl font-bold flex items-center gap-3 text-foreground pb-1">
 												<DollarSign className="h-6 w-6 text-primary" />{" "}
-												Financial Details
+												{t.pitchNew.financialDetails}
 											</CardTitle>
 											<CardDescription>
-												Share your financial metrics and projections
+												{t.pitchNew.shareFinancials}
 											</CardDescription>
 										</CardHeader>
 										<CardContent className="px-6 sm:px-10 py-8 max-w-3xl space-y-8">
 											<div className="space-y-2">
-												<Label htmlFor="currentRevenue">Current Revenue</Label>
+												<DualLabel htmlFor="currentRevenue" labelKey="currentRevenue" />
 												<Input
 													id="currentRevenue"
-													placeholder="e.g., $50,000 MRR or Pre-revenue"
+													placeholder={t.pitchNew.currentRevenuePlaceholder}
 													{...financialsForm.register("currentRevenue")}
 												/>
 											</div>
 
 											<div className="space-y-2">
 												<Label htmlFor="projectedRevenue">
-													Projected Revenue (12 months) *
+													{t.pitchNew.projectedRevenue}
 												</Label>
 												<Input
 													id="projectedRevenue"
-													placeholder="e.g., $500,000 ARR by Q4 2027"
+													placeholder={t.pitchNew.projectedRevenuePlaceholder}
 													{...financialsForm.register("projectedRevenue")}
 												/>
 												{financialsForm.formState.errors.projectedRevenue && (
@@ -1064,19 +1080,19 @@ function NewPitchPageInner() {
 											</div>
 
 											<div className="space-y-2">
-												<Label htmlFor="burnRate">Monthly Burn Rate</Label>
+												<DualLabel htmlFor="burnRate" labelKey="burnRate" />
 												<Input
 													id="burnRate"
-													placeholder="e.g., $15,000/month"
+													placeholder={t.pitchNew.burnRatePlaceholder}
 													{...financialsForm.register("burnRate")}
 												/>
 											</div>
 
 											<div className="space-y-2">
-												<Label htmlFor="runway">Remaining Runway</Label>
+												<DualLabel htmlFor="runway" labelKey="runway" />
 												<Input
 													id="runway"
-													placeholder="e.g., 8 months at current burn rate"
+													placeholder={t.pitchNew.runwayPlaceholder}
 													{...financialsForm.register("runway")}
 												/>
 											</div>
@@ -1089,20 +1105,16 @@ function NewPitchPageInner() {
 									<Card className="bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden border border-border/50 shadow-sm rounded-2xl">
 										<CardHeader className="bg-background border-b border-border/40 pb-6 pt-8 px-6 sm:px-10">
 											<CardTitle className="text-xl sm:text-2xl font-bold flex items-center gap-3 text-foreground pb-1">
-												<FileUp className="h-6 w-6 text-primary" /> Supporting
-												Documents
+												<FileUp className="h-6 w-6 text-primary" /> {t.pitchNew.supportingDocs}
 											</CardTitle>
 											<CardDescription>
-												Upload pitch decks, financial models, legal documents,
-												or other supporting materials. Each file is validated
-												automatically.
+												{t.pitchNew.uploadSupporting}
 											</CardDescription>
 										</CardHeader>
 										<CardContent className="px-6 sm:px-10 py-8 max-w-3xl space-y-8">
 											{!submissionId && (
 												<div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
-													Please save your pitch draft first (go back and fill
-													in at least Step 1) before uploading documents.
+													{t.pitchNew.saveDraftFirst}
 												</div>
 											)}
 
@@ -1110,7 +1122,7 @@ function NewPitchPageInner() {
 												<>
 													<div className="space-y-4">
 														<div className="space-y-2">
-															<Label>1. Select Document Type</Label>
+															<DualLabel labelKey="selectDocType" />
 															<Select
 																value={selectedDocType}
 																onValueChange={setSelectedDocType}
@@ -1129,7 +1141,7 @@ function NewPitchPageInner() {
 														</div>
 
 														<div className="space-y-2">
-															<Label>2. Upload File(s)</Label>
+															<DualLabel labelKey="uploadFiles" />
 															<label
 																htmlFor="file-upload"
 																className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-muted/20 hover:bg-muted/50 border-muted-foreground/30 hover:border-primary/50 transition-all"
@@ -1142,11 +1154,11 @@ function NewPitchPageInner() {
 																	)}
 																	<p className="mb-2 text-sm text-foreground font-medium">
 																		{uploading
-																			? "Uploading carefully..."
-																			: "Click to browse and upload"}
+																			? t.pitchNew.uploadingCarefully
+																			: t.pitchNew.clickToBrowse}
 																	</p>
 																	<p className="text-xs text-muted-foreground">
-																		SVG, PNG, JPG, GIF up to 25MB
+																		{t.pitchNew.maxSize}
 																	</p>
 																</div>
 																<Input
@@ -1163,7 +1175,7 @@ function NewPitchPageInner() {
 																<div className="space-y-2 rounded-lg border border-border/60 bg-muted/20 p-3">
 																	<div className="flex items-center justify-between text-xs text-muted-foreground">
 																		<span className="truncate pr-2">
-																			Uploading {uploadingFileName || "file"}
+																			{t.pitchNew.uploadingFile} {uploadingFileName || "file"}
 																		</span>
 																		<span>{uploadProgress}%</span>
 																	</div>
@@ -1180,7 +1192,7 @@ function NewPitchPageInner() {
 													{uploadedDocs.length > 0 && (
 														<div className="space-y-3">
 															<h4 className="font-medium text-sm">
-																Uploaded Documents ({uploadedDocs.length})
+																{t.pitchNew.uploadedDocs} ({uploadedDocs.length})
 															</h4>
 															{uploadedDocs.map((doc) => (
 																<div
@@ -1223,9 +1235,7 @@ function NewPitchPageInner() {
 														<div className="rounded-lg border-2 border-dashed border-border p-8 text-center">
 															<FileUp className="mx-auto h-10 w-10 text-muted-foreground/50 mb-3" />
 															<p className="text-sm text-muted-foreground">
-																No documents uploaded yet. Upload your pitch
-																deck, financials, or legal docs to strengthen
-																your submission.
+																{t.pitchNew.noDocsYet}
 															</p>
 														</div>
 													)}
@@ -1244,7 +1254,7 @@ function NewPitchPageInner() {
 									disabled={currentStep === 1}
 									className="shadow-sm border border-border/60 hover:bg-muted font-medium hover:shadow-md transition-all h-10 px-6"
 								>
-									← Back
+									{t.pitchNew.back}
 								</Button>
 
 								<Button
@@ -1252,8 +1262,8 @@ function NewPitchPageInner() {
 									className="shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all duration-300 h-10 px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
 								>
 									{currentStep === STEPS.length
-										? "Review Pitch →"
-										: "Continue →"}
+										? t.pitchNew.reviewPitch
+										: t.pitchNew.continue}
 								</Button>
 							</footer>
 						</div>

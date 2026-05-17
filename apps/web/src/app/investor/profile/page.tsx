@@ -67,6 +67,7 @@ function FileUploadCard({
 	onRemove: () => void;
 	required?: boolean;
 }) {
+	const { t } = useLanguage();
 	const hasFile = !!file;
 	const hasExisting = !!existingUrl;
 	const isComplete = hasFile || hasExisting;
@@ -87,7 +88,7 @@ function FileUploadCard({
 					<div className="flex-1 min-w-0">
 						<p className="text-sm font-medium truncate">{file.name}</p>
 						<p className="text-xs text-muted-foreground">
-							{(file.size / 1024 / 1024).toFixed(2)} MB — Ready to upload
+							{(file.size / 1024 / 1024).toFixed(2)} MB — {t.investorProfile.readyToUpload}
 						</p>
 					</div>
 					<Button
@@ -108,7 +109,7 @@ function FileUploadCard({
 					<div className="flex-1 min-w-0">
 						<p className="text-sm font-medium">{label}</p>
 						<p className="text-xs text-green-600 dark:text-green-400">
-							Uploaded ✓
+							{t.investorProfile.uploaded}
 						</p>
 					</div>
 					<Label htmlFor={id} className="cursor-pointer">
@@ -116,7 +117,7 @@ function FileUploadCard({
 							variant="outline"
 							className="text-xs cursor-pointer hover:bg-muted"
 						>
-							Replace
+							{t.investorProfile.replace}
 						</Badge>
 						<Input
 							id={id}
@@ -200,9 +201,9 @@ function InvestorProfilePageInner() {
 			});
 			if (!res.ok) throw new Error("Failed to update profile");
 			await refreshUserProfile();
-			showSuccessToast("Profile updated successfully!");
+			showSuccessToast(t.investorProfile.profileUpdated);
 		} catch (err: any) {
-			showErrorToast(err.message || "Failed to update profile");
+			showErrorToast(err.message || t.investorProfile.failedToUpdate);
 		} finally {
 			setSavingProfile(false);
 		}
@@ -306,7 +307,7 @@ function InvestorProfilePageInner() {
 			setProfileData((prev: any) => ({ ...prev, ...payload }));
 			setFiles({});
 			await refreshUserProfile();
-			showSuccessToast("Documents saved successfully!");
+			showSuccessToast(t.investorProfile.docsSaved);
 		} catch (err: any) {
 			setError(err.message);
 			showErrorToast(err.message);
@@ -326,10 +327,10 @@ function InvestorProfilePageInner() {
 		!!files.accreditation || !!profileData?.accreditationDocumentUrl;
 
 	const steps = [
-		{ label: "Email Verified", done: !!userProfile?.emailVerified },
-		{ label: "Government ID", done: !!profileData?.nationalIdUrl },
-		{ label: "Accreditation", done: !!profileData?.accreditationDocumentUrl },
-		{ label: "Admin Approved", done: userProfile?.status === "verified" },
+		{ label: t.investorProfile.emailVerified, done: !!userProfile?.emailVerified },
+		{ label: t.investorProfile.governmentId, done: !!profileData?.nationalIdUrl },
+		{ label: t.investorProfile.accreditation, done: !!profileData?.accreditationDocumentUrl },
+		{ label: t.investorProfile.adminApproved, done: userProfile?.status === "verified" },
 	];
 	const completedCount = steps.filter((s) => s.done).length;
 	const progress = (completedCount / steps.length) * 100;
@@ -356,7 +357,7 @@ function InvestorProfilePageInner() {
 							{t.nav.profile}
 						</h1>
 						<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
-							Manage your personal information and verification documents
+							{t.investorProfile.subtitle}
 						</p>
 					</div>
 				</div>
@@ -367,11 +368,11 @@ function InvestorProfilePageInner() {
 							<TabsList className="w-full justify-start h-10 mb-6">
 								<TabsTrigger value="personal" className="gap-1.5 text-xs">
 									<UserIcon className="h-3.5 w-3.5" />
-									Personal Info
+									{t.investorProfile.personalInfoTab}
 								</TabsTrigger>
 								<TabsTrigger value="verification" className="gap-1.5 text-xs">
 									<ShieldCheck className="h-3.5 w-3.5" />
-									Verification
+									{t.investorProfile.verificationTab}
 									{userProfile?.status !== "verified" && (
 										<span className="ml-1 h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
 									)}
@@ -389,11 +390,10 @@ function InvestorProfilePageInner() {
 										</div>
 										<div>
 											<p className="text-sm font-semibold text-green-700 dark:text-green-400">
-												Verification Complete
+												{t.investorProfile.verificationComplete}
 											</p>
 											<p className="text-xs text-muted-foreground">
-												Your identity and accreditation documents have been
-												verified by an administrator.
+												{t.investorProfile.verificationCompleteDesc}
 											</p>
 										</div>
 									</div>
@@ -410,18 +410,17 @@ function InvestorProfilePageInner() {
 									<CardHeader className="pb-3">
 										<CardTitle className="text-base flex items-center gap-2">
 											<IdCard className="h-4 w-4 text-primary" />
-											Identity Verification
+											{t.investorProfile.identityVerification}
 										</CardTitle>
 										<CardDescription>
-											Upload a valid government-issued ID (National ID or
-											Driving License).
+											{t.investorProfile.identityVerificationDesc}
 										</CardDescription>
 									</CardHeader>
 									<CardContent>
 										<FileUploadCard
 											id="gov-id"
-											label="Government-Issued ID"
-											description="PDF or Image · Max 10MB"
+											label={t.investorProfile.govId}
+											description={t.investorProfile.govIdDesc}
 											file={files.governmentId}
 											existingUrl={profileData?.nationalIdUrl}
 											onChange={(e) => handleFileChange(e, "governmentId")}
@@ -435,18 +434,17 @@ function InvestorProfilePageInner() {
 									<CardHeader className="pb-3">
 										<CardTitle className="text-base flex items-center gap-2">
 											<FileText className="h-4 w-4 text-primary" />
-											Financial Accreditation
+											{t.investorProfile.financialAccreditation}
 										</CardTitle>
 										<CardDescription>
-											Upload your investment license or financial accreditation
-											document.
+											{t.investorProfile.financialAccreditationDesc}
 										</CardDescription>
 									</CardHeader>
 									<CardContent>
 										<FileUploadCard
 											id="accreditation"
-											label="Accreditation / Investment License"
-											description="PDF or Image · Max 10MB"
+											label={t.investorProfile.accreditationLabel}
+											description={t.investorProfile.accreditationDesc}
 											file={files.accreditation}
 											existingUrl={profileData?.accreditationDocumentUrl}
 											onChange={(e) => handleFileChange(e, "accreditation")}
@@ -464,14 +462,14 @@ function InvestorProfilePageInner() {
 												{saving ? (
 													<>
 														<Loader2 className="h-4 w-4 animate-spin" />
-														Saving...
+														{t.investorProfile.saving}
 													</>
 												) : (
 													<>
 														<UploadCloud className="h-4 w-4" />
 														{userProfile?.status === "unverified"
-															? "Save & Submit for Review"
-															: "Save Changes"}
+															? t.investorProfile.saveSubmitReview
+															: t.investorProfile.saveChanges}
 													</>
 												)}
 											</Button>
@@ -484,17 +482,17 @@ function InvestorProfilePageInner() {
 								<Card>
 									<CardHeader className="pb-3">
 										<CardTitle className="text-base">
-											Personal Information
+											{t.investorProfile.personalInformation}
 										</CardTitle>
 										<CardDescription>
-											Update your account details below.
+											{t.investorProfile.updateAccountDetails}
 										</CardDescription>
 									</CardHeader>
 									<CardContent className="space-y-6">
 										<div className="flex flex-col sm:flex-row items-start gap-6 pb-2">
 											<div className="shrink-0">
 												<Label className="text-sm text-muted-foreground block mb-3">
-													Profile Picture
+													{t.investorProfile.profilePicture}
 												</Label>
 												<ProfilePictureUpload size="h-20 w-20" />
 											</div>
@@ -506,7 +504,7 @@ function InvestorProfilePageInner() {
 											<div className="flex-1 grid gap-4 sm:grid-cols-2 w-full">
 												<div className="space-y-2">
 													<Label htmlFor="inv-edit-name" className="text-sm">
-														Full Name
+														{t.investorProfile.fullName}
 													</Label>
 													<Input
 														id="inv-edit-name"
@@ -517,7 +515,7 @@ function InvestorProfilePageInner() {
 												</div>
 												<div className="space-y-2">
 													<Label className="text-sm text-muted-foreground">
-														Email Address
+														{t.investorProfile.emailAddress}
 													</Label>
 													<p className="text-sm font-medium flex items-center gap-1.5 pt-2">
 														{userProfile?.email}
@@ -526,12 +524,12 @@ function InvestorProfilePageInner() {
 														)}
 													</p>
 													<p className="text-xs text-muted-foreground">
-														Email cannot be changed
+														{t.investorProfile.emailCannotChange}
 													</p>
 												</div>
 												<div className="space-y-2">
 													<Label className="text-sm text-muted-foreground">
-														Role
+														{t.investorProfile.role}
 													</Label>
 													<p className="text-sm font-medium capitalize pt-2">
 														{userProfile?.role}
@@ -539,7 +537,7 @@ function InvestorProfilePageInner() {
 												</div>
 												<div className="space-y-2">
 													<Label className="text-sm text-muted-foreground">
-														Account Status
+														{t.investorProfile.accountStatus}
 													</Label>
 													<div className="pt-2">
 														<Badge
@@ -564,11 +562,11 @@ function InvestorProfilePageInner() {
 										>
 											{savingProfile ? (
 												<>
-													<Loader2 className="h-4 w-4 animate-spin" /> Saving...
+													<Loader2 className="h-4 w-4 animate-spin" /> {t.investorProfile.saving}
 												</>
 											) : (
 												<>
-													<Save className="h-4 w-4" /> Save Changes
+													<Save className="h-4 w-4" /> {t.investorProfile.saveChanges}
 												</>
 											)}
 										</Button>
@@ -585,7 +583,7 @@ function InvestorProfilePageInner() {
 								<div className="flex items-center justify-between">
 									<CardTitle className="text-base flex items-center gap-2">
 										<ShieldCheck className="h-4 w-4 text-primary" />
-										Verification
+										{t.investorProfile.verification}
 									</CardTitle>
 									<Badge
 										variant="outline"
@@ -598,17 +596,17 @@ function InvestorProfilePageInner() {
 										}`}
 									>
 										{userProfile?.status === "verified"
-											? "✓ Verified"
+											? t.investorProfile.verified
 											: userProfile?.status === "pending"
-												? "⏳ Under Review"
-												: "Incomplete"}
+												? t.investorProfile.underReview
+												: t.investorProfile.incomplete}
 									</Badge>
 								</div>
 							</CardHeader>
 							<CardContent className="space-y-4">
 								<div className="space-y-2">
 									<div className="flex justify-between text-xs text-muted-foreground">
-										<span>Progress</span>
+										<span>{t.investorProfile.progress}</span>
 										<span>{Math.round(progress)}%</span>
 									</div>
 									<Progress value={progress} className="h-2" />

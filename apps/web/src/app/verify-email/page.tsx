@@ -4,6 +4,7 @@ import type { RecaptchaVerifier } from "firebase/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -253,7 +254,10 @@ export default function VerifyEmailPage() {
 	if (!user) return null;
 
 	return (
-		<div className="flex min-h-screen w-full bg-background flex-col lg:flex-row-reverse">
+		<div className="relative flex min-h-screen w-full bg-background flex-col lg:flex-row-reverse">
+			<div className="absolute top-4 right-4 lg:top-8 lg:right-8 z-50">
+				<LanguageSwitcher />
+			</div>
 			{/* Right Split - Branding */}
 			<div className="relative hidden w-1/2 flex-col justify-center border-l border-border/50 p-12 lg:flex xl:p-24 overflow-hidden">
 				<div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px] dark:block hidden" />
@@ -327,7 +331,7 @@ export default function VerifyEmailPage() {
 								id="email-otp"
 								value={emailCode}
 								onChange={(event) => setEmailCode(event.target.value)}
-								placeholder="Enter 6-digit code"
+								placeholder={t.auth.otpPlaceholder}
 								inputMode="numeric"
 								maxLength={6}
 							/>
@@ -369,7 +373,7 @@ export default function VerifyEmailPage() {
 							</div>
 							{userProfile?.phoneVerified && (
 								<span className="text-xs font-medium text-emerald-600">
-									Verified
+									{t.auth.verified}
 								</span>
 							)}
 						</div>

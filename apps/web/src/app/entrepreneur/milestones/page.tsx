@@ -56,6 +56,7 @@ function EntrepreneurProjectGroup({
 	onMilestoneClick: (milestone: Milestone) => void;
 	selectedId?: string;
 }) {
+	const { t } = useLanguage();
 	const [collapsed, setCollapsed] = useState(false);
 
 	const totalAmount = group.milestones.reduce((sum, m) => sum + m.amount, 0);
@@ -87,30 +88,26 @@ function EntrepreneurProjectGroup({
 						<h3 className="font-bold text-base truncate">
 							{group.submissionTitle}
 						</h3>
-						<Badge
-							variant="outline"
-							className="text-xs border-primary/20 text-primary"
-						>
-							{group.milestones.length} Milestone
-							{group.milestones.length !== 1 ? "s" : ""}
+						<Badge variant="outline" className="text-xs border-primary/20 text-primary">
+							{group.milestones.length} {group.milestones.length !== 1 ? t.milestones.milestoneCount : t.milestones.milestone}
 						</Badge>
 						{pendingCount > 0 && (
 							<Badge className="text-xs bg-amber-500/15 text-amber-700 dark:text-amber-400 border-0">
-								{pendingCount} Under Review
+								{pendingCount} {t.milestones.underReview}
 							</Badge>
 						)}
 					</div>
 					<div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
 						<Users className="h-3.5 w-3.5" />
-						<span>Investor: {group.investorName}</span>
+						<span>{t.milestones.investor}: {group.investorName}</span>
 						<span>·</span>
 						<DollarSign className="h-3.5 w-3.5" />
 						<span>
-							{currency} {totalAmount.toLocaleString()} total
+							{currency} {totalAmount.toLocaleString()} {t.milestones.total}
 						</span>
 						<span>·</span>
 						<span className="text-emerald-600 dark:text-emerald-400 font-medium">
-							{paidCount}/{group.milestones.length} paid
+							{paidCount}/{group.milestones.length} {t.milestones.paid}
 						</span>
 					</div>
 					<div className="mt-2 flex items-center gap-2">
@@ -246,13 +243,13 @@ export default function EntrepreneurMilestonesPage() {
 				);
 				setMilestones(list);
 			} else if (!res.ok) {
-				showErrorToast(data.message ?? "Failed to load milestones");
+				showErrorToast(data.message ?? t.common.error);
 			} else {
 				setMilestones([]);
 			}
 		} catch (error) {
 			console.error("Fetch error:", error);
-			showErrorToast("Network error loading milestones");
+			showErrorToast(t.common.error);
 		} finally {
 			setLoading(false);
 		}
@@ -304,14 +301,13 @@ export default function EntrepreneurMilestonesPage() {
 								{t.nav.milestones}
 							</h1>
 							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
-								Submit evidence for completed work to unlock milestone payments
-								from your investors.
+								{t.milestones.submitEvidence}
 							</p>
 						</div>
 						<div className="flex items-center gap-2 bg-primary/5 px-3 py-1.5 rounded-full border border-primary/10">
 							<Sparkles className="h-4 w-4 text-primary" />
 							<span className="text-xs font-bold text-primary">
-								Track Progress
+								{t.milestones.trackProgress}
 							</span>
 						</div>
 					</div>
@@ -321,7 +317,7 @@ export default function EntrepreneurMilestonesPage() {
 					<div className="flex flex-col items-center justify-center py-20 gap-4">
 						<Loader2 className="h-10 w-10 animate-spin text-primary" />
 						<p className="text-sm text-muted-foreground animate-pulse">
-							Loading your growth milestones...
+							{t.milestones.loadingMilestones}
 						</p>
 					</div>
 				) : milestones.length === 0 ? (
@@ -331,11 +327,10 @@ export default function EntrepreneurMilestonesPage() {
 								<PenTool className="h-8 w-8 text-muted-foreground" />
 							</div>
 							<h3 className="text-lg font-semibold mb-2">
-								No milestones found
+								{t.milestones.noMilestonesFound}
 							</h3>
 							<p className="text-sm text-muted-foreground text-center max-w-sm">
-								Your funding milestones will appear here once an investment
-								match is approved and milestones are created by your investor.
+								{t.milestones.milestonesWillAppear}
 							</p>
 						</CardContent>
 					</Card>
@@ -345,14 +340,12 @@ export default function EntrepreneurMilestonesPage() {
 						<div className="lg:col-span-7 xl:col-span-8 space-y-6">
 							<div className="flex items-center justify-between">
 								<h2 className="text-lg font-bold flex items-center gap-2">
-									Your Projects
+									{t.milestones.yourProjects}
 									<span className="text-xs font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-										{projectGroups.length} Project
-										{projectGroups.length !== 1 ? "s" : ""}
+										{projectGroups.length} {projectGroups.length !== 1 ? t.milestones.projects : t.milestones.project}
 									</span>
 									<span className="text-xs font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-										{milestones.length} Milestone
-										{milestones.length !== 1 ? "s" : ""}
+										{milestones.length} {milestones.length !== 1 ? t.milestones.milestoneCount : t.milestones.milestone}
 									</span>
 								</h2>
 							</div>
@@ -392,8 +385,7 @@ export default function EntrepreneurMilestonesPage() {
 								<div className="bg-muted/30 border-2 border-dashed border-muted rounded-xl p-8 flex flex-col items-center justify-center text-center">
 									<AlertCircle className="h-8 w-8 text-muted-foreground mb-3" />
 									<p className="text-sm font-medium text-muted-foreground">
-										Select a milestone from a project to submit proof or view
-										its status.
+										{t.milestones.selectMilestone}
 									</p>
 								</div>
 							)}

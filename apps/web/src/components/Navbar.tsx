@@ -4,14 +4,17 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { Logo } from "@/components/Logo";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 export default function Navbar() {
 	const { user, userProfile } = useAuth();
 	const router = useRouter();
+	const { t } = useLanguage();
 	const getDashboardRoute = () => {
 		if (userProfile?.role) {
 			const redirects: Record<string, string> = {
@@ -24,6 +27,13 @@ export default function Navbar() {
 		// Profile not loaded yet — return null to indicate loading
 		return null;
 	};
+
+	const navItems = [
+		{ id: "features", label: t.landing.navFeatures },
+		{ id: "how-it-works", label: t.landing.navHowItWorks },
+		{ id: "platform", label: t.landing.navPlatform },
+		{ id: "faq", label: t.landing.navFaq },
+	];
 
 	return (
 		<div className="fixed top-0 left-0 right-0 z-50 flex justify-center px-4 pt-4 md:pt-6">
@@ -53,12 +63,7 @@ export default function Navbar() {
 						}}
 						className="hidden items-center gap-6 md:flex"
 					>
-						{[
-							{ id: "features", label: "Features" },
-							{ id: "how-it-works", label: "How it works" },
-							{ id: "platform", label: "Platform" },
-							{ id: "faq", label: "FAQ" },
-						].map((item) => (
+						{navItems.map((item) => (
 							<motion.div
 								key={item.id}
 								variants={{
@@ -86,6 +91,7 @@ export default function Navbar() {
 						transition={{ delay: 0.4, duration: 0.5 }}
 						className="flex items-center gap-1"
 					>
+						<LanguageSwitcher />
 						<ThemeToggle />
 						{user && getDashboardRoute() ? (
 							<Button
@@ -93,7 +99,7 @@ export default function Navbar() {
 								className="h-8 text-xs ml-2 rounded-full"
 								onClick={() => router.push(getDashboardRoute()!)}
 							>
-								Go to Dashboard
+								{t.landing.navGoToDashboard}
 							</Button>
 						) : (
 							<Button
@@ -101,7 +107,7 @@ export default function Navbar() {
 								className="h-8 text-xs rounded-full"
 								onClick={() => router.push("/sign-up")}
 							>
-								Get started
+								{t.landing.navGetStarted}
 							</Button>
 						)}
 					</motion.div>

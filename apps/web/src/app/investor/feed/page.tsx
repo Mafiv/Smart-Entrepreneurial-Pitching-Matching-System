@@ -167,7 +167,7 @@ export default function InvestorFeed() {
 					else next.delete(pitchId);
 					return next;
 				});
-				showErrorToast(data.message || "Failed to toggle save");
+				showErrorToast(data.message || t.feed.failedToToggleSave);
 			}
 		} catch {
 			setSavedPitchIds((prev) => {
@@ -176,7 +176,7 @@ export default function InvestorFeed() {
 				else next.delete(pitchId);
 				return next;
 			});
-			showErrorToast("An error occurred while saving the pitch");
+			showErrorToast(t.feed.errorSavingPitch);
 		}
 	};
 
@@ -323,8 +323,8 @@ export default function InvestorFeed() {
 							</h3>
 							<p className="text-muted-foreground text-center max-w-md text-sm">
 								{sector !== "all"
-									? `No submitted pitches in the ${sectorLabel(sector)} sector yet.`
-									: "No pitches have been submitted yet. Check back soon!"}
+									? `${t.feed.noPitchesInSector} ${sectorLabel(sector)}`
+									: t.feed.noPitchesYet}
 							</p>
 						</CardContent>
 					</Card>
@@ -347,7 +347,7 @@ export default function InvestorFeed() {
 										<div className="flex items-center gap-1">
 											{pitch.aiScore && (
 												<span className="text-xs font-semibold text-muted-foreground mr-1">
-													Score: {pitch.aiScore}/100
+													{t.feed.score}: {pitch.aiScore}/100
 												</span>
 											)}
 											<Button
@@ -419,7 +419,7 @@ export default function InvestorFeed() {
 										<Heart
 											className={`h-4 w-4 ${savedPitchIds.has(selectedPitch._id) ? "fill-primary text-primary" : "text-muted-foreground"}`}
 										/>
-										{savedPitchIds.has(selectedPitch._id) ? "Saved" : "Save"}
+										{savedPitchIds.has(selectedPitch._id) ? t.feed.saved : t.feed.save}
 									</Button>
 								)}
 							</div>
@@ -429,13 +429,13 @@ export default function InvestorFeed() {
 								</p>
 							)}
 							<div className="flex justify-between text-sm">
-								<span className="text-muted-foreground">Target Amount</span>
+								<span className="text-muted-foreground">{t.pitch.targetAmount}</span>
 								<span className="font-semibold">
 									${selectedPitch?.targetAmount?.toLocaleString()}
 								</span>
 							</div>
 							<div className="flex justify-between text-sm">
-								<span className="text-muted-foreground">Submitted</span>
+								<span className="text-muted-foreground">{t.feed.submitted}</span>
 								<span>
 									{selectedPitch?.submittedAt &&
 										new Date(selectedPitch.submittedAt).toLocaleDateString()}

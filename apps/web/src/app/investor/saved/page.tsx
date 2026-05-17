@@ -129,14 +129,14 @@ export default function SavedPitchesPage() {
 				// Revert Optimistic Update
 				setSubmissions(originalSubmissions);
 				setSelectedPitch(originalSelected);
-				showErrorToast(data.message || "Failed to unsave pitch");
+				showErrorToast(data.message || t.saved.failedToUnsavePitch);
 			}
 		} catch (err) {
 			console.error("Failed to toggle save", err);
 			// Revert Optimistic Update
 			setSubmissions(originalSubmissions);
 			setSelectedPitch(originalSelected);
-			showErrorToast("An error occurred while unsaving the pitch");
+			showErrorToast(t.saved.errorUnsavingPitch);
 		}
 	};
 
@@ -151,14 +151,14 @@ export default function SavedPitchesPage() {
 								{t.nav.saved}
 							</h1>
 							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
-								Pitches you have bookmarked for later review
+								{t.saved.bookmarkedDesc}
 							</p>
 						</div>
 						<Button
 							variant="outline"
 							onClick={() => router.push("/investor/feed")}
 						>
-							Back to Feed
+							{t.saved.backToFeed}
 						</Button>
 					</div>
 				</div>
@@ -174,13 +174,12 @@ export default function SavedPitchesPage() {
 					<Card className="border-dashed">
 						<CardContent className="flex flex-col items-center justify-center py-16">
 							<Heart className="h-10 w-10 text-muted-foreground mb-4" />
-							<h3 className="text-lg font-semibold mb-2">No saved pitches</h3>
+							<h3 className="text-lg font-semibold mb-2">{t.saved.noSavedPitches}</h3>
 							<p className="text-muted-foreground text-center max-w-md text-sm mb-4">
-								You haven't bookmarked any pitches yet. Start exploring the feed
-								to find interesting startups!
+								{t.saved.noSavedPitchesDesc}
 							</p>
 							<Button onClick={() => router.push("/investor/feed")}>
-								Browse Feed
+								{t.saved.browseFeed}
 							</Button>
 						</CardContent>
 					</Card>
@@ -203,7 +202,7 @@ export default function SavedPitchesPage() {
 										<div className="flex items-center gap-1">
 											{pitch.aiScore && (
 												<span className="text-xs font-semibold text-muted-foreground mr-1">
-													Score: {pitch.aiScore}/100
+													{t.feed.score}: {pitch.aiScore}/100
 												</span>
 											)}
 											<Button
@@ -271,7 +270,7 @@ export default function SavedPitchesPage() {
 										onClick={(e) => toggleSaved(e, selectedPitch._id)}
 									>
 										<Heart className="h-4 w-4 fill-primary text-primary" />
-										Saved
+										{t.feed.saved}
 									</Button>
 								)}
 							</div>
@@ -281,13 +280,13 @@ export default function SavedPitchesPage() {
 								</p>
 							)}
 							<div className="flex justify-between text-sm">
-								<span className="text-muted-foreground">Target Amount</span>
+								<span className="text-muted-foreground">{t.pitch.targetAmount}</span>
 								<span className="font-semibold">
 									${selectedPitch?.targetAmount?.toLocaleString()}
 								</span>
 							</div>
 							<div className="flex justify-between text-sm">
-								<span className="text-muted-foreground">Submitted</span>
+								<span className="text-muted-foreground">{t.feed.submitted}</span>
 								<span>
 									{selectedPitch?.submittedAt &&
 										new Date(selectedPitch.submittedAt).toLocaleDateString()}

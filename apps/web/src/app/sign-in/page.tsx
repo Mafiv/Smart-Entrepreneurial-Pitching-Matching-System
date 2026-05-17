@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -90,7 +91,10 @@ export default function SignInPage() {
 	const APP_NAME = "SEPMS";
 
 	return (
-		<div className="flex min-h-screen w-full bg-background flex-col lg:flex-row">
+		<div className="relative flex min-h-screen w-full bg-background flex-col lg:flex-row">
+			<div className="absolute top-4 right-4 lg:top-8 lg:right-8 z-50">
+				<LanguageSwitcher />
+			</div>
 			{/* Left Split - Branding */}
 			<div className="relative hidden w-1/2 flex-col justify-center border-r border-border/50 p-12 lg:flex xl:p-24 overflow-hidden">
 				<div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px] dark:block hidden" />
@@ -104,11 +108,10 @@ export default function SignInPage() {
 
 					<div className="space-y-4">
 						<h1 className="text-4xl font-bold tracking-tight sm:text-5xl xl:text-6xl leading-[1.1]">
-							Welcome back to <br /> smart pitching.
+							{t.auth.signInLeftTitle1} <br /> {t.auth.signInLeftTitle2}
 						</h1>
 						<p className="text-lg text-muted-foreground max-w-md leading-relaxed">
-							Sign in to continue accessing AI-curated deal flows, instant pitch
-							analysis, and seamless semantic matching.
+							{t.auth.signInLeftDesc}
 						</p>
 					</div>
 				</div>

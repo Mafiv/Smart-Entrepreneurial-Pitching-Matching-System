@@ -61,10 +61,10 @@ export default function EntrepreneurMeetingsPage() {
 			if (data.status === "success") {
 				setMeetings(data.meetings);
 			} else {
-				showErrorToast("Failed to load meetings");
+				showErrorToast(t.common.error);
 			}
 		} catch {
-			showErrorToast("Network error loading meetings");
+			showErrorToast(t.common.error);
 		} finally {
 			setLoading(false);
 		}
@@ -89,7 +89,7 @@ export default function EntrepreneurMeetingsPage() {
 							{t.nav.meetings}
 						</h1>
 						<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
-							Video calls scheduled by investors for your pitches.
+							{t.meetings.scheduledVideoCalls}
 						</p>
 					</div>
 				</div>
@@ -102,10 +102,9 @@ export default function EntrepreneurMeetingsPage() {
 					<Card className="border-dashed">
 						<CardContent className="flex flex-col items-center justify-center py-16">
 							<CalendarDays className="h-10 w-10 text-muted-foreground mb-4" />
-							<h3 className="text-lg font-semibold mb-2">No meetings yet</h3>
+							<h3 className="text-lg font-semibold mb-2">{t.meetings.noMeetingsYet}</h3>
 							<p className="text-sm text-muted-foreground text-center max-w-sm">
-								When an investor schedules a video call for your pitch, it will
-								appear here.
+								{t.meetings.whenInvestorSchedules}
 							</p>
 						</CardContent>
 					</Card>
@@ -114,7 +113,7 @@ export default function EntrepreneurMeetingsPage() {
 						{upcoming.length > 0 && (
 							<div>
 								<h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-									Upcoming
+									{t.meetings.upcoming}
 								</h2>
 								<div className="space-y-3">
 									{upcoming.map((m) => (
@@ -133,7 +132,7 @@ export default function EntrepreneurMeetingsPage() {
 							<div>
 								<Separator className="mb-6" />
 								<h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-									Past
+									{t.meetings.past}
 								</h2>
 								<div className="space-y-3">
 									{past.map((m) => (
@@ -199,9 +198,9 @@ function MeetingCard({
 						<span>{meeting.durationMinutes} min</span>
 					</div>
 					<p className="text-xs text-muted-foreground mt-1">
-						Scheduled by{" "}
+						{t.meetings.scheduledBy}{" "}
 						<span className="font-medium text-foreground">
-							{meeting.organizerId?.fullName ?? "Investor"}
+							{meeting.organizerId?.fullName ?? t.adminUsers.roleInvestor}
 						</span>
 					</p>
 				</div>

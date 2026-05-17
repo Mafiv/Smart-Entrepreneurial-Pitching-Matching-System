@@ -86,10 +86,10 @@ export default function EntrepreneurEarningsPage() {
 			if (data.status === "success") {
 				setSummary(data.summary);
 			} else {
-				showErrorToast("Failed to load earnings summary");
+				showErrorToast(t.common.error);
 			}
 		} catch {
-			showErrorToast("Network error");
+			showErrorToast(t.common.error);
 		} finally {
 			setLoading(false);
 		}
@@ -122,7 +122,7 @@ export default function EntrepreneurEarningsPage() {
 							{t.nav.earnings}
 						</h1>
 						<p className="text-muted-foreground mt-2">
-							Monitor your received payouts and funds awaiting release.
+							{t.earnings.monitorPayouts}
 						</p>
 					</div>
 
@@ -131,7 +131,7 @@ export default function EntrepreneurEarningsPage() {
 						<Card className="admin-stat-card border-l-4 border-l-emerald-500 shadow-sm">
 							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 								<CardTitle className="text-sm font-medium">
-									Total Received
+									{t.earnings.totalReceived}
 								</CardTitle>
 								<Banknote className="h-4 w-4 text-emerald-500" />
 							</CardHeader>
@@ -140,14 +140,14 @@ export default function EntrepreneurEarningsPage() {
 									ETB {summary.totalReceived.toLocaleString()}
 								</div>
 								<p className="text-xs text-muted-foreground mt-1">
-									Successfully disbursed to your account
+									{t.earnings.disbursedToAccount}
 								</p>
 							</CardContent>
 						</Card>
 						<Card className="admin-stat-card border-l-4 border-l-amber-500 shadow-sm">
 							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 								<CardTitle className="text-sm font-medium">
-									Pending Release
+									{t.earnings.pendingRelease}
 								</CardTitle>
 								<Clock className="h-4 w-4 text-amber-500" />
 							</CardHeader>
@@ -156,7 +156,7 @@ export default function EntrepreneurEarningsPage() {
 									ETB {summary.pendingRelease.toLocaleString()}
 								</div>
 								<p className="text-xs text-muted-foreground mt-1">
-									Funds verified but waiting for admin payout
+									{t.earnings.fundsAwaitingPayout}
 								</p>
 							</CardContent>
 						</Card>
@@ -168,7 +168,7 @@ export default function EntrepreneurEarningsPage() {
 							<CardHeader>
 								<CardTitle className="text-lg flex items-center gap-2 text-amber-700">
 									<Clock className="h-5 w-5" />
-									Awaiting Disbursement
+									{t.earnings.awaitingDisbursement}
 								</CardTitle>
 							</CardHeader>
 							<CardContent>
@@ -192,7 +192,7 @@ export default function EntrepreneurEarningsPage() {
 													variant="outline"
 													className="text-[10px] uppercase font-bold text-amber-500 border-amber-200"
 												>
-													Verified & Escrow Held
+													{t.earnings.verifiedEscrowHeld}
 												</Badge>
 											</div>
 										</div>
@@ -207,18 +207,18 @@ export default function EntrepreneurEarningsPage() {
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
 								<History className="h-5 w-5 text-primary" />
-								Payout History
+								{t.earnings.payoutHistory}
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
 							<Table>
 								<TableHeader>
 									<TableRow>
-										<TableHead>Date</TableHead>
-										<TableHead>Reference</TableHead>
-										<TableHead>Description</TableHead>
-										<TableHead className="text-right">Amount</TableHead>
-										<TableHead className="text-right">Status</TableHead>
+										<TableHead>{t.earnings.date}</TableHead>
+										<TableHead>{t.earnings.reference}</TableHead>
+										<TableHead>{t.earnings.description}</TableHead>
+										<TableHead className="text-right">{t.earnings.amount}</TableHead>
+										<TableHead className="text-right">{t.earnings.status}</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
@@ -228,7 +228,7 @@ export default function EntrepreneurEarningsPage() {
 												colSpan={5}
 												className="text-center py-12 text-muted-foreground"
 											>
-												No payout history found yet.
+												{t.earnings.noPayoutHistory}
 											</TableCell>
 										</TableRow>
 									) : (

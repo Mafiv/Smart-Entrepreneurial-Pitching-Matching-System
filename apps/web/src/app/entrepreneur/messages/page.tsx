@@ -72,6 +72,7 @@ function MeetingCard({
 	data: MeetingCardData;
 	onJoin: (meetingId: string) => void;
 }) {
+	const { t } = useLanguage();
 	const scheduled = new Date(data.scheduledAt);
 	const now = new Date();
 	const isJoinable =
@@ -83,7 +84,7 @@ function MeetingCard({
 			<div className="flex items-center gap-2 mb-2">
 				<Video className="h-4 w-4 text-primary shrink-0" />
 				<span className="text-sm font-semibold text-primary">
-					Video Meeting
+					{t.meetings.videoMeeting}
 				</span>
 			</div>
 			<p className="text-xs font-medium mb-1 truncate">{data.title}</p>
@@ -111,15 +112,15 @@ function MeetingCard({
 					onClick={() => onJoin(data._id)}
 				>
 					<Video className="h-3.5 w-3.5" />
-					Join Now
+					{t.meetings.joinNow}
 				</Button>
 			) : (
 				<p className="text-xs text-center text-muted-foreground">
 					{data.status === "cancelled"
-						? "Meeting cancelled"
+						? t.meetings.meetingCancelled
 						: data.status === "completed"
-							? "Meeting ended"
-							: "Join button appears 15 min before start"}
+							? t.meetings.meetingEnded
+							: t.meetings.joinAppears}
 				</p>
 			)}
 		</div>
@@ -183,14 +184,14 @@ function formatTime(dateStr: string) {
 	});
 }
 
-function formatDateSeparator(dateStr: string) {
+function formatDateSeparator(dateStr: string, t: any) {
 	const d = new Date(dateStr);
 	const today = new Date();
 	const yesterday = new Date();
 	yesterday.setDate(yesterday.getDate() - 1);
 
-	if (d.toDateString() === today.toDateString()) return "Today";
-	if (d.toDateString() === yesterday.toDateString()) return "Yesterday";
+	if (d.toDateString() === today.toDateString()) return t.messages.today;
+	if (d.toDateString() === yesterday.toDateString()) return t.messages.yesterday;
 	return d.toLocaleDateString(undefined, {
 		weekday: "long",
 		month: "short",
@@ -221,6 +222,7 @@ function avatarColor(id: string) {
 }
 
 function RoleBadge({ role }: { role?: string }) {
+	const { t } = useLanguage();
 	if (!role) return null;
 	const styles: Record<string, string> = {
 		admin: "bg-destructive/10 text-destructive border-transparent",
@@ -228,9 +230,9 @@ function RoleBadge({ role }: { role?: string }) {
 		entrepreneur: "bg-amber-500/10 text-amber-700 border-transparent",
 	};
 	const label: Record<string, string> = {
-		admin: "Admin",
-		investor: "Investor",
-		entrepreneur: "Entrepreneur",
+		admin: t.adminUsers?.roleAdmin || "Admin",
+		investor: t.adminUsers?.roleInvestor || "Investor",
+		entrepreneur: t.adminUsers?.roleEntrepreneur || "Entrepreneur",
 	};
 
 	return (
@@ -522,11 +524,11 @@ function MessagesContent() {
 			} else {
 				setMessages((prev) => prev.filter((m) => m._id !== optimisticMsg._id));
 				const err = await res.json();
-				showErrorToast(err.message || "Failed to send message");
+				showErrorToast(err.message || t.messages.failedToSend);
 			}
 		} catch (_err) {
 			setMessages((prev) => prev.filter((m) => m._id !== optimisticMsg._id));
-			showErrorToast("Failed to send message");
+			showErrorToast(t.messages.failedToSend);
 		} finally {
 			setSending(false);
 			inputRef.current?.focus();
@@ -555,7 +557,7 @@ function MessagesContent() {
 			);
 			if (res.ok) {
 				showSuccessToast(
-					"Report submitted. The conversation has been frozen and an admin has been alerted.",
+					t.messages.reportSubmitted,
 				);
 				setShowReportDialog(false);
 				setReportReason("");
@@ -564,10 +566,10 @@ function MessagesContent() {
 				setActiveConvo(null);
 			} else {
 				const err = await res.json();
-				showErrorToast(err.message || "Failed to submit report");
+				showErrorToast(err.message || t.messages.failedToSubmitReport);
 			}
 		} catch (_err) {
-			showErrorToast("Failed to submit report");
+			showErrorToast(t.messages.failedToSubmitReport);
 		} finally {
 			setReportLoading(false);
 		}
@@ -606,10 +608,10 @@ function MessagesContent() {
 				const data = await res.json();
 				setTranslations((prev) => ({ ...prev, [msgId]: data.translated }));
 			} else {
-				showErrorToast("Translation failed");
+				showErrorToast(t.messages.translationFailed);
 			}
 		} catch {
-			showErrorToast("Translation failed");
+			showErrorToast(t.messages.translationFailed);
 		} finally {
 			setTranslating((prev) => ({ ...prev, [msgId]: false }));
 		}
@@ -638,9 +640,9 @@ function MessagesContent() {
 	};
 
 	const getLastMessagePreview = (convo: Conversation) => {
-		if (!convo.lastMessage) return "No messages yet";
+		if (!convo.lastMessage) return t.messages.noMessages;
 		const body = convo.lastMessage.body;
-		if (convo.lastMessage.type === "file") return "ðŸ“Ž Attachment";
+		if (convo.lastMessage.type === "file") return "📎 " + t.messages.attachment;
 		return body.length > 40 ? `${body.slice(0, 40)}â€¦` : body;
 	};
 
@@ -654,7 +656,7 @@ function MessagesContent() {
 		}
 		const yesterday = new Date();
 		yesterday.setDate(yesterday.getDate() - 1);
-		if (d.toDateString() === yesterday.toDateString()) return "Yesterday";
+		if (d.toDateString() === yesterday.toDateString()) return t.messages.yesterday;
 		return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 	};
 
@@ -680,9 +682,9 @@ function MessagesContent() {
 				<div className="flex flex-col h-[calc(100vh-120px)]">
 					{/* Header */}
 					<div className="mb-4">
-						<h1 className="text-2xl font-bold tracking-tight">Messages</h1>
+						<h1 className="text-2xl font-bold tracking-tight">{t.nav.messages}</h1>
 						<p className="text-sm text-muted-foreground">
-							Communicate securely with your connections
+							{t.messages.communicate}
 						</p>
 					</div>
 
@@ -694,7 +696,7 @@ function MessagesContent() {
 							}`}
 						>
 							<div className="px-4 py-3.5 border-b border-border bg-muted/20">
-								<p className="text-sm font-semibold tracking-tight">Chats</p>
+								<p className="text-sm font-semibold tracking-tight">{t.messages.chats}</p>
 							</div>
 							<div className="flex-1 overflow-y-auto">
 								{initialLoading ? (
@@ -707,11 +709,10 @@ function MessagesContent() {
 											<MessageSquare className="h-7 w-7 text-muted-foreground/40" />
 										</div>
 										<p className="text-sm font-medium text-muted-foreground">
-											No conversations yet
+											{t.messages.noConversations}
 										</p>
 										<p className="text-xs text-muted-foreground/60 mt-1 max-w-[200px]">
-											Start a conversation by messaging someone from a pitch
-											page
+											{t.messages.startConversation}
 										</p>
 									</div>
 								) : (
@@ -749,7 +750,7 @@ function MessagesContent() {
 															className={`text-sm truncate flex items-center gap-2 ${unread > 0 ? "font-bold" : "font-medium"}`}
 														>
 															<span className="truncate">
-																{other?.fullName || "Unknown"}
+																{other?.fullName || t.messages.unknown}
 															</span>
 															<RoleBadge role={other?.role} />
 														</p>
@@ -785,7 +786,7 @@ function MessagesContent() {
 																variant="destructive"
 																className="text-[9px] shrink-0 px-1.5 py-0"
 															>
-																Frozen
+																{t.messages.frozen}
 															</Badge>
 														)}
 													</div>
@@ -808,9 +809,9 @@ function MessagesContent() {
 									<div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted/30 mb-4">
 										<MessageSquare className="h-9 w-9 opacity-30" />
 									</div>
-									<p className="text-base font-medium">Select a conversation</p>
+									<p className="text-base font-medium">{t.messages.selectConversation}</p>
 									<p className="text-xs text-muted-foreground/60 mt-1">
-										Choose from your existing chats to start messaging
+										{t.messages.chooseFromChats}
 									</p>
 								</div>
 							) : (
@@ -842,7 +843,7 @@ function MessagesContent() {
 												<div className="flex items-center gap-2">
 													<p className="text-sm font-semibold leading-tight truncate">
 														{getOtherParticipant(activeConvo)?.fullName ||
-															"Unknown"}
+															t.messages.unknown}
 													</p>
 													<RoleBadge
 														role={getOtherParticipant(activeConvo)?.role}
@@ -865,7 +866,7 @@ function MessagesContent() {
 													>
 														<CalendarDays className="h-3.5 w-3.5" />
 														<span className="hidden sm:inline">
-															Schedule Meeting
+															{t.messages.scheduleMeeting}
 														</span>
 													</Button>
 												)}
@@ -876,7 +877,7 @@ function MessagesContent() {
 													onClick={() => setShowReportDialog(true)}
 												>
 													<ShieldAlert className="h-4 w-4" />
-													<span className="hidden sm:inline">Report</span>
+													<span className="hidden sm:inline">{t.messages.report}</span>
 												</Button>
 											</div>
 										)}
@@ -897,14 +898,14 @@ function MessagesContent() {
 											<div className="flex justify-center py-12">
 												<Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
 											</div>
-										) : messages.length === 0 ? (
+								) : messages.length === 0 ? (
 											<div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
 												<div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-3">
 													<Send className="h-6 w-6 text-primary/60" />
 												</div>
-												<p className="text-sm font-medium">No messages yet</p>
+												<p className="text-sm font-medium">{t.messages.noMessages}</p>
 												<p className="text-xs text-muted-foreground/60 mt-1">
-													Say hello! ðŸ‘‹
+													{t.messages.sayHello}
 												</p>
 											</div>
 										) : (
@@ -913,7 +914,7 @@ function MessagesContent() {
 													{/* Date separator */}
 													<div className="flex items-center justify-center my-4">
 														<span className="px-3 py-1 rounded-full bg-muted/60 text-[11px] font-medium text-muted-foreground shadow-sm">
-															{formatDateSeparator(group.date)}
+															{formatDateSeparator(group.date, t)}
 														</span>
 													</div>
 
@@ -974,7 +975,7 @@ function MessagesContent() {
 																			className="text-xs underline flex items-center gap-1 mt-1.5 opacity-80"
 																		>
 																			<Paperclip className="h-3 w-3" />{" "}
-																			Attachment
+																			{t.messages.attachment}
 																		</a>
 																	)}
 																	{/* Time + Translate + Read Receipt */}
@@ -1003,8 +1004,8 @@ function MessagesContent() {
 																				}`}
 																				title={
 																					translations[msg._id]
-																						? "Hide translation"
-																						: "Translate"
+																						? t.messages.hideTranslation
+																						: t.messages.translate
 																				}
 																			>
 																				{translating[msg._id] ? (
@@ -1101,7 +1102,7 @@ function MessagesContent() {
 							activeConvo.submissionId !== null
 								? (activeConvo.submissionId as { _id: string; title: string })
 										.title
-								: "this pitch"
+								: t.pitch.thisPitch
 						}
 						entrepreneurUserId={
 							activeConvo.participants.find((p) => p._id !== profile?._id)
@@ -1129,7 +1130,7 @@ function MessagesContent() {
 								);
 								loadMessages(activeConvo._id);
 							} catch {
-								showErrorToast("Failed to share meeting in chat");
+								showErrorToast(t.messages.failedToShareMeeting);
 							}
 							setShowScheduleModal(false);
 						}}
@@ -1142,28 +1143,27 @@ function MessagesContent() {
 						<DialogHeader>
 							<DialogTitle className="flex items-center gap-2">
 								<ShieldAlert className="h-5 w-5 text-destructive" />
-								Report Misconduct
+								{t.messages.reportMisconduct}
 							</DialogTitle>
 							<DialogDescription>
-								Report suspicious or inappropriate behavior. The conversation
-								will be frozen and an admin will be alerted for urgent review.
+								{t.messages.reportMisconductDesc}
 							</DialogDescription>
 						</DialogHeader>
 						<div className="space-y-4 py-2">
 							<div className="space-y-2">
-								<Label htmlFor="report-reason">Reason *</Label>
+								<Label htmlFor="report-reason">{t.messages.reasonLabel}</Label>
 								<Input
 									id="report-reason"
-									placeholder="e.g., Harassment, demands outside platform, fraud"
+									placeholder={t.messages.reasonPlaceholder}
 									value={reportReason}
 									onChange={(e) => setReportReason(e.target.value)}
 								/>
 							</div>
 							<div className="space-y-2">
-								<Label htmlFor="report-details">Additional Details</Label>
+								<Label htmlFor="report-details">{t.messages.additionalDetails}</Label>
 								<Textarea
 									id="report-details"
-									placeholder="Provide any additional context or evidence..."
+									placeholder={t.messages.additionalDetailsPlaceholder}
 									value={reportDetails}
 									onChange={(e) => setReportDetails(e.target.value)}
 									rows={4}
@@ -1175,7 +1175,7 @@ function MessagesContent() {
 								variant="outline"
 								onClick={() => setShowReportDialog(false)}
 							>
-								Cancel
+								{t.common.cancel}
 							</Button>
 							<Button
 								variant="destructive"
@@ -1185,7 +1185,7 @@ function MessagesContent() {
 								{reportLoading ? (
 									<Loader2 className="h-4 w-4 animate-spin mr-2" />
 								) : null}
-								Submit Report
+								{t.messages.submitReport}
 							</Button>
 						</DialogFooter>
 					</DialogContent>

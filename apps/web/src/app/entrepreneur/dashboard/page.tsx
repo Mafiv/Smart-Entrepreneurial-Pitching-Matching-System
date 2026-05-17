@@ -104,8 +104,7 @@ function EntrepreneurDashboardInner() {
 				{/* Success banner */}
 				{justSubmitted && (
 					<div className="mb-6 rounded-lg border border-green-500/20 bg-green-500/10 p-4 text-sm">
-						🎉 Your pitch was submitted successfully! Our AI will analyze it
-						shortly.
+						{t.dashboard.pitchSubmittedSuccess}
 					</div>
 				)}
 
@@ -117,15 +116,15 @@ function EntrepreneurDashboardInner() {
 								{t.nav.dashboard}
 							</h1>
 							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
-								Manage your pitches and track investor interest
+								{t.dashboard.managePitches}
 							</p>
 						</div>
 						<Button
 							onClick={() => {
 								if (userProfile?.status !== "verified") {
 									showWarningToast(
-										"Verification required",
-										"Complete your profile verification to create pitches.",
+										t.dashboard.verificationRequired,
+										t.dashboard.completeVerificationToCreate,
 									);
 									router.push("/entrepreneur/profile");
 									return;
@@ -158,7 +157,7 @@ function EntrepreneurDashboardInner() {
 										{submissions.length}
 									</p>
 									<p className="text-xs text-muted-foreground mt-0.5">
-										{drafts.length} draft{drafts.length !== 1 ? "s" : ""}
+										{drafts.length} {t.dashboard.draftsCount}
 									</p>
 								</div>
 							</div>
@@ -178,7 +177,7 @@ function EntrepreneurDashboardInner() {
 										{submitted.length}
 									</p>
 									<p className="text-xs text-muted-foreground mt-0.5">
-										Awaiting review
+										{t.dashboard.awaitingReview}
 									</p>
 								</div>
 							</div>
@@ -192,13 +191,13 @@ function EntrepreneurDashboardInner() {
 								</div>
 								<div className="min-w-0 flex-1">
 									<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-										Matches
+										{t.dashboard.matches}
 									</p>
 									<p className="text-2xl font-bold tracking-tight">
 										{acceptedMatchCount}
 									</p>
 									<p className="text-xs text-muted-foreground mt-0.5">
-										Accepted investor matches
+										{t.dashboard.acceptedMatches}
 									</p>
 								</div>
 							</div>
@@ -218,12 +217,12 @@ function EntrepreneurDashboardInner() {
 						<CardContent className="flex flex-col items-center justify-center py-16">
 							<Rocket className="h-10 w-10 text-muted-foreground mb-4" />
 							<h3 className="text-lg font-semibold mb-2">
-								Submit Your First Pitch
+								{t.dashboard.submitFirstPitch}
 							</h3>
 							<p className="text-muted-foreground text-center max-w-md mb-6 text-sm">
 								{userProfile?.status === "verified"
-									? "Create a compelling pitch and let our AI match you with the right investors."
-									: "Complete your verification to start creating pitches and connecting with investors."}
+									? t.dashboard.createCompellingPitch
+									: t.dashboard.completeVerificationToConnect}
 							</p>
 							<Button
 								onClick={() => {
@@ -235,14 +234,14 @@ function EntrepreneurDashboardInner() {
 								}}
 							>
 								{userProfile?.status === "verified"
-									? "Create New Pitch"
-									: "Complete Verification"}
+									? t.nav.newPitch
+									: t.dashboard.completeVerification}
 							</Button>
 						</CardContent>
 					</Card>
 				) : (
 					<div className="space-y-3">
-						<h2 className="text-lg font-semibold">Your Pitches</h2>
+						<h2 className="text-lg font-semibold">{t.dashboard.yourPitches}</h2>
 						{submissions.map((sub) => (
 							<Card
 								key={sub._id}
@@ -269,7 +268,7 @@ function EntrepreneurDashboardInner() {
 									<div className="flex items-center gap-3 ml-4 shrink-0">
 										{sub.aiScore !== undefined && (
 											<span className="text-xs font-medium text-muted-foreground">
-												Score: {sub.aiScore}%
+												{t.match.aiMatchScore}: {sub.aiScore}%
 											</span>
 										)}
 										<Badge
