@@ -2,6 +2,7 @@ import { GoogleGenAI } from "@google/genai";
 import { DocumentModel } from "../models/Document";
 import { type ISubmission, Submission } from "../models/Submission";
 import type { IUser } from "../models/User";
+import { redactPII } from "../utils/redact-pii";
 import { AIService } from "./ai.service";
 import { DocumentValidationService } from "./document-validation.service";
 import { VideoValidationService } from "./video-validation.service";
@@ -341,7 +342,7 @@ Analyse this pitch text and return ONLY a valid JSON object — no markdown, no 
 
 Pitch text:
 """
-${pitchText.slice(0, 2000)}
+${redactPII(pitchText).slice(0, 2000)}
 """`,
 				});
 
