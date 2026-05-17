@@ -5,6 +5,9 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_event.dart';
+import '../../../entrepreneur_profile/presentation/bloc/entrepreneur_profile_bloc.dart';
+import '../../../navigation/drawer/drawer.dart';
 import '../../../submissions/domain/constants/submission_options.dart';
 import '../../../submissions/domain/entities/submission_entity.dart';
 import '../../../submissions/presentation/pages/pitch_creation_page.dart';
@@ -83,11 +86,21 @@ class _EntrepreneurDashboardPageState extends State<EntrepreneurDashboardPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final profileState = context.watch<EntrepreneurProfileBloc>().state;
 
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
         scrolledUnderElevation: 0,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
+            tooltip: 'Open menu',
+          ),
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -115,6 +128,28 @@ class _EntrepreneurDashboardPageState extends State<EntrepreneurDashboardPage> {
                 .add(const DashboardRefreshRequested()),
           ),
         ],
+      ),
+      drawer: AppDrawer(
+        userInfo: DrawerUserInfo(
+          name: profileState.profile?.fullName ?? 'Entrepreneur User',
+          role: UserRole.entrepreneur,
+          isVerified: profileState.profile?.isVerified ?? false,
+          isPremium: false,
+        ),
+        items: NavigationConfig.getEntrepreneurDrawerItems(),
+        selectedItemId: 'dashboard',
+        onItemTap: (item) {
+          Navigator.pop(context);
+          // Handle navigation
+        },
+        onEditProfile: () {
+          Navigator.pop(context);
+          // Navigate to profile
+        },
+        onLogout: () {
+          Navigator.pop(context);
+          context.read<AuthBloc>().add(const SignOutRequested());
+        },
       ),
       body: SafeArea(
         child: BlocBuilder<DashboardBloc, DashboardState>(

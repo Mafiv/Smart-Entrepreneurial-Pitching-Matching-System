@@ -81,17 +81,7 @@ class _EntrepreneurShellState extends State<EntrepreneurShell> {
               ),
             ],
             child: Scaffold(
-              appBar: AppBar(
-                elevation: 0,
-                scrolledUnderElevation: 0,
-                leading: Builder(
-                  builder: (context) => IconButton(
-                    icon: const Icon(Icons.menu),
-                    onPressed: () => Scaffold.of(context).openDrawer(),
-                    tooltip: 'Open menu',
-                  ),
-                ),
-              ),
+              appBar: null,
               drawer: AppDrawer(
                 userInfo: drawerState is drawer_bloc.DrawerLoaded
                     ? drawerState.userInfo

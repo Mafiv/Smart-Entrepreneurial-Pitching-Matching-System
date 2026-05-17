@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
+import '../../../navigation/drawer/drawer.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
@@ -190,8 +191,19 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage>
 
   @override
   Widget build(BuildContext context) {
+    final profileState = context.watch<EntrepreneurProfileBloc>().state;
+    
     return Scaffold(
       appBar: AppBar(
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
+            tooltip: 'Open menu',
+          ),
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -219,12 +231,34 @@ class _EntrepreneurProfilePageState extends State<EntrepreneurProfilePage>
               color: Theme.of(context).colorScheme.error,
             ),
           ),
-          IconButton(
-            tooltip: 'Refresh',
-            onPressed: _load,
-            icon: const Icon(Icons.refresh_rounded),
-          ),
         ],
+      ),
+      drawer: AppDrawer(
+        userInfo: DrawerUserInfo(
+          name: profileState.profile?.fullName ?? 'Entrepreneur User',
+          role: UserRole.entrepreneur,
+          isVerified: profileState.profile?.isVerified ?? false,
+          isPremium: false,
+        ),
+        items: NavigationConfig.getEntrepreneurDrawerItems(),
+        selectedItemId: 'profile',
+        onItemTap: (item) {
+          Navigator.pop(context);
+          // Handle navigation based on item route
+          if (item.route == '/entrepreneur/profile') {
+            // Already on profile page
+          } else {
+            // Navigate to other pages
+          }
+        },
+        onEditProfile: () {
+          Navigator.pop(context);
+          // Already on profile page
+        },
+        onLogout: () {
+          Navigator.pop(context);
+          context.read<AuthBloc>().add(const SignOutRequested());
+        },
       ),
       body: SafeArea(
         child: Padding(

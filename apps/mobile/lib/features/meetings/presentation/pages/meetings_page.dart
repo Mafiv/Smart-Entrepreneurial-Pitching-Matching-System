@@ -5,7 +5,10 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../../core/widgets/verification_required_widget.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../entrepreneur_profile/presentation/bloc/entrepreneur_profile_bloc.dart';
+import '../../../navigation/drawer/drawer.dart';
 import '../meeting_display.dart';
 import '../bloc/meetings_bloc.dart';
 import 'meeting_room_page.dart';
@@ -114,9 +117,19 @@ class _MeetingsPageState extends State<MeetingsPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final profileState = context.watch<EntrepreneurProfileBloc>().state;
 
     return Scaffold(
       appBar: AppBar(
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
+            tooltip: 'Open menu',
+          ),
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -147,6 +160,28 @@ class _MeetingsPageState extends State<MeetingsPage> {
             onPressed: _refresh,
           ),
         ],
+      ),
+      drawer: AppDrawer(
+        userInfo: DrawerUserInfo(
+          name: profileState.profile?.fullName ?? 'Entrepreneur User',
+          role: UserRole.entrepreneur,
+          isVerified: profileState.profile?.isVerified ?? false,
+          isPremium: false,
+        ),
+        items: NavigationConfig.getEntrepreneurDrawerItems(),
+        selectedItemId: 'meetings',
+        onItemTap: (item) {
+          Navigator.pop(context);
+          // Handle navigation
+        },
+        onEditProfile: () {
+          Navigator.pop(context);
+          // Navigate to profile
+        },
+        onLogout: () {
+          Navigator.pop(context);
+          context.read<AuthBloc>().add(const SignOutRequested());
+        },
       ),
       body: SafeArea(
         child: BlocBuilder<EntrepreneurProfileBloc, EntrepreneurProfileState>(
