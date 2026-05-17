@@ -20,7 +20,8 @@ abstract class DocumentsRemoteDataSource {
 
 class DocumentsRemoteDataSourceImpl implements DocumentsRemoteDataSource {
   final DioClient _dio;
-  DocumentsRemoteDataSourceImpl({required DioClient dioClient}) : _dio = dioClient;
+  DocumentsRemoteDataSourceImpl({required DioClient dioClient})
+      : _dio = dioClient;
 
   static final List<Map<String, dynamic>> _mockDocs = [
     {
@@ -38,8 +39,14 @@ class DocumentsRemoteDataSourceImpl implements DocumentsRemoteDataSource {
           'Clinic operations platform for rural clinics with measurable traction and clear go-to-market.',
       'aiTags': ['health', 'workflow', 'mobile'],
       'aiConfidence': 0.87,
-      'processedAt': DateTime.now().toUtc().subtract(const Duration(days: 1)).toIso8601String(),
-      'createdAt': DateTime.now().toUtc().subtract(const Duration(days: 4)).toIso8601String(),
+      'processedAt': DateTime.now()
+          .toUtc()
+          .subtract(const Duration(days: 1))
+          .toIso8601String(),
+      'createdAt': DateTime.now()
+          .toUtc()
+          .subtract(const Duration(days: 4))
+          .toIso8601String(),
       'updatedAt': DateTime.now().toUtc().toIso8601String(),
     },
   ];
@@ -54,7 +61,8 @@ class DocumentsRemoteDataSourceImpl implements DocumentsRemoteDataSource {
       final res = await _dio.get(ApiConfig.documents);
       if (res.statusCode == 200) {
         final data = res.data as Map<String, dynamic>;
-        final list = (data['documents'] as List?) ?? (data['data'] as List?) ?? const [];
+        final list =
+            (data['documents'] as List?) ?? (data['data'] as List?) ?? const [];
         return list
             .whereType<Map>()
             .map((e) => DocumentModel.fromJson(e.cast<String, dynamic>()))
@@ -65,7 +73,8 @@ class DocumentsRemoteDataSourceImpl implements DocumentsRemoteDataSource {
       final data = e.response?.data;
       final msg =
           data is Map<String, dynamic> ? data['message'] as String? : null;
-      throw ServerFailure(message: msg ?? e.message ?? 'Failed to list documents');
+      throw ServerFailure(
+          message: msg ?? e.message ?? 'Failed to list documents');
     }
   }
 
@@ -102,7 +111,8 @@ class DocumentsRemoteDataSourceImpl implements DocumentsRemoteDataSource {
       final form = FormData.fromMap({
         'file': await MultipartFile.fromFile(file.path),
         'type': type,
-        if (submissionId != null && submissionId.isNotEmpty) 'submissionId': submissionId,
+        if (submissionId != null && submissionId.isNotEmpty)
+          'submissionId': submissionId,
       });
       final res = await _dio.post(ApiConfig.documents, data: form);
       if (res.statusCode == 201 || res.statusCode == 200) {
@@ -159,7 +169,7 @@ class DocumentsRemoteDataSourceImpl implements DocumentsRemoteDataSource {
       };
     }
     try {
-      final res = await _dio.get(ApiConfig.documentValidation(id));
+      final res = await _dio.get('${ApiConfig.documentById(id)}/validation');
       if (res.statusCode == 200) {
         final data = (res.data as Map).cast<String, dynamic>();
         final validation = data['validation'];
@@ -175,4 +185,3 @@ class DocumentsRemoteDataSourceImpl implements DocumentsRemoteDataSource {
     }
   }
 }
-
