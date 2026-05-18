@@ -2,8 +2,10 @@ import { GoogleGenAI } from "@google/genai";
 import { DocumentModel } from "../models/Document";
 import { type ISubmission, Submission } from "../models/Submission";
 import type { IUser } from "../models/User";
+import { redactPII } from "../utils/redact-pii";
 import { AIService } from "./ai.service";
 import { DocumentValidationService } from "./document-validation.service";
+import { VideoValidationService } from "./video-validation.service";
 
 class SubmissionServiceError extends Error {
 	statusCode: number;
@@ -157,6 +159,7 @@ export class SubmissionService {
 			"currentStep",
 			"documents",
 			"currency",
+			"pitchVideoUrl",
 		] as const;
 
 		for (const field of allowedFields) {
@@ -166,6 +169,26 @@ export class SubmissionService {
 		}
 
 		await submission.save();
+
+		// Trigger async video validation when pitchVideoUrl is set or changed
+		const newVideoUrl = payload.updates.pitchVideoUrl as string | undefined;
+		if (newVideoUrl && newVideoUrl.trim()) {
+			submission.videoStatus = "pending";
+			await submission.save();
+			// Fire-and-forget: don't block the draft save
+			VideoValidationService.validateVideo(
+				submission._id.toString(),
+				newVideoUrl,
+			).catch((err) =>
+				console.error("[SUBMISSION] Video validation error:", err),
+			);
+		} else if (newVideoUrl === "") {
+			// Video URL was cleared
+			submission.videoStatus = null as unknown as undefined;
+			submission.videoFlagReason = null as unknown as undefined;
+			await submission.save();
+		}
+
 		return submission;
 	}
 
@@ -319,7 +342,7 @@ Analyse this pitch text and return ONLY a valid JSON object — no markdown, no 
 
 Pitch text:
 """
-${pitchText.slice(0, 2000)}
+${redactPII(pitchText).slice(0, 2000)}
 """`,
 				});
 

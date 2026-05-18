@@ -18,7 +18,6 @@ import {
 	XCircle,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -44,6 +43,12 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { ENTREPRENEUR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -204,10 +209,10 @@ function InvestorProfileModal({
 						setProfile(data.profile);
 						setInvestorUser(data.user);
 					} else {
-						toast.error("Could not load investor profile");
+						showErrorToast("Could not load investor profile");
 					}
 				})
-				.catch(() => toast.error("Network error loading profile"))
+				.catch(() => showErrorToast("Network error loading profile"))
 				.finally(() => setLoading(false));
 		});
 	}, [open, investorUserId, user]);
@@ -458,10 +463,10 @@ export default function EntrepreneurInvitationsPage() {
 			if (data.status === "success") {
 				setInvitations(data.invitations);
 			} else {
-				toast.error("Failed to load invitations");
+				showErrorToast("Failed to load invitations");
 			}
 		} catch {
-			toast.error("Network error loading invitations");
+			showErrorToast("Network error loading invitations");
 		} finally {
 			setLoading(false);
 		}
@@ -492,7 +497,7 @@ export default function EntrepreneurInvitationsPage() {
 			});
 			const data = await res.json();
 			if (data.status === "success") {
-				toast.success(
+				showSuccessToast(
 					status === "accepted"
 						? "Invitation approved — the investor can now create milestones"
 						: "Invitation declined",
@@ -505,10 +510,10 @@ export default function EntrepreneurInvitationsPage() {
 				setRejectTarget(null);
 				setRejectMsg("");
 			} else {
-				toast.error(data.message ?? "Failed to respond to invitation");
+				showErrorToast(data.message ?? "Failed to respond to invitation");
 			}
 		} catch {
-			toast.error("Network error");
+			showErrorToast("Network error");
 		} finally {
 			setResponding(null);
 		}

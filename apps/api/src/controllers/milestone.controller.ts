@@ -45,7 +45,6 @@ export class MilestoneController {
 
 	static async list(req: Request, res: Response): Promise<void> {
 		try {
-			console.log(3333);
 			if (!req.user) {
 				res.status(401).json({ status: "error", message: "Unauthorized" });
 				return;

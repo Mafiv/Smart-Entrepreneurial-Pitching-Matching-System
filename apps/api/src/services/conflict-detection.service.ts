@@ -168,8 +168,8 @@ function determineSeverity(
 function generateConflictMessage(
 	entityType: EntityType,
 	documents: { filename: string; extractedValue: string }[],
-	profileValue?: string,
 	similarity: number,
+	profileValue?: string,
 ): string {
 	const entityTypeDisplay = entityType.replace(/_/g, " ").toUpperCase();
 	const docCount = documents.length;
@@ -367,8 +367,8 @@ export const ConflictDetectionService = {
 								message: generateConflictMessage(
 									entityType,
 									conflictDocs,
-									profileValue,
 									similarity,
+									profileValue,
 								),
 								status: "open",
 								createdAt: new Date(),
@@ -419,8 +419,8 @@ export const ConflictDetectionService = {
 										confidence: d.confidence,
 									})),
 								),
-								profileValue,
 								similarity,
+								profileValue,
 							),
 							status: "open",
 							createdAt: new Date(),

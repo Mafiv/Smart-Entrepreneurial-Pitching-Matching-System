@@ -18,10 +18,10 @@ export type AccreditationStatus = "pending" | "verified" | "rejected";
 
 export interface IEntrepreneurProfileInput {
 	fullName: string;
-	companyName: string;
-	companyRegistrationNumber: string;
-	businessSector: BusinessSector;
-	businessStage: BusinessStage;
+	companyName?: string;
+	companyRegistrationNumber?: string;
+	businessSector?: BusinessSector;
+	businessStage?: BusinessStage;
 	companyAddress?: string;
 	city?: string;
 	country?: string;

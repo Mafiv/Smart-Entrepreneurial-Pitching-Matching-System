@@ -13,7 +13,6 @@ import {
 	UserX,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProfilePictureUpload from "@/components/ProfilePictureUpload";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -41,6 +40,12 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ADMIN_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 
 export default function AdminSettingsPage() {
 	const { user, userProfile, refreshUserProfile, signOut } = useAuth();
@@ -155,7 +160,7 @@ export default function AdminSettingsPage() {
 							}
 						}
 					}
-					toast.success(`Reset KYC for ${resetCount} users`);
+					showSuccessToast(`Reset KYC for ${resetCount} users`);
 				}
 			} else if (action === "suspend-unverified") {
 				const res = await fetch(
@@ -183,11 +188,11 @@ export default function AdminSettingsPage() {
 							/* skip */
 						}
 					}
-					toast.success(`Suspended ${suspendedCount} unverified accounts`);
+					showSuccessToast(`Suspended ${suspendedCount} unverified accounts`);
 				}
 			}
 		} catch (err) {
-			toast.error(err instanceof Error ? err.message : "Action failed");
+			showErrorToast(err instanceof Error ? err.message : "Action failed");
 		} finally {
 			setActionLoading(false);
 			setConfirmAction(null);

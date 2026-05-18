@@ -2,7 +2,6 @@
 
 import { CheckCircle2, Loader2, Lock, Save, Shield } from "lucide-react";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProfilePictureUpload from "@/components/ProfilePictureUpload";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -29,6 +28,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { ADMIN_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { showErrorToast, showSuccessToast } from "@/lib/toast-messages";
 
 export default function AdminProfilePage() {
 	const { user, userProfile, refreshUserProfile, signOut } = useAuth();
@@ -63,9 +63,9 @@ export default function AdminProfilePage() {
 			});
 			if (!res.ok) throw new Error("Failed to update profile");
 			await refreshUserProfile();
-			toast.success("Profile updated successfully!");
+			showSuccessToast("Profile updated successfully!");
 		} catch (err) {
-			toast.error(
+			showErrorToast(
 				err instanceof Error ? err.message : "Failed to update profile",
 			);
 		} finally {

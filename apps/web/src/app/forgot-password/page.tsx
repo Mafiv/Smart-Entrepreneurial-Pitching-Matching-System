@@ -3,12 +3,16 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 
 export default function ForgotPasswordPage() {
 	const router = useRouter();
@@ -19,18 +23,27 @@ export default function ForgotPasswordPage() {
 	const handleSubmit = async (event: React.FormEvent) => {
 		event.preventDefault();
 		if (!email.trim()) {
-			toast.error("Email is required");
+			showWarningToast(
+				"Email required",
+				"Please enter your email address to receive a reset code.",
+			);
 			return;
 		}
 
 		setLoading(true);
 		try {
 			await requestPasswordResetOtp(email.trim());
-			toast.success("OTP sent. Check your email.");
+			showSuccessToast(
+				"Reset code sent",
+				"Check your email for the verification code.",
+			);
 			router.push(`/reset-password?email=${encodeURIComponent(email.trim())}`);
 		} catch (err: unknown) {
-			const message = err instanceof Error ? err.message : "Failed to send OTP";
-			toast.error(message);
+			showErrorToast(
+				err,
+				"Couldn't send reset code",
+				"Please check your email and try again.",
+			);
 		} finally {
 			setLoading(false);
 		}

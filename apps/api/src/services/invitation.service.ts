@@ -56,9 +56,9 @@ export const InvitationService = {
 			throw InvitationService.createError("Match not found", 404);
 		}
 
-		if (match.status !== "accepted") {
+		if (!["accepted", "requested"].includes(match.status)) {
 			throw InvitationService.createError(
-				"Invitation can only be sent after a match is accepted",
+				"Invitation can only be sent after a match is accepted or requested",
 				400,
 			);
 		}
@@ -177,6 +177,40 @@ export const InvitationService = {
 		invitation.responseMessage = payload.responseMessage || undefined;
 		invitation.respondedAt = new Date();
 		await invitation.save();
+
+		// When entrepreneur accepts an invitation, automatically approve the
+		// linked MatchResult so it moves from "requested" → "accepted".
+		// This unlocks milestone creation without requiring a separate approval step.
+		if (payload.status === "accepted" && invitation.matchResultId) {
+			try {
+				const match = await MatchResult.findById(invitation.matchResultId);
+				if (match && match.status === "requested") {
+					match.status = "accepted";
+					await match.save();
+
+					// Update submission status to matched
+					const { Submission } = await import("../models/Submission");
+					await Submission.findByIdAndUpdate(match.submissionId, {
+						$set: { status: "matched" },
+					});
+
+					// Notify investor that their request was approved
+					await NotificationService.createNotification({
+						userId: match.investorId.toString(),
+						type: "match_found",
+						title: "Investment Request Approved",
+						body: "The entrepreneur has accepted your invitation. You can now create milestones.",
+						metadata: {
+							matchId: match._id,
+							submissionId: match.submissionId,
+						},
+					});
+				}
+			} catch (err) {
+				// Non-critical — don't fail the invitation response
+				console.error("[INVITATION] Failed to auto-approve match:", err);
+			}
+		}
 
 		await NotificationService.createNotification({
 			userId: invitation.senderId.toString(),

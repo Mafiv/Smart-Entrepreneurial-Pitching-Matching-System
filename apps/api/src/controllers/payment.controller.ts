@@ -25,9 +25,22 @@ export class PaymentController {
 			const result = await PaymentService.arrangePayment({
 				type: "milestone",
 				milestoneId,
+				userId: req.user._id.toString(),
+				userEmail: req.user.email,
+				userFullName: req.user.fullName,
+				userPhoneNumber: req.user.phoneNumber,
 			});
 
-			res.status(200).json({ status: "success", ...result });
+			res.status(200).json({
+				status: "success",
+				success: true,
+				checkout_url: result.checkout_url,
+				checkoutUrl: result.checkout_url,
+				tx_ref: result.tx_ref,
+				amount: result.amount,
+				currency: result.currency,
+				milestone: result.milestone,
+			});
 		} catch (error) {
 			if (PaymentService.isServiceError(error)) {
 				res

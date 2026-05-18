@@ -17,11 +17,11 @@ import {
 	XCircle,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
+import { showErrorToast, showSuccessToast } from "@/lib/toast-messages";
 
 interface AiSummaryData {
 	executiveSummary: string;
@@ -344,17 +344,28 @@ export default function AiPitchSummary({
 			);
 			if (res.ok) {
 				const data = await res.json();
-				toast.success("AI summary regenerated successfully");
+				showSuccessToast(
+					"Summary regenerated",
+					"The AI pitch summary has been updated.",
+				);
 				setAiSummary(data.summary);
 				setStatus("completed");
 				onRegenerated?.();
 			} else {
 				const data = await res.json();
-				toast.error(data.message || "Failed to regenerate summary");
+				showErrorToast(
+					data.message || "Failed to regenerate summary",
+					"Summary generation failed",
+					"Please try again later.",
+				);
 				setStatus("failed");
 			}
 		} catch {
-			toast.error("Network error");
+			showErrorToast(
+				"Network error",
+				"Connection error",
+				"Unable to reach the server. Please check your connection.",
+			);
 			setStatus("failed");
 		} finally {
 			setRegenerating(false);

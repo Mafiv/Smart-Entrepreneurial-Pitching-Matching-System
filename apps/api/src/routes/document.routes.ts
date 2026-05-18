@@ -158,6 +158,69 @@ router.post(
 
 /**
  * @openapi
+ * /api/documents/direct-upload/signature:
+ *   post:
+ *     tags: [Documents]
+ *     summary: Generate Cloudinary direct upload signature for large files
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [type]
+ *             properties:
+ *               type:
+ *                 type: string
+ *               submissionId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Signature generated
+ */
+router.post(
+	"/direct-upload/signature",
+	authorize("entrepreneur", "investor"),
+	DocumentController.generateDirectUploadSignature,
+);
+
+/**
+ * @openapi
+ * /api/documents/direct-upload/complete:
+ *   post:
+ *     tags: [Documents]
+ *     summary: Complete Cloudinary direct upload and save document
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [type, cloudinaryPublicId, url]
+ *             properties:
+ *               type: { type: string }
+ *               submissionId: { type: string }
+ *               cloudinaryPublicId: { type: string }
+ *               url: { type: string }
+ *               sizeBytes: { type: number }
+ *               mimeType: { type: string }
+ *               filename: { type: string }
+ *     responses:
+ *       201:
+ *         description: Document registered
+ */
+router.post(
+	"/direct-upload/complete",
+	authorize("entrepreneur", "investor"),
+	DocumentController.completeDirectUpload,
+);
+
+/**
+ * @openapi
  * /api/documents:
  *   get:
  *     tags: [Documents]

@@ -11,7 +11,6 @@ import {
 	XCircle,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -36,6 +35,12 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { ADMIN_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 
 interface ReportUser {
 	_id: string;
@@ -113,15 +118,15 @@ export default function AdminReportsPage() {
 			);
 			if (res.ok) {
 				const data = await res.json();
-				toast.success(data.message);
+				showSuccessToast(data.message);
 				setSelectedReport(null);
 				fetchReports();
 			} else {
 				const err = await res.json();
-				toast.error(err.message || "Failed to resolve report");
+				showErrorToast(err.message || "Failed to resolve report");
 			}
 		} catch (_err) {
-			toast.error("Failed to resolve report");
+			showErrorToast("Failed to resolve report");
 		} finally {
 			setResolving(false);
 		}

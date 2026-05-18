@@ -18,7 +18,6 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +25,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/context/AuthContext";
+import {
+	showErrorToast,
+	showInfoToast,
+	showSuccessToast,
+	showWarningToast,
+} from "@/lib/toast-messages";
 
 // ── Constants (mirror InvestorProfile schema enums) ──────────────────────────
 
@@ -213,15 +218,15 @@ export default function InvestorOnboardingPage() {
 
 			const data = await res.json();
 			if (res.ok && data.success) {
-				toast.success("Profile created! Welcome to SEPMS.");
+				showSuccessToast("Profile created! Welcome to SEPMS.");
 				router.push("/investor/matches");
 			} else {
 				const msg =
 					data.errors?.[0]?.msg ?? data.message ?? "Failed to create profile";
-				toast.error(msg);
+				showErrorToast(msg);
 			}
 		} catch {
-			toast.error("Network error. Please try again.");
+			showErrorToast("Network error. Please try again.");
 		} finally {
 			setSaving(false);
 		}

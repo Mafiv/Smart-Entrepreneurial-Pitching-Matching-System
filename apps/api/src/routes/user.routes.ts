@@ -150,7 +150,13 @@ router.put(
 			if (role === "entrepreneur") {
 				updatedProfile = await EntrepreneurProfile.findOneAndUpdate(
 					{ userId: req.user._id },
-					{ $set: updateData },
+					{
+						$set: updateData,
+						$setOnInsert: {
+							userId: req.user._id,
+							fullName: req.user.fullName,
+						},
+					},
 					{ new: true, upsert: true },
 				);
 
