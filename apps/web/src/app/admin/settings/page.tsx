@@ -55,10 +55,6 @@ export default function AdminSettingsPage() {
 		process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
 	).replace(/\/+$/, "");
 
-	// Account editing
-	const [editName, setEditName] = useState(userProfile?.displayName || "");
-	const [savingProfile, setSavingProfile] = useState(false);
-
 	// Stats for platform info
 	const [platformStats, setPlatformStats] = useState<{
 		totalUsers: number;
@@ -71,10 +67,6 @@ export default function AdminSettingsPage() {
 	// Confirmation dialogs
 	const [confirmAction, setConfirmAction] = useState<string | null>(null);
 	const [actionLoading, setActionLoading] = useState(false);
-
-	useEffect(() => {
-		if (userProfile?.displayName) setEditName(userProfile.displayName);
-	}, [userProfile?.displayName]);
 
 	// Fetch platform stats
 	useEffect(() => {
@@ -103,31 +95,6 @@ export default function AdminSettingsPage() {
 		}
 		fetchStats();
 	}, [user, API_URL]);
-
-	const handleUpdateProfile = async () => {
-		if (!user || !editName.trim()) return;
-		setSavingProfile(true);
-		try {
-			const token = await user.getIdToken();
-			const res = await fetch(`${API_URL}/users/me`, {
-				method: "PATCH",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({ fullName: editName.trim() }),
-			});
-			if (!res.ok) throw new Error("Failed to update profile");
-			await refreshUserProfile();
-			showSuccessToast("Profile updated successfully!");
-		} catch (err) {
-			showErrorToast(
-				err instanceof Error ? err.message : "Failed to update profile",
-			);
-		} finally {
-			setSavingProfile(false);
-		}
-	};
 
 	const handleBulkAction = async (action: string) => {
 		if (!user || !isSuperAdmin) return;
@@ -246,12 +213,8 @@ export default function AdminSettingsPage() {
 	return (
 		<ProtectedRoute allowedRoles={["admin"]}>
 			<DashboardLayout navItems={ADMIN_NAV} title="SEPMS Admin">
-				<Tabs defaultValue="account" className="space-y-6">
+				<Tabs defaultValue="platform" className="space-y-6">
 					<TabsList>
-						<TabsTrigger value="account" className="gap-1.5">
-							<Shield className="h-3.5 w-3.5" />
-							Account
-						</TabsTrigger>
 						<TabsTrigger value="platform" className="gap-1.5">
 							<Globe className="h-3.5 w-3.5" />
 							Platform
@@ -261,148 +224,6 @@ export default function AdminSettingsPage() {
 							Security
 						</TabsTrigger>
 					</TabsList>
-
-					{/* ─── Account Tab ─── */}
-					<TabsContent value="account" className="space-y-6 mt-0">
-						{/* Editable Profile */}
-						<Card>
-							<CardHeader>
-								<CardTitle className="text-base flex items-center gap-2">
-									<Shield className="h-4 w-4 text-primary" />
-									Your Profile
-								</CardTitle>
-								<CardDescription>
-									Update your personal information.
-								</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-6">
-								<div className="flex flex-col sm:flex-row items-start gap-6 pb-2">
-									<div className="shrink-0">
-										<Label className="text-sm text-muted-foreground block mb-3">
-											Profile Picture
-										</Label>
-										<ProfilePictureUpload size="h-20 w-20" />
-									</div>
-									<Separator
-										orientation="vertical"
-										className="hidden sm:block h-28"
-									/>
-									<Separator className="sm:hidden" />
-									<div className="flex-1 grid gap-4 sm:grid-cols-2 w-full">
-										<div className="space-y-2">
-											<Label htmlFor="admin-edit-name" className="text-sm">
-												Full Name
-											</Label>
-											<Input
-												id="admin-edit-name"
-												value={editName}
-												onChange={(e) => setEditName(e.target.value)}
-												placeholder="Your full name"
-											/>
-										</div>
-										<div className="space-y-2">
-											<Label className="text-sm text-muted-foreground">
-												Email Address
-											</Label>
-											<div className="flex items-center gap-1.5 pt-2">
-												<p className="text-sm font-medium">{email}</p>
-												{userProfile?.emailVerified && (
-													<CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-												)}
-											</div>
-											<p className="text-xs text-muted-foreground">
-												Email is managed by Google
-											</p>
-										</div>
-										<div className="space-y-2">
-											<Label className="text-sm text-muted-foreground">
-												Role
-											</Label>
-											<div className="flex items-center gap-2 pt-2">
-												<Badge
-													variant="destructive"
-													className="text-xs capitalize"
-												>
-													{adminLevel === "super_admin"
-														? "Super Admin"
-														: "Admin"}
-												</Badge>
-											</div>
-										</div>
-										<div className="space-y-2">
-											<Label className="text-sm text-muted-foreground">
-												Account Status
-											</Label>
-											<div className="pt-2">
-												<Badge
-													variant="default"
-													className="text-xs capitalize bg-green-500/10 text-green-600 border-green-500/20"
-												>
-													{userProfile?.status}
-												</Badge>
-											</div>
-										</div>
-									</div>
-								</div>
-							</CardContent>
-							<CardFooter className="flex justify-end border-t pt-4">
-								<Button
-									onClick={handleUpdateProfile}
-									disabled={
-										savingProfile ||
-										editName.trim() === (userProfile?.displayName || "")
-									}
-									className="gap-2"
-								>
-									{savingProfile ? (
-										<>
-											<Loader2 className="h-4 w-4 animate-spin" /> Saving...
-										</>
-									) : (
-										<>
-											<Save className="h-4 w-4" /> Save Changes
-										</>
-									)}
-								</Button>
-							</CardFooter>
-						</Card>
-
-						{/* Session Info */}
-						<Card>
-							<CardHeader>
-								<CardTitle className="text-base flex items-center gap-2">
-									<Lock className="h-4 w-4 text-primary" />
-									Session
-								</CardTitle>
-							</CardHeader>
-							<CardContent className="space-y-3">
-								<div className="grid gap-3 sm:grid-cols-2">
-									<div className="rounded-lg border p-3">
-										<p className="text-xs text-muted-foreground">
-											Firebase UID
-										</p>
-										<p className="text-xs font-mono mt-1 truncate">
-											{user?.uid || "—"}
-										</p>
-									</div>
-									<div className="rounded-lg border p-3">
-										<p className="text-xs text-muted-foreground">Provider</p>
-										<p className="text-xs font-medium mt-1">
-											Google Authentication
-										</p>
-									</div>
-								</div>
-								<Separator />
-								<Button
-									variant="outline"
-									onClick={() => setConfirmAction("signout")}
-									className="gap-2 text-destructive hover:text-destructive"
-								>
-									Sign Out of Account
-								</Button>
-							</CardContent>
-						</Card>
-					</TabsContent>
 
 					{/* ─── Platform Tab ─── */}
 					<TabsContent value="platform" className="space-y-6 mt-0">
@@ -781,9 +602,7 @@ export default function AdminSettingsPage() {
 							<DialogDescription>
 								{confirmAction === "reset-kyc"
 									? "This will mark ALL verified entrepreneurs and investors as unverified. They will need to re-upload their KYC documents."
-									: confirmAction === "signout"
-										? "Are you sure you want to sign out of your account?"
-										: "This will suspend all non-admin accounts that haven't completed KYC verification. Suspended users cannot access the platform."}
+									: "This will suspend all non-admin accounts that haven't completed KYC verification. Suspended users cannot access the platform."}
 							</DialogDescription>
 						</DialogHeader>
 						<DialogFooter className="gap-2 sm:gap-0">
@@ -792,11 +611,7 @@ export default function AdminSettingsPage() {
 							</Button>
 							<Button
 								variant="destructive"
-								onClick={() =>
-									confirmAction === "signout"
-										? signOut()
-										: confirmAction && handleBulkAction(confirmAction)
-								}
+								onClick={() => confirmAction && handleBulkAction(confirmAction)}
 								disabled={actionLoading}
 								className="gap-2"
 							>

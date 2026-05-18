@@ -2,13 +2,22 @@
 // Architectural Unit: Initial Dashboard structure setup
 
 import { ChevronsUpDown, LogOut, Settings, User } from "lucide-react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { Logo } from "@/components/Logo";
 import NotificationBell from "@/components/NotificationBell";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import {
+	Breadcrumb,
+	BreadcrumbItem,
+	BreadcrumbLink,
+	BreadcrumbList,
+	BreadcrumbPage,
+	BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -68,9 +77,22 @@ export default function DashboardLayout({
 	const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 	const [unreadCount, setUnreadCount] = useState(0);
 
+	const pathSegments = pathname?.split("/").filter(Boolean) || [];
+
 	const api = (
 		process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
 	).replace(/\/+$/, "");
+
+	const getPortalName = () => {
+		if (pathname?.startsWith("/admin")) {
+			return userProfile?.adminLevel === "super_admin"
+				? "Superadmin Portal"
+				: "Admin Portal";
+		}
+		if (pathname?.startsWith("/investor")) return "Investor Portal";
+		if (pathname?.startsWith("/entrepreneur")) return "Entrepreneur Portal";
+		return "Dashboard";
+	};
 
 	const fetchUnreadCount = useCallback(async () => {
 		if (!user) return;
@@ -103,29 +125,49 @@ export default function DashboardLayout({
 			.slice(0, 2) || "U";
 
 	return (
-		<SidebarProvider>
-			<Sidebar collapsible="icon">
-				<SidebarHeader className="h-16 border-b flex items-center justify-center group-data-[collapsible=icon]:px-0">
-					<SidebarMenu className="group-data-[collapsible=icon]:items-center">
-						<SidebarMenuItem>
-							<SidebarMenuButton
-								size="lg"
-								className="pointer-events-none group-data-[collapsible=icon]:!justify-center group-data-[collapsible=icon]:!bg-transparent group-data-[collapsible=icon]:!p-0"
-							>
-								<div className="flex aspect-square size-8 items-center justify-center group-data-[collapsible=icon]:size-10 transition-all">
-									<Logo className="size-8 group-data-[collapsible=icon]:size-10" />
-								</div>
-								<div className="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
-									<span className="truncate font-bold tracking-tight text-lg">
-										{title}
-									</span>
-								</div>
-							</SidebarMenuButton>
-						</SidebarMenuItem>
-					</SidebarMenu>
+		<SidebarProvider
+			className="bg-zinc-50 dark:bg-black"
+			style={
+				{
+					"--sidebar": "transparent",
+					"--sidebar-border": "transparent",
+				} as React.CSSProperties
+			}
+		>
+			<Sidebar
+				variant="inset"
+				collapsible="icon"
+				className="border-none bg-transparent"
+			>
+				<SidebarHeader className="p-4 pt-5 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:pt-5 border-b border-transparent">
+					<div className="flex w-full items-center justify-between group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-4">
+						<SidebarMenu className="flex-1">
+							<SidebarMenuItem>
+								<SidebarMenuButton
+									size="lg"
+									className="pointer-events-none group-data-[collapsible=icon]:!justify-center group-data-[collapsible=icon]:!bg-transparent group-data-[collapsible=icon]:!p-0"
+								>
+									<div className="flex aspect-square size-8 items-center justify-center group-data-[collapsible=icon]:size-10 transition-all">
+										<Logo className="size-8 group-data-[collapsible=icon]:size-10" />
+									</div>
+									<div className="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden mt-0.5">
+										<span className="truncate font-bold tracking-tight text-[15px]">
+											SEPMS
+										</span>
+										<span className="truncate text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
+											{getPortalName()}
+										</span>
+									</div>
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+						</SidebarMenu>
+
+						{/* Desktop Sidebar Resizer Icon */}
+						<SidebarTrigger className="hidden md:flex ml-auto group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:mb-2" />
+					</div>
 				</SidebarHeader>
 
-				<SidebarContent className="px-3 py-4 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:items-center">
+				<SidebarContent className="px-3 py-2 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:items-center">
 					<SidebarGroup className="group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:items-center mt-2">
 						<SidebarGroupContent className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:items-center">
 							<SidebarMenu className="gap-2 group-data-[collapsible=icon]:items-center">
@@ -253,12 +295,60 @@ export default function DashboardLayout({
 				<SidebarRail />
 			</Sidebar>
 
-			<SidebarInset>
-				<header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between gap-2 border-b bg-background/80 backdrop-blur-xl px-4 sm:px-6 lg:px-8">
+			<SidebarInset className="md:m-3 md:ml-0 md:peer-data-[state=collapsed]:ml-3 md:rounded-[1.5rem] md:border border-black/5 dark:border-white/10 shadow-sm md:shadow-xl overflow-hidden bg-white dark:bg-zinc-950">
+				<header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between gap-2 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl px-4 sm:px-6 lg:px-8 border-b border-black/5 dark:border-white/5 md:border-none">
 					<div className="flex items-center gap-2">
-						<SidebarTrigger className="-ml-2" />
-						<Separator orientation="vertical" className="mr-2 h-4" />
-						<h1 className="text-sm font-semibold">{title}</h1>
+						{/* Mobile-only Trigger */}
+						<SidebarTrigger className="md:hidden -ml-2" />
+						<Separator orientation="vertical" className="mr-2 h-4 md:hidden" />
+						<Breadcrumb>
+							<BreadcrumbList>
+								{pathSegments.map((segment, index) => {
+									const href = `/${pathSegments.slice(0, index + 1).join("/")}`;
+									const isLast = index === pathSegments.length - 1;
+
+									// Format: capitalize and replace dashes with spaces
+									let segmentName =
+										segment.charAt(0).toUpperCase() +
+										segment.slice(1).replace(/-/g, " ");
+
+									// Special case for Superadmin
+									if (
+										index === 0 &&
+										segment === "admin" &&
+										userProfile?.adminLevel === "super_admin"
+									) {
+										segmentName = "Superadmin";
+									}
+
+									return (
+										<Fragment key={href}>
+											<BreadcrumbItem
+												className={index === 0 ? "hidden sm:block" : ""}
+											>
+												{!isLast ? (
+													<BreadcrumbLink
+														asChild
+														className="font-medium text-muted-foreground"
+													>
+														<Link href={href}>{segmentName}</Link>
+													</BreadcrumbLink>
+												) : (
+													<BreadcrumbPage className="font-semibold tracking-tight">
+														{segmentName}
+													</BreadcrumbPage>
+												)}
+											</BreadcrumbItem>
+											{!isLast && (
+												<BreadcrumbSeparator
+													className={index === 0 ? "hidden sm:block" : ""}
+												/>
+											)}
+										</Fragment>
+									);
+								})}
+							</BreadcrumbList>
+						</Breadcrumb>
 					</div>
 
 					<div className="flex items-center gap-2">

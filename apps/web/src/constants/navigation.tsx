@@ -1,20 +1,21 @@
 import {
-	BarChart3,
-	CalendarDays,
-	Compass,
-	FileText,
-	Gauge,
-	Heart,
-	Mail,
-	MessageCircle,
-	PenTool,
-	PieChart,
-	Settings,
-	ShieldAlert,
-	Sparkles,
-	UserCircle,
-	Users,
-	Wallet,
+	AlertTriangle,
+	Bookmark,
+	BriefcaseBusiness,
+	CalendarRange,
+	CircleDollarSign,
+	FileStack,
+	Inbox,
+	Landmark,
+	LayoutDashboard,
+	MessageSquare,
+	Rocket,
+	SlidersHorizontal,
+	Target,
+	Telescope,
+	User,
+	UsersRound,
+	Zap,
 } from "lucide-react";
 
 /* ── Entrepreneur Sidebar Navigation ── */
@@ -22,42 +23,42 @@ export const ENTREPRENEUR_NAV = [
 	{
 		label: "Dashboard",
 		href: "/entrepreneur/dashboard",
-		icon: <Gauge className="h-4 w-4" />,
+		icon: <LayoutDashboard className="h-4 w-4" />,
 	},
 	{
 		label: "New Pitch",
 		href: "/entrepreneur/pitch/new",
-		icon: <PenTool className="h-4 w-4" />,
+		icon: <Rocket className="h-4 w-4" />,
 	},
 	{
 		label: "Messages",
 		href: "/entrepreneur/messages",
-		icon: <MessageCircle className="h-4 w-4" />,
+		icon: <MessageSquare className="h-4 w-4" />,
 	},
 	{
 		label: "Meetings",
 		href: "/entrepreneur/meetings",
-		icon: <CalendarDays className="h-4 w-4" />,
+		icon: <CalendarRange className="h-4 w-4" />,
 	},
 	{
 		label: "Milestones",
 		href: "/entrepreneur/milestones",
-		icon: <FileText className="h-4 w-4" />,
+		icon: <Target className="h-4 w-4" />,
 	},
 	{
 		label: "Earnings",
 		href: "/entrepreneur/earnings",
-		icon: <Wallet className="h-4 w-4" />,
+		icon: <CircleDollarSign className="h-4 w-4" />,
 	},
 	{
 		label: "Invitations",
 		href: "/entrepreneur/invitations",
-		icon: <Mail className="h-4 w-4" />,
+		icon: <Inbox className="h-4 w-4" />,
 	},
 	{
 		label: "Profile",
 		href: "/entrepreneur/profile",
-		icon: <UserCircle className="h-4 w-4" />,
+		icon: <User className="h-4 w-4" />,
 	},
 ];
 
@@ -66,42 +67,42 @@ export const INVESTOR_NAV = [
 	{
 		label: "Feed",
 		href: "/investor/feed",
-		icon: <Compass className="h-4 w-4" />,
+		icon: <Telescope className="h-4 w-4" />,
 	},
 	{
 		label: "My Matches",
 		href: "/investor/matches",
-		icon: <Sparkles className="h-4 w-4" />,
+		icon: <Zap className="h-4 w-4" />,
 	},
 	{
 		label: "Portfolio",
 		href: "/investor/portfolio",
-		icon: <PieChart className="h-4 w-4" />,
+		icon: <BriefcaseBusiness className="h-4 w-4" />,
 	},
 	{
 		label: "Milestones",
 		href: "/investor/milestones",
-		icon: <FileText className="h-4 w-4" />,
+		icon: <Target className="h-4 w-4" />,
 	},
 	{
 		label: "Invitations",
 		href: "/investor/invitations",
-		icon: <Mail className="h-4 w-4" />,
+		icon: <Inbox className="h-4 w-4" />,
 	},
 	{
 		label: "Saved",
 		href: "/investor/saved",
-		icon: <Heart className="h-4 w-4" />,
+		icon: <Bookmark className="h-4 w-4" />,
 	},
 	{
 		label: "Messages",
 		href: "/investor/messages",
-		icon: <MessageCircle className="h-4 w-4" />,
+		icon: <MessageSquare className="h-4 w-4" />,
 	},
 	{
 		label: "Profile",
 		href: "/investor/profile",
-		icon: <UserCircle className="h-4 w-4" />,
+		icon: <User className="h-4 w-4" />,
 	},
 ];
 
@@ -110,36 +111,41 @@ export const ADMIN_NAV = [
 	{
 		label: "Overview",
 		href: "/admin/oversight",
-		icon: <Gauge className="h-4 w-4" />,
+		icon: <LayoutDashboard className="h-4 w-4" />,
 	},
 	{
 		label: "Finance",
 		href: "/admin/finance",
-		icon: <BarChart3 className="h-4 w-4" />,
+		icon: <Landmark className="h-4 w-4" />,
 	},
 	{
 		label: "Users",
 		href: "/admin/users",
-		icon: <Users className="h-4 w-4" />,
+		icon: <UsersRound className="h-4 w-4" />,
 	},
 	{
 		label: "Submissions",
 		href: "/admin/submissions",
-		icon: <FileText className="h-4 w-4" />,
+		icon: <FileStack className="h-4 w-4" />,
 	},
 	{
 		label: "Reports",
 		href: "/admin/reports",
-		icon: <ShieldAlert className="h-4 w-4" />,
+		icon: <AlertTriangle className="h-4 w-4" />,
 	},
 	{
 		label: "Messages",
 		href: "/admin/messages",
-		icon: <MessageCircle className="h-4 w-4" />,
+		icon: <MessageSquare className="h-4 w-4" />,
+	},
+	{
+		label: "Profile",
+		href: "/admin/profile",
+		icon: <User className="h-4 w-4" />,
 	},
 	{
 		label: "Settings",
 		href: "/admin/settings",
-		icon: <Settings className="h-4 w-4" />,
+		icon: <SlidersHorizontal className="h-4 w-4" />,
 	},
 ];
