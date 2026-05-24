@@ -3,6 +3,7 @@
 import {
 	AlertCircle,
 	ArrowRight,
+	Briefcase,
 	CheckCircle2,
 	Clock,
 	FileCheck,
@@ -359,10 +360,14 @@ function InvestorProfilePageInner() {
 					</div>
 				</div>
 
-				<div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+				<div>
 					<div>
 						<Tabs value={activeTab} onValueChange={setActiveTab}>
-							<TabsList className="w-full justify-start h-10 mb-6">
+							<TabsList className="w-full justify-start h-auto flex-wrap sm:h-10 mb-6">
+								<TabsTrigger value="overview" className="gap-1.5 text-xs">
+									<Briefcase className="h-3.5 w-3.5" />
+									Overview
+								</TabsTrigger>
 								<TabsTrigger value="personal" className="gap-1.5 text-xs">
 									<UserIcon className="h-3.5 w-3.5" />
 									Personal Info
@@ -379,103 +384,442 @@ function InvestorProfilePageInner() {
 								</TabsTrigger>
 							</TabsList>
 
-							<TabsContent value="verification" className="space-y-6 mt-0">
-								{isVerified && (
-									<div className="rounded-xl border border-green-500/20 bg-green-500/5 p-4 flex items-center gap-3">
-										<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-500/10">
-											<CheckCircle2 className="h-5 w-5 text-green-500" />
+							{/* ─── Overview Tab ─── */}
+							<TabsContent value="overview" className="space-y-6 mt-0">
+								<Card>
+									<CardHeader className="pb-3">
+										<CardTitle className="text-base flex items-center gap-2">
+											<Briefcase className="h-4 w-4 text-primary" />
+											Professional Overview
+										</CardTitle>
+										<CardDescription>
+											Public profile and investment preferences
+										</CardDescription>
+									</CardHeader>
+									<CardContent className="space-y-6">
+										<div className="grid gap-4 sm:grid-cols-2">
+											<div className="space-y-2">
+												<Label className="text-sm text-muted-foreground">
+													Investment Firm
+												</Label>
+												<p className="font-medium">
+													{profileData?.investmentFirm || "Not specified"}
+												</p>
+											</div>
+											<div className="space-y-2">
+												<Label className="text-sm text-muted-foreground">
+													Position
+												</Label>
+												<p className="font-medium">
+													{profileData?.position || "Not specified"}
+												</p>
+											</div>
+											<div className="space-y-2">
+												<Label className="text-sm text-muted-foreground">
+													Years of Experience
+												</Label>
+												<p className="font-medium">
+													{profileData?.yearsExperience
+														? `${profileData.yearsExperience} years`
+														: "Not specified"}
+												</p>
+											</div>
+											<div className="space-y-2">
+												<Label className="text-sm text-muted-foreground">
+													Investment Range
+												</Label>
+												<p className="font-medium">
+													$
+													{profileData?.investmentRange?.min?.toLocaleString() ||
+														0}{" "}
+													- $
+													{profileData?.investmentRange?.max?.toLocaleString() ||
+														"1,000,000"}
+												</p>
+											</div>
 										</div>
-										<div>
-											<p className="text-sm font-semibold text-green-700 dark:text-green-400">
-												Verification Complete
-											</p>
-											<p className="text-xs text-muted-foreground">
-												Your identity and accreditation documents have been
-												verified by an administrator.
-											</p>
+
+										<div className="space-y-4">
+											<div className="space-y-2">
+												<Label className="text-sm text-muted-foreground">
+													Preferred Sectors
+												</Label>
+												<div className="flex flex-wrap gap-2">
+													{profileData?.preferredSectors?.length > 0 ? (
+														profileData.preferredSectors.map(
+															(sector: string) => (
+																<Badge
+																	key={sector}
+																	variant="secondary"
+																	className="capitalize"
+																>
+																	{sector}
+																</Badge>
+															),
+														)
+													) : (
+														<p className="text-sm text-muted-foreground">
+															None specified
+														</p>
+													)}
+												</div>
+											</div>
+											<div className="space-y-2">
+												<Label className="text-sm text-muted-foreground">
+													Preferred Stages
+												</Label>
+												<div className="flex flex-wrap gap-2">
+													{profileData?.preferredStages?.length > 0 ? (
+														profileData.preferredStages.map((stage: string) => (
+															<Badge
+																key={stage}
+																variant="secondary"
+																className="capitalize"
+															>
+																{stage}
+															</Badge>
+														))
+													) : (
+														<p className="text-sm text-muted-foreground">
+															None specified
+														</p>
+													)}
+												</div>
+											</div>
 										</div>
+									</CardContent>
+								</Card>
+
+								<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+									<Card className="bg-primary/5 border-primary/10">
+										<CardHeader className="pb-2">
+											<CardTitle className="text-sm text-muted-foreground">
+												Portfolio Count
+											</CardTitle>
+										</CardHeader>
+										<CardContent>
+											<div className="text-2xl font-bold">
+												{profileData?.portfolioCount || 0}
+											</div>
+										</CardContent>
+									</Card>
+									<Card className="bg-blue-500/5 border-blue-500/10">
+										<CardHeader className="pb-2">
+											<CardTitle className="text-sm text-muted-foreground">
+												Previous Investments
+											</CardTitle>
+										</CardHeader>
+										<CardContent>
+											<div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+												{profileData?.previousInvestments || 0}
+											</div>
+										</CardContent>
+									</Card>
+									<Card className="bg-amber-500/5 border-amber-500/10">
+										<CardHeader className="pb-2">
+											<CardTitle className="text-sm text-muted-foreground">
+												Meetings
+											</CardTitle>
+										</CardHeader>
+										<CardContent>
+											<div className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+												{profileData?.meetingsAttended || 0}
+											</div>
+										</CardContent>
+									</Card>
+									<Card className="bg-green-500/5 border-green-500/10">
+										<CardHeader className="pb-2">
+											<CardTitle className="text-sm text-muted-foreground">
+												Total Invested
+											</CardTitle>
+										</CardHeader>
+										<CardContent>
+											<div className="text-2xl font-bold text-green-600 dark:text-green-400">
+												${(profileData?.totalInvested || 0).toLocaleString()}
+											</div>
+										</CardContent>
+									</Card>
+								</div>
+							</TabsContent>
+
+							<TabsContent value="verification" className="mt-0">
+								<div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+									<div className="space-y-6">
+										{userProfile?.status === "pending" && (
+											<Card className="border-blue-500/20 bg-blue-500/5">
+												<CardContent className="p-4 text-center space-y-3">
+													<Clock className="h-8 w-8 text-blue-500 mx-auto" />
+													<p className="text-sm font-medium">Under Review</p>
+													<p className="text-xs text-muted-foreground">
+														Your documents are being reviewed. You'll be
+														notified once your account is approved.
+													</p>
+													<Button
+														variant="outline"
+														size="sm"
+														className="w-full text-xs"
+														onClick={refreshUserProfile}
+													>
+														Check Status
+													</Button>
+												</CardContent>
+											</Card>
+										)}
+
+										{isVerified && (
+											<div className="rounded-xl border border-green-500/20 bg-green-500/5 p-4 flex items-center gap-3">
+												<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-500/10">
+													<CheckCircle2 className="h-5 w-5 text-green-500" />
+												</div>
+												<div>
+													<p className="text-sm font-semibold text-green-700 dark:text-green-400">
+														Verification Complete
+													</p>
+													<p className="text-xs text-muted-foreground">
+														Your identity and accreditation documents have been
+														verified by an administrator.
+													</p>
+												</div>
+											</div>
+										)}
+
+										{error && (
+											<Alert variant="destructive">
+												<AlertCircle className="h-4 w-4" />
+												<AlertDescription>{error}</AlertDescription>
+											</Alert>
+										)}
+
+										<Card>
+											<CardHeader className="pb-3">
+												<CardTitle className="text-base flex items-center gap-2">
+													<IdCard className="h-4 w-4 text-primary" />
+													Identity Verification
+												</CardTitle>
+												<CardDescription>
+													Upload a valid government-issued ID (National ID or
+													Driving License).
+												</CardDescription>
+											</CardHeader>
+											<CardContent>
+												<FileUploadCard
+													id="gov-id"
+													label="Government-Issued ID"
+													description="PDF or Image · Max 10MB"
+													file={files.governmentId}
+													existingUrl={profileData?.nationalIdUrl}
+													onChange={(e) => handleFileChange(e, "governmentId")}
+													onRemove={() => removeFile("governmentId")}
+													required
+												/>
+											</CardContent>
+										</Card>
+
+										<Card>
+											<CardHeader className="pb-3">
+												<CardTitle className="text-base flex items-center gap-2">
+													<FileText className="h-4 w-4 text-primary" />
+													Financial Accreditation
+												</CardTitle>
+												<CardDescription>
+													Upload your investment license or financial
+													accreditation document.
+												</CardDescription>
+											</CardHeader>
+											<CardContent>
+												<FileUploadCard
+													id="accreditation"
+													label="Accreditation / Investment License"
+													description="PDF or Image · Max 10MB"
+													file={files.accreditation}
+													existingUrl={profileData?.accreditationDocumentUrl}
+													onChange={(e) => handleFileChange(e, "accreditation")}
+													onRemove={() => removeFile("accreditation")}
+													required
+												/>
+											</CardContent>
+											{!isVerified && (
+												<CardFooter className="flex justify-end border-t pt-4">
+													<Button
+														onClick={handleSaveDocuments}
+														disabled={saving}
+														className="gap-2"
+													>
+														{saving ? (
+															<>
+																<Loader2 className="h-4 w-4 animate-spin" />
+																Saving...
+															</>
+														) : (
+															<>
+																<UploadCloud className="h-4 w-4" />
+																{userProfile?.status === "unverified"
+																	? "Save & Submit for Review"
+																	: "Save Changes"}
+															</>
+														)}
+													</Button>
+												</CardFooter>
+											)}
+										</Card>
 									</div>
-								)}
 
-								{error && (
-									<Alert variant="destructive">
-										<AlertCircle className="h-4 w-4" />
-										<AlertDescription>{error}</AlertDescription>
-									</Alert>
-								)}
+									{/* Right Column: Verification Progress */}
+									<div className="space-y-6">
+										<Card
+											className={`relative overflow-hidden ${
+												userProfile?.status === "verified"
+													? "bg-gradient-to-br from-green-500/5 via-transparent to-transparent border-green-500/20"
+													: userProfile?.status === "pending"
+														? "bg-gradient-to-br from-blue-500/5 via-transparent to-transparent border-blue-500/20"
+														: "bg-gradient-to-br from-primary/5 via-transparent to-transparent border-primary/10"
+											}`}
+										>
+											{userProfile?.status === "pending" && (
+												<div className="absolute -top-4 -right-4 p-4 opacity-5 pointer-events-none">
+													<Clock className="h-32 w-32 animate-pulse text-blue-500" />
+												</div>
+											)}
+											<CardHeader className="pb-3 relative z-10">
+												<div className="flex items-center justify-between">
+													<CardTitle className="text-base flex items-center gap-2">
+														<ShieldCheck className="h-5 w-5 text-primary" />
+														Verification Status
+													</CardTitle>
+													<Badge
+														variant={
+															userProfile?.status === "verified"
+																? "default"
+																: "outline"
+														}
+														className={`uppercase text-[10px] font-bold tracking-wider px-2 py-0.5 ${
+															userProfile?.status === "verified"
+																? "bg-green-500 hover:bg-green-600 text-white border-transparent shadow-sm"
+																: userProfile?.status === "pending"
+																	? "bg-blue-500/10 text-blue-600 border-blue-500/30"
+																	: "bg-muted text-muted-foreground border-muted-foreground/20"
+														}`}
+													>
+														{userProfile?.status === "verified"
+															? "VERIFIED"
+															: userProfile?.status === "pending"
+																? "UNDER REVIEW"
+																: "INCOMPLETE"}
+													</Badge>
+												</div>
+											</CardHeader>
+											<CardContent className="space-y-6 relative z-10">
+												<div className="space-y-2">
+													<div className="flex justify-between text-xs font-medium">
+														<span className="text-muted-foreground">
+															Overall Progress
+														</span>
+														<span
+															className={
+																userProfile?.status === "verified"
+																	? "text-green-600"
+																	: "text-primary"
+															}
+														>
+															{Math.round(progress)}%
+														</span>
+													</div>
+													<Progress
+														value={progress}
+														className={`h-2.5 rounded-full ${userProfile?.status === "verified" ? "[&>div]:bg-green-500" : ""}`}
+													/>
+												</div>
 
-								<Card>
-									<CardHeader className="pb-3">
-										<CardTitle className="text-base flex items-center gap-2">
-											<IdCard className="h-4 w-4 text-primary" />
-											Identity Verification
-										</CardTitle>
-										<CardDescription>
-											Upload a valid government-issued ID (National ID or
-											Driving License).
-										</CardDescription>
-									</CardHeader>
-									<CardContent>
-										<FileUploadCard
-											id="gov-id"
-											label="Government-Issued ID"
-											description="PDF or Image · Max 10MB"
-											file={files.governmentId}
-											existingUrl={profileData?.nationalIdUrl}
-											onChange={(e) => handleFileChange(e, "governmentId")}
-											onRemove={() => removeFile("governmentId")}
-											required
-										/>
-									</CardContent>
-								</Card>
+												<div className="relative pl-2">
+													<div className="absolute left-[19px] top-3 bottom-3 w-px bg-border/60" />
 
-								<Card>
-									<CardHeader className="pb-3">
-										<CardTitle className="text-base flex items-center gap-2">
-											<FileText className="h-4 w-4 text-primary" />
-											Financial Accreditation
-										</CardTitle>
-										<CardDescription>
-											Upload your investment license or financial accreditation
-											document.
-										</CardDescription>
-									</CardHeader>
-									<CardContent>
-										<FileUploadCard
-											id="accreditation"
-											label="Accreditation / Investment License"
-											description="PDF or Image · Max 10MB"
-											file={files.accreditation}
-											existingUrl={profileData?.accreditationDocumentUrl}
-											onChange={(e) => handleFileChange(e, "accreditation")}
-											onRemove={() => removeFile("accreditation")}
-											required
-										/>
-									</CardContent>
-									{!isVerified && (
-										<CardFooter className="flex justify-end border-t pt-4">
-											<Button
-												onClick={handleSaveDocuments}
-												disabled={saving}
-												className="gap-2"
-											>
-												{saving ? (
-													<>
-														<Loader2 className="h-4 w-4 animate-spin" />
-														Saving...
-													</>
-												) : (
-													<>
-														<UploadCloud className="h-4 w-4" />
-														{userProfile?.status === "unverified"
-															? "Save & Submit for Review"
-															: "Save Changes"}
-													</>
+													<div className="space-y-4">
+														{steps.map((step) => {
+															const isPending =
+																userProfile?.status === "pending" &&
+																step.label === "Admin Approved";
+															const isDone = step.done;
+
+															return (
+																<div
+																	key={step.label}
+																	className="relative z-10 flex items-start gap-3"
+																>
+																	<div
+																		className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-background ${
+																			isDone
+																				? "text-green-500"
+																				: isPending
+																					? "text-blue-500 shadow-[0_0_0_3px_rgba(59,130,246,0.15)] ring-1 ring-blue-500/30"
+																					: "text-muted-foreground ring-1 ring-muted-foreground/20"
+																		}`}
+																	>
+																		{isDone ? (
+																			<CheckCircle2 className="h-7 w-7 bg-background rounded-full" />
+																		) : isPending ? (
+																			<Clock className="h-4 w-4 animate-pulse" />
+																		) : (
+																			<div className="h-2 w-2 rounded-full bg-muted-foreground/30" />
+																		)}
+																	</div>
+																	<div className="flex flex-col pt-1">
+																		<span
+																			className={`text-sm font-semibold ${isDone || isPending ? "text-foreground" : "text-muted-foreground"}`}
+																		>
+																			{step.label}
+																		</span>
+																		{isPending && (
+																			<span className="text-[10px] text-blue-500 font-bold tracking-wide uppercase mt-0.5">
+																				Under review
+																			</span>
+																		)}
+																		{isDone && (
+																			<span className="text-[10px] text-green-500 font-bold tracking-wide uppercase mt-0.5">
+																				Completed
+																			</span>
+																		)}
+																	</div>
+																</div>
+															);
+														})}
+													</div>
+												</div>
+												{userProfile?.kycRejectionReason && (
+													<Alert
+														variant="destructive"
+														className="mt-3 border-destructive/30 bg-destructive/5"
+													>
+														<AlertCircle className="h-4 w-4" />
+														<AlertDescription className="text-xs">
+															{userProfile.kycRejectionReason}
+														</AlertDescription>
+													</Alert>
 												)}
-											</Button>
-										</CardFooter>
-									)}
-								</Card>
+											</CardContent>
+										</Card>
+
+										{userProfile?.status === "pending" && (
+											<Card className="border-blue-500/20 bg-blue-500/5">
+												<CardContent className="p-4 text-center space-y-3">
+													<Clock className="h-8 w-8 text-blue-500 mx-auto" />
+													<p className="text-sm font-medium">Under Review</p>
+													<p className="text-xs text-muted-foreground">
+														Your documents are being reviewed. You'll be
+														notified once your account is approved.
+													</p>
+													<Button
+														variant="outline"
+														size="sm"
+														className="w-full text-xs"
+														onClick={refreshUserProfile}
+													>
+														Check Status
+													</Button>
+												</CardContent>
+											</Card>
+										)}
+									</div>
+								</div>
 							</TabsContent>
 
 							<TabsContent value="personal" className="space-y-6 mt-0">
@@ -574,75 +918,6 @@ function InvestorProfilePageInner() {
 								</Card>
 							</TabsContent>
 						</Tabs>
-					</div>
-
-					{/* Sidebar */}
-					<div className="space-y-6">
-						<Card className="border-primary/10">
-							<CardHeader className="pb-3">
-								<div className="flex items-center justify-between">
-									<CardTitle className="text-base flex items-center gap-2">
-										<ShieldCheck className="h-4 w-4 text-primary" />
-										Verification
-									</CardTitle>
-									<Badge
-										variant="outline"
-										className={`capitalize text-xs ${
-											userProfile?.status === "verified"
-												? "bg-green-500/10 text-green-600 border-green-500/20"
-												: userProfile?.status === "pending"
-													? "bg-blue-500/10 text-blue-600 border-blue-500/20"
-													: ""
-										}`}
-									>
-										{userProfile?.status === "verified"
-											? "✓ Verified"
-											: userProfile?.status === "pending"
-												? "⏳ Under Review"
-												: "Incomplete"}
-									</Badge>
-								</div>
-							</CardHeader>
-							<CardContent className="space-y-4">
-								<div className="space-y-2">
-									<div className="flex justify-between text-xs text-muted-foreground">
-										<span>Progress</span>
-										<span>{Math.round(progress)}%</span>
-									</div>
-									<Progress value={progress} className="h-2" />
-								</div>
-								<div className="space-y-2.5">
-									{steps.map((step) => (
-										<div key={step.label} className="flex items-center gap-2.5">
-											{step.done ? (
-												<CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
-											) : userProfile?.status === "pending" &&
-												step.label === "Admin Approved" ? (
-												<Clock className="h-4 w-4 text-blue-500 shrink-0 animate-pulse" />
-											) : (
-												<div className="h-4 w-4 rounded-full border-2 border-muted-foreground/20 shrink-0" />
-											)}
-											<span
-												className={`text-sm ${step.done ? "text-foreground" : "text-muted-foreground"}`}
-											>
-												{step.label}
-											</span>
-										</div>
-									))}
-								</div>
-								{userProfile?.kycRejectionReason && (
-									<Alert
-										variant="destructive"
-										className="mt-3 border-destructive/30 bg-destructive/5"
-									>
-										<AlertCircle className="h-4 w-4" />
-										<AlertDescription className="text-xs">
-											{userProfile.kycRejectionReason}
-										</AlertDescription>
-									</Alert>
-								)}
-							</CardContent>
-						</Card>
 					</div>
 				</div>
 			</DashboardLayout>
