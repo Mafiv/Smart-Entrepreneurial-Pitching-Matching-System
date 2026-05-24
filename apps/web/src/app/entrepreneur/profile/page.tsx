@@ -177,64 +177,114 @@ function VerificationProgress({
 	const completedCount = steps.filter((s) => s.done).length;
 	const progress = (completedCount / steps.length) * 100;
 
+	const bgGradient =
+		status === "verified"
+			? "bg-gradient-to-br from-green-500/5 via-transparent to-transparent border-green-500/20"
+			: status === "pending"
+				? "bg-gradient-to-br from-blue-500/5 via-transparent to-transparent border-blue-500/20"
+				: "bg-gradient-to-br from-primary/5 via-transparent to-transparent border-primary/10";
+
 	return (
-		<Card className="border-primary/10">
-			<CardHeader className="pb-3">
+		<Card className={`relative overflow-hidden ${bgGradient}`}>
+			{status === "pending" && (
+				<div className="absolute -top-4 -right-4 p-4 opacity-5 pointer-events-none">
+					<Clock className="h-32 w-32 animate-pulse text-blue-500" />
+				</div>
+			)}
+			<CardHeader className="pb-3 relative z-10">
 				<div className="flex items-center justify-between">
 					<CardTitle className="text-base flex items-center gap-2">
-						<ShieldCheck className="h-4 w-4 text-primary" />
+						<ShieldCheck className="h-5 w-5 text-primary" />
 						Verification Status
 					</CardTitle>
 					<Badge
-						variant={
+						variant={status === "verified" ? "default" : "outline"}
+						className={`uppercase text-[10px] font-bold tracking-wider px-2 py-0.5 ${
 							status === "verified"
-								? "default"
+								? "bg-green-500 hover:bg-green-600 text-white border-transparent shadow-sm"
 								: status === "pending"
-									? "secondary"
-									: "outline"
-						}
-						className={`capitalize text-xs ${
-							status === "verified"
-								? "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20"
-								: status === "pending"
-									? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
-									: ""
+									? "bg-blue-500/10 text-blue-600 border-blue-500/30"
+									: "bg-muted text-muted-foreground border-muted-foreground/20"
 						}`}
 					>
 						{status === "verified"
-							? "✓ Verified"
+							? "VERIFIED"
 							: status === "pending"
-								? "⏳ Under Review"
-								: "Incomplete"}
+								? "UNDER REVIEW"
+								: "INCOMPLETE"}
 					</Badge>
 				</div>
 			</CardHeader>
-			<CardContent className="space-y-4">
+			<CardContent className="space-y-6 relative z-10">
 				<div className="space-y-2">
-					<div className="flex justify-between text-xs text-muted-foreground">
-						<span>Progress</span>
-						<span>{Math.round(progress)}%</span>
+					<div className="flex justify-between text-xs font-medium">
+						<span className="text-muted-foreground">Overall Progress</span>
+						<span
+							className={
+								status === "verified" ? "text-green-600" : "text-primary"
+							}
+						>
+							{Math.round(progress)}%
+						</span>
 					</div>
-					<Progress value={progress} className="h-2" />
+					<Progress
+						value={progress}
+						className={`h-2.5 rounded-full ${status === "verified" ? "[&>div]:bg-green-500" : ""}`}
+					/>
 				</div>
 
-				<div className="space-y-2.5">
-					{steps.map((step) => (
-						<div key={step.label} className="flex items-center gap-2.5">
-							{step.done ? (
-								<CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
-							) : status === "pending" && step.label === "Admin Approved" ? (
-								<Clock className="h-4 w-4 text-blue-500 shrink-0 animate-pulse" />
-							) : (
-								<div className="h-4 w-4 rounded-full border-2 border-muted-foreground/20 shrink-0" />
-							)}
-							<span
-								className={`text-sm ${step.done ? "text-foreground" : "text-muted-foreground"}`}
-							>
-								{step.label}
-							</span>
-						</div>
-					))}
+				<div className="relative pl-2">
+					<div className="absolute left-[19px] top-3 bottom-3 w-px bg-border/60" />
+
+					<div className="space-y-4">
+						{steps.map((step) => {
+							const isPending =
+								status === "pending" && step.label === "Admin Approved";
+							const isDone = step.done;
+
+							return (
+								<div
+									key={step.label}
+									className="relative z-10 flex items-start gap-3"
+								>
+									<div
+										className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-background ${
+											isDone
+												? "text-green-500"
+												: isPending
+													? "text-blue-500 shadow-[0_0_0_3px_rgba(59,130,246,0.15)] ring-1 ring-blue-500/30"
+													: "text-muted-foreground ring-1 ring-muted-foreground/20"
+										}`}
+									>
+										{isDone ? (
+											<CheckCircle2 className="h-7 w-7 bg-background rounded-full" />
+										) : isPending ? (
+											<Clock className="h-4 w-4 animate-pulse" />
+										) : (
+											<div className="h-2 w-2 rounded-full bg-muted-foreground/30" />
+										)}
+									</div>
+									<div className="flex flex-col pt-1">
+										<span
+											className={`text-sm font-semibold ${isDone || isPending ? "text-foreground" : "text-muted-foreground"}`}
+										>
+											{step.label}
+										</span>
+										{isPending && (
+											<span className="text-[10px] text-blue-500 font-bold tracking-wide uppercase mt-0.5">
+												Under review
+											</span>
+										)}
+										{isDone && (
+											<span className="text-[10px] text-green-500 font-bold tracking-wide uppercase mt-0.5">
+												Completed
+											</span>
+										)}
+									</div>
+								</div>
+							);
+						})}
+					</div>
 				</div>
 
 				{rejectionReason && (
@@ -261,12 +311,12 @@ function EntrepreneurProfilePageInner() {
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const [activeTab, setActiveTab] = useState("personal");
+	const [activeTab, setActiveTab] = useState("overview");
 	const searchParams = useSearchParams();
 
 	useEffect(() => {
 		const tab = searchParams.get("tab");
-		if (tab === "verification" || tab === "personal") {
+		if (tab === "verification" || tab === "personal" || tab === "overview") {
 			setActiveTab(tab);
 		}
 	}, [searchParams]);
@@ -490,345 +540,468 @@ function EntrepreneurProfilePageInner() {
 					</div>
 				</div>
 
-				<div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-					{/* Main Content */}
-					<div>
-						<Tabs value={activeTab} onValueChange={setActiveTab}>
-							<TabsList className="w-full justify-start h-10 mb-6">
-								<TabsTrigger value="personal" className="gap-1.5 text-xs">
-									<UserIcon className="h-3.5 w-3.5" />
-									Personal Info
-								</TabsTrigger>
-								<TabsTrigger value="verification" className="gap-1.5 text-xs">
-									<ShieldCheck className="h-3.5 w-3.5" />
-									Verification
-									{userProfile?.status !== "verified" && (
-										<span className="ml-1 h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
-									)}
-									{userProfile?.status === "verified" && (
-										<CheckCircle2 className="ml-1 h-3 w-3 text-green-500" />
-									)}
-								</TabsTrigger>
-							</TabsList>
+				<div>
+					<Tabs value={activeTab} onValueChange={setActiveTab}>
+						<TabsList className="w-full justify-start h-auto flex-wrap sm:h-10 mb-6">
+							<TabsTrigger value="overview" className="gap-1.5 text-xs">
+								<Building2 className="h-3.5 w-3.5" />
+								Overview
+							</TabsTrigger>
+							<TabsTrigger value="personal" className="gap-1.5 text-xs">
+								<UserIcon className="h-3.5 w-3.5" />
+								Personal Info
+							</TabsTrigger>
+							<TabsTrigger value="verification" className="gap-1.5 text-xs">
+								<ShieldCheck className="h-3.5 w-3.5" />
+								Verification
+								{userProfile?.status !== "verified" && (
+									<span className="ml-1 h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+								)}
+								{userProfile?.status === "verified" && (
+									<CheckCircle2 className="ml-1 h-3 w-3 text-green-500" />
+								)}
+							</TabsTrigger>
+						</TabsList>
 
-							{/* ─── Verification Tab ─── */}
-							<TabsContent value="verification" className="space-y-6 mt-0">
-								{isVerified && (
-									<div className="rounded-xl border border-green-500/20 bg-green-500/5 p-4 flex items-center gap-3">
-										<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-500/10">
-											<CheckCircle2 className="h-5 w-5 text-green-500" />
-										</div>
-										<div>
-											<p className="text-sm font-semibold text-green-700 dark:text-green-400">
-												Verification Complete
+						{/* ─── Overview Tab ─── */}
+						<TabsContent value="overview" className="space-y-6 mt-0">
+							<Card>
+								<CardHeader className="pb-3">
+									<CardTitle className="text-base flex items-center gap-2">
+										<Building2 className="h-4 w-4 text-primary" />
+										Business Overview
+									</CardTitle>
+									<CardDescription>
+										Public profile and activity statistics
+									</CardDescription>
+								</CardHeader>
+								<CardContent className="space-y-6">
+									<div className="grid gap-4 sm:grid-cols-2">
+										<div className="space-y-2">
+											<Label className="text-sm text-muted-foreground">
+												Company Name
+											</Label>
+											<p className="font-medium">
+												{profileData?.companyName || "Not provided"}
 											</p>
-											<p className="text-xs text-muted-foreground">
-												Your identity and business documents have been verified
-												by an administrator.
+										</div>
+										<div className="space-y-2">
+											<Label className="text-sm text-muted-foreground">
+												Business Sector
+											</Label>
+											<p className="font-medium capitalize">
+												{profileData?.businessSector || "Other"}
+											</p>
+										</div>
+										<div className="space-y-2">
+											<Label className="text-sm text-muted-foreground">
+												Business Stage
+											</Label>
+											<p className="font-medium capitalize">
+												{profileData?.businessStage || "Not specified"}
+											</p>
+										</div>
+										<div className="space-y-2">
+											<Label className="text-sm text-muted-foreground">
+												Founded Year
+											</Label>
+											<p className="font-medium">
+												{profileData?.foundedYear || "Not specified"}
 											</p>
 										</div>
 									</div>
-								)}
+									{profileData?.description && (
+										<div className="space-y-2">
+											<Label className="text-sm text-muted-foreground">
+												Company Description
+											</Label>
+											<p className="text-sm">{profileData.description}</p>
+										</div>
+									)}
+								</CardContent>
+							</Card>
 
-								{error && (
-									<Alert variant="destructive">
-										<AlertCircle className="h-4 w-4" />
-										<AlertDescription>{error}</AlertDescription>
-									</Alert>
-								)}
-
-								{/* Identity Verification */}
-								<Card>
-									<CardHeader className="pb-3">
-										<CardTitle className="text-base flex items-center gap-2">
-											<IdCard className="h-4 w-4 text-primary" />
-											Identity Verification
+							<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+								<Card className="bg-primary/5 border-primary/10">
+									<CardHeader className="pb-2">
+										<CardTitle className="text-sm text-muted-foreground">
+											Total Pitches
 										</CardTitle>
-										<CardDescription>
-											Upload a valid government-issued ID. Accepted: National ID
-											(Fayda / Kebele ID) or Driving License.
-										</CardDescription>
 									</CardHeader>
 									<CardContent>
-										<FileUploadCard
-											id="gov-id"
-											label="Government-Issued ID"
-											description="PDF or Image · Max 10MB"
-											file={files.governmentId}
-											existingUrl={profileData?.nationalIdUrl}
-											onChange={(e) => handleFileChange(e, "governmentId")}
-											onRemove={() => removeFile("governmentId")}
-											required
-										/>
-									</CardContent>
-								</Card>
-
-								{/* Business Documents */}
-								<Card>
-									<CardHeader className="pb-3">
-										<CardTitle className="text-base flex items-center gap-2">
-											<Building2 className="h-4 w-4 text-primary" />
-											Business Documents
-										</CardTitle>
-										<CardDescription>
-											Upload your business registration certificate and TIN
-											certificate from the Ethiopian Revenue Authority.
-										</CardDescription>
-									</CardHeader>
-									<CardContent className="space-y-3">
-										<FileUploadCard
-											id="biz-license"
-											label="Business Registration Certificate"
-											description="PDF or Image · Certificate of Incorporation"
-											file={files.businessLicense}
-											existingUrl={profileData?.businessLicenseUrl}
-											onChange={(e) => handleFileChange(e, "businessLicense")}
-											onRemove={() => removeFile("businessLicense")}
-											required
-										/>
-										<FileUploadCard
-											id="tin-cert"
-											label="TIN Certificate"
-											description="PDF or Image · Tax Identification Number"
-											file={files.tinCertificate}
-											existingUrl={profileData?.tinNumber}
-											onChange={(e) => handleFileChange(e, "tinCertificate")}
-											onRemove={() => removeFile("tinCertificate")}
-											required
-										/>
-									</CardContent>
-								</Card>
-
-								{/* Company Details */}
-								<Card>
-									<CardHeader className="pb-3">
-										<CardTitle className="text-base flex items-center gap-2">
-											<Building2 className="h-4 w-4 text-primary" />
-											Company Details
-										</CardTitle>
-									</CardHeader>
-									<CardContent className="space-y-4">
-										<div className="space-y-2">
-											<Label htmlFor="company-name" className="text-sm">
-												Company Name <span className="text-destructive">*</span>
-											</Label>
-											<Input
-												id="company-name"
-												placeholder="e.g. Ethio Tech Solutions PLC"
-												value={companyName}
-												onChange={(e) => setCompanyName(e.target.value)}
-												className="h-10"
-												disabled={isVerified}
-											/>
-										</div>
-										<div className="space-y-2">
-											<Label htmlFor="company-desc" className="text-sm">
-												Brief Description
-											</Label>
-											<Input
-												id="company-desc"
-												placeholder="What does your company do?"
-												value={companyDescription}
-												onChange={(e) => setCompanyDescription(e.target.value)}
-												className="h-10"
-												disabled={isVerified}
-											/>
+										<div className="text-2xl font-bold">
+											{profileData?.totalPitches || 0}
 										</div>
 									</CardContent>
-									{!isVerified && (
-										<CardFooter className="flex justify-end border-t pt-4">
-											<Button
-												onClick={handleSaveDocuments}
-												disabled={saving}
-												className="gap-2"
-											>
-												{saving ? (
-													<>
-														<Loader2 className="h-4 w-4 animate-spin" />
-														Saving...
-													</>
-												) : (
-													<>
-														<UploadCloud className="h-4 w-4" />
-														{userProfile?.status === "unverified"
-															? "Save & Submit for Review"
-															: "Save Changes"}
-													</>
-												)}
-											</Button>
-										</CardFooter>
+								</Card>
+								<Card className="bg-blue-500/5 border-blue-500/10">
+									<CardHeader className="pb-2">
+										<CardTitle className="text-sm text-muted-foreground">
+											Active Pitches
+										</CardTitle>
+									</CardHeader>
+									<CardContent>
+										<div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+											{profileData?.activePitches || 0}
+										</div>
+									</CardContent>
+								</Card>
+								<Card className="bg-amber-500/5 border-amber-500/10">
+									<CardHeader className="pb-2">
+										<CardTitle className="text-sm text-muted-foreground">
+											Interested Investors
+										</CardTitle>
+									</CardHeader>
+									<CardContent>
+										<div className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+											{profileData?.interestedInvestors || 0}
+										</div>
+									</CardContent>
+								</Card>
+								<Card className="bg-green-500/5 border-green-500/10">
+									<CardHeader className="pb-2">
+										<CardTitle className="text-sm text-muted-foreground">
+											Total Views
+										</CardTitle>
+									</CardHeader>
+									<CardContent>
+										<div className="text-2xl font-bold text-green-600 dark:text-green-400">
+											{profileData?.totalViews || 0}
+										</div>
+									</CardContent>
+								</Card>
+							</div>
+						</TabsContent>
+
+						{/* ─── Verification Tab ─── */}
+						<TabsContent value="verification" className="mt-0">
+							<div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+								<div className="space-y-6">
+									{isVerified && (
+										<div className="rounded-xl border border-green-500/20 bg-green-500/5 p-4 flex items-center gap-3">
+											<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-500/10">
+												<CheckCircle2 className="h-5 w-5 text-green-500" />
+											</div>
+											<div>
+												<p className="text-sm font-semibold text-green-700 dark:text-green-400">
+													Verification Complete
+												</p>
+												<p className="text-xs text-muted-foreground">
+													Your identity and business documents have been
+													verified by an administrator.
+												</p>
+											</div>
+										</div>
 									)}
-								</Card>
-							</TabsContent>
 
-							{/* ─── Personal Info Tab ─── */}
-							<TabsContent value="personal" className="space-y-6 mt-0">
+									{error && (
+										<Alert variant="destructive">
+											<AlertCircle className="h-4 w-4" />
+											<AlertDescription>{error}</AlertDescription>
+										</Alert>
+									)}
+
+									{/* Identity Verification */}
+									<Card>
+										<CardHeader className="pb-3">
+											<CardTitle className="text-base flex items-center gap-2">
+												<IdCard className="h-4 w-4 text-primary" />
+												Identity Verification
+											</CardTitle>
+											<CardDescription>
+												Upload a valid government-issued ID. Accepted: National
+												ID (Fayda / Kebele ID) or Driving License.
+											</CardDescription>
+										</CardHeader>
+										<CardContent>
+											<FileUploadCard
+												id="gov-id"
+												label="Government-Issued ID"
+												description="PDF or Image · Max 10MB"
+												file={files.governmentId}
+												existingUrl={profileData?.nationalIdUrl}
+												onChange={(e) => handleFileChange(e, "governmentId")}
+												onRemove={() => removeFile("governmentId")}
+												required
+											/>
+										</CardContent>
+									</Card>
+
+									{/* Business Documents */}
+									<Card>
+										<CardHeader className="pb-3">
+											<CardTitle className="text-base flex items-center gap-2">
+												<Building2 className="h-4 w-4 text-primary" />
+												Business Documents
+											</CardTitle>
+											<CardDescription>
+												Upload your business registration certificate and TIN
+												certificate from the Ethiopian Revenue Authority.
+											</CardDescription>
+										</CardHeader>
+										<CardContent className="space-y-3">
+											<FileUploadCard
+												id="biz-license"
+												label="Business Registration Certificate"
+												description="PDF or Image · Certificate of Incorporation"
+												file={files.businessLicense}
+												existingUrl={profileData?.businessLicenseUrl}
+												onChange={(e) => handleFileChange(e, "businessLicense")}
+												onRemove={() => removeFile("businessLicense")}
+												required
+											/>
+											<FileUploadCard
+												id="tin-cert"
+												label="TIN Certificate"
+												description="PDF or Image · Tax Identification Number"
+												file={files.tinCertificate}
+												existingUrl={profileData?.tinNumber}
+												onChange={(e) => handleFileChange(e, "tinCertificate")}
+												onRemove={() => removeFile("tinCertificate")}
+												required
+											/>
+										</CardContent>
+									</Card>
+
+									{/* Company Details */}
+									<Card>
+										<CardHeader className="pb-3">
+											<CardTitle className="text-base flex items-center gap-2">
+												<Building2 className="h-4 w-4 text-primary" />
+												Company Details
+											</CardTitle>
+										</CardHeader>
+										<CardContent className="space-y-4">
+											<div className="space-y-2">
+												<Label htmlFor="company-name" className="text-sm">
+													Company Name{" "}
+													<span className="text-destructive">*</span>
+												</Label>
+												<Input
+													id="company-name"
+													placeholder="e.g. Ethio Tech Solutions PLC"
+													value={companyName}
+													onChange={(e) => setCompanyName(e.target.value)}
+													className="h-10"
+													disabled={isVerified}
+												/>
+											</div>
+											<div className="space-y-2">
+												<Label htmlFor="company-desc" className="text-sm">
+													Brief Description
+												</Label>
+												<Input
+													id="company-desc"
+													placeholder="What does your company do?"
+													value={companyDescription}
+													onChange={(e) =>
+														setCompanyDescription(e.target.value)
+													}
+													className="h-10"
+													disabled={isVerified}
+												/>
+											</div>
+										</CardContent>
+										{!isVerified && (
+											<CardFooter className="flex justify-end border-t pt-4">
+												<Button
+													onClick={handleSaveDocuments}
+													disabled={saving}
+													className="gap-2"
+												>
+													{saving ? (
+														<>
+															<Loader2 className="h-4 w-4 animate-spin" />
+															Saving...
+														</>
+													) : (
+														<>
+															<UploadCloud className="h-4 w-4" />
+															{userProfile?.status === "unverified"
+																? "Save & Submit for Review"
+																: "Save Changes"}
+														</>
+													)}
+												</Button>
+											</CardFooter>
+										)}
+									</Card>
+								</div>
+
+								{/* Right Column: Verification Progress */}
+								<div className="space-y-6">
+									<VerificationProgress
+										status={userProfile?.status || "unverified"}
+										hasGovId={!!profileData?.nationalIdUrl}
+										hasBusinessDocs={
+											!!(
+												profileData?.businessLicenseUrl &&
+												profileData?.tinNumber
+											)
+										}
+										emailVerified={!!userProfile?.emailVerified}
+										rejectionReason={
+											userProfile?.kycRejectionReason ?? undefined
+										}
+									/>
+
+									{userProfile?.status === "pending" && (
+										<Card className="border-blue-500/20 bg-blue-500/5">
+											<CardContent className="p-4 text-center space-y-3">
+												<Clock className="h-8 w-8 text-blue-500 mx-auto" />
+												<p className="text-sm font-medium">Under Review</p>
+												<p className="text-xs text-muted-foreground">
+													Your documents are being reviewed. You'll be notified
+													once your account is approved.
+												</p>
+												<Button
+													variant="outline"
+													size="sm"
+													className="w-full text-xs"
+													onClick={refreshUserProfile}
+												>
+													Check Status
+												</Button>
+											</CardContent>
+										</Card>
+									)}
+								</div>
+							</div>
+						</TabsContent>
+
+						{/* ─── Personal Info Tab ─── */}
+						<TabsContent value="personal" className="space-y-6 mt-0">
+							<Card>
+								<CardHeader className="pb-3">
+									<CardTitle className="text-base">
+										Personal Information
+									</CardTitle>
+									<CardDescription>
+										Update your account details below.
+									</CardDescription>
+								</CardHeader>
+								<CardContent className="space-y-6">
+									<div className="flex flex-col sm:flex-row items-start gap-6 pb-2">
+										<div className="shrink-0">
+											<Label className="text-sm text-muted-foreground block mb-3">
+												Profile Picture
+											</Label>
+											<ProfilePictureUpload size="h-20 w-20" />
+										</div>
+										<Separator
+											orientation="vertical"
+											className="hidden sm:block h-28"
+										/>
+										<Separator className="sm:hidden" />
+										<div className="flex-1 grid gap-4 sm:grid-cols-2 w-full">
+											<div className="space-y-2">
+												<Label htmlFor="ent-edit-name" className="text-sm">
+													Full Name
+												</Label>
+												<Input
+													id="ent-edit-name"
+													value={editName}
+													onChange={(e) => setEditName(e.target.value)}
+													placeholder="Your full name"
+												/>
+											</div>
+											<div className="space-y-2">
+												<Label className="text-sm text-muted-foreground">
+													Email Address
+												</Label>
+												<p className="text-sm font-medium flex items-center gap-1.5 pt-2">
+													{userProfile?.email}
+													{userProfile?.emailVerified && (
+														<CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+													)}
+												</p>
+												<p className="text-xs text-muted-foreground">
+													Email cannot be changed
+												</p>
+											</div>
+											<div className="space-y-2">
+												<Label className="text-sm text-muted-foreground">
+													Role
+												</Label>
+												<p className="text-sm font-medium capitalize pt-2">
+													{userProfile?.role}
+												</p>
+											</div>
+											<div className="space-y-2">
+												<Label className="text-sm text-muted-foreground">
+													Account Status
+												</Label>
+												<div className="pt-2">
+													<Badge
+														variant="outline"
+														className={`capitalize text-xs ${
+															userProfile?.status === "verified"
+																? "bg-green-500/10 text-green-600 border-green-500/20"
+																: userProfile?.status === "pending"
+																	? "bg-blue-500/10 text-blue-600 border-blue-500/20"
+																	: ""
+														}`}
+													>
+														{userProfile?.status}
+													</Badge>
+												</div>
+											</div>
+										</div>
+									</div>
+								</CardContent>
+								<CardFooter className="flex justify-end border-t pt-4">
+									<Button
+										onClick={handleUpdateProfile}
+										disabled={
+											savingProfile ||
+											editName.trim() === (userProfile?.displayName || "")
+										}
+										className="gap-2"
+									>
+										{savingProfile ? (
+											<>
+												<Loader2 className="h-4 w-4 animate-spin" /> Saving...
+											</>
+										) : (
+											<>
+												<Save className="h-4 w-4" /> Save Changes
+											</>
+										)}
+									</Button>
+								</CardFooter>
+							</Card>
+
+							{companyName && (
 								<Card>
 									<CardHeader className="pb-3">
 										<CardTitle className="text-base">
-											Personal Information
+											Business Information
 										</CardTitle>
-										<CardDescription>
-											Update your account details below.
-										</CardDescription>
 									</CardHeader>
-									<CardContent className="space-y-6">
-										<div className="flex flex-col sm:flex-row items-start gap-6 pb-2">
-											<div className="shrink-0">
-												<Label className="text-sm text-muted-foreground block mb-3">
-													Profile Picture
+									<CardContent>
+										<div className="grid gap-4 sm:grid-cols-2">
+											<div className="space-y-2">
+												<Label className="text-sm text-muted-foreground">
+													Company
 												</Label>
-												<ProfilePictureUpload size="h-20 w-20" />
+												<p className="text-sm font-medium">{companyName}</p>
 											</div>
-											<Separator
-												orientation="vertical"
-												className="hidden sm:block h-28"
-											/>
-											<Separator className="sm:hidden" />
-											<div className="flex-1 grid gap-4 sm:grid-cols-2 w-full">
-												<div className="space-y-2">
-													<Label htmlFor="ent-edit-name" className="text-sm">
-														Full Name
-													</Label>
-													<Input
-														id="ent-edit-name"
-														value={editName}
-														onChange={(e) => setEditName(e.target.value)}
-														placeholder="Your full name"
-													/>
-												</div>
+											{companyDescription && (
 												<div className="space-y-2">
 													<Label className="text-sm text-muted-foreground">
-														Email Address
+														Description
 													</Label>
-													<p className="text-sm font-medium flex items-center gap-1.5 pt-2">
-														{userProfile?.email}
-														{userProfile?.emailVerified && (
-															<CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-														)}
-													</p>
-													<p className="text-xs text-muted-foreground">
-														Email cannot be changed
+													<p className="text-sm text-muted-foreground">
+														{companyDescription}
 													</p>
 												</div>
-												<div className="space-y-2">
-													<Label className="text-sm text-muted-foreground">
-														Role
-													</Label>
-													<p className="text-sm font-medium capitalize pt-2">
-														{userProfile?.role}
-													</p>
-												</div>
-												<div className="space-y-2">
-													<Label className="text-sm text-muted-foreground">
-														Account Status
-													</Label>
-													<div className="pt-2">
-														<Badge
-															variant="outline"
-															className={`capitalize text-xs ${
-																userProfile?.status === "verified"
-																	? "bg-green-500/10 text-green-600 border-green-500/20"
-																	: userProfile?.status === "pending"
-																		? "bg-blue-500/10 text-blue-600 border-blue-500/20"
-																		: ""
-															}`}
-														>
-															{userProfile?.status}
-														</Badge>
-													</div>
-												</div>
-											</div>
+											)}
 										</div>
 									</CardContent>
-									<CardFooter className="flex justify-end border-t pt-4">
-										<Button
-											onClick={handleUpdateProfile}
-											disabled={
-												savingProfile ||
-												editName.trim() === (userProfile?.displayName || "")
-											}
-											className="gap-2"
-										>
-											{savingProfile ? (
-												<>
-													<Loader2 className="h-4 w-4 animate-spin" /> Saving...
-												</>
-											) : (
-												<>
-													<Save className="h-4 w-4" /> Save Changes
-												</>
-											)}
-										</Button>
-									</CardFooter>
 								</Card>
-
-								{companyName && (
-									<Card>
-										<CardHeader className="pb-3">
-											<CardTitle className="text-base">
-												Business Information
-											</CardTitle>
-										</CardHeader>
-										<CardContent>
-											<div className="grid gap-4 sm:grid-cols-2">
-												<div className="space-y-2">
-													<Label className="text-sm text-muted-foreground">
-														Company
-													</Label>
-													<p className="text-sm font-medium">{companyName}</p>
-												</div>
-												{companyDescription && (
-													<div className="space-y-2">
-														<Label className="text-sm text-muted-foreground">
-															Description
-														</Label>
-														<p className="text-sm text-muted-foreground">
-															{companyDescription}
-														</p>
-													</div>
-												)}
-											</div>
-										</CardContent>
-									</Card>
-								)}
-							</TabsContent>
-						</Tabs>
-					</div>
-
-					{/* Sidebar */}
-					<div className="space-y-6">
-						<VerificationProgress
-							status={userProfile?.status || "unverified"}
-							hasGovId={!!profileData?.nationalIdUrl}
-							hasBusinessDocs={
-								!!(profileData?.businessLicenseUrl && profileData?.tinNumber)
-							}
-							emailVerified={!!userProfile?.emailVerified}
-							rejectionReason={userProfile?.kycRejectionReason ?? undefined}
-						/>
-
-						{userProfile?.status === "pending" && (
-							<Card className="border-blue-500/20 bg-blue-500/5">
-								<CardContent className="p-4 text-center space-y-3">
-									<Clock className="h-8 w-8 text-blue-500 mx-auto" />
-									<p className="text-sm font-medium">Under Review</p>
-									<p className="text-xs text-muted-foreground">
-										Your documents are being reviewed. You'll be notified once
-										your account is approved.
-									</p>
-									<Button
-										variant="outline"
-										size="sm"
-										className="w-full text-xs"
-										onClick={refreshUserProfile}
-									>
-										Check Status
-									</Button>
-								</CardContent>
-							</Card>
-						)}
-					</div>
+							)}
+						</TabsContent>
+					</Tabs>
 				</div>
 			</DashboardLayout>
 		</ProtectedRoute>
