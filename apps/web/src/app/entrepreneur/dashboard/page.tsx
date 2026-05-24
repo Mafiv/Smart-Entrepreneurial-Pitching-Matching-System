@@ -90,6 +90,16 @@ function EntrepreneurDashboardInner() {
 		loadSubmissions();
 	}, [loadSubmissions]);
 
+	useEffect(() => {
+		if (justSubmitted) {
+			showSuccessToast(
+				"Pitch Submitted successfully!",
+				"Our AI will analyze it shortly.",
+			);
+			router.replace("/entrepreneur/dashboard");
+		}
+	}, [justSubmitted, router]);
+
 	const getSectorLabel = (value: string) =>
 		SECTORS.find((s) => s.value === value)?.label || value;
 
@@ -99,14 +109,6 @@ function EntrepreneurDashboardInner() {
 	return (
 		<ProtectedRoute allowedRoles={["entrepreneur"]}>
 			<DashboardLayout navItems={ENTREPRENEUR_NAV} title="SEPMS">
-				{/* Success banner */}
-				{justSubmitted && (
-					<div className="mb-6 rounded-lg border border-green-500/20 bg-green-500/10 p-4 text-sm">
-						🎉 Your pitch was submitted successfully! Our AI will analyze it
-						shortly.
-					</div>
-				)}
-
 				{/* Header */}
 				<div className="admin-greeting-card bg-card mb-8 p-6 sm:p-8 admin-content-fade">
 					<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

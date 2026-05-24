@@ -302,8 +302,8 @@ function ReviewPitchPageInner() {
 
 				<main className="mx-auto max-w-4xl px-4 py-8 pb-40 space-y-8">
 					{/* Title & Overview */}
-					<div className="admin-greeting-card bg-card p-8 rounded-2xl admin-content-fade shadow-sm text-center space-y-4">
-						<h1 className="text-3xl sm:text-4xl font-bold tracking-tight admin-header-gradient">
+					<div className="border border-border/50 bg-card/80 backdrop-blur-sm p-8 rounded-3xl shadow-sm text-center space-y-4 transition-shadow hover:shadow-md">
+						<h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
 							{submission.title}
 						</h1>
 						<div className="flex items-center justify-center gap-3 mt-4 flex-wrap">
@@ -322,7 +322,7 @@ function ReviewPitchPageInner() {
 
 					{/* Investment Requests section */}
 					{matchRequests.length > 0 && (
-						<div className="space-y-4 admin-content-fade">
+						<div className="space-y-4">
 							<h2 className="text-xl font-bold flex items-center gap-2">
 								<Handshake className="h-5 w-5 text-primary" />
 								Investment Requests
@@ -388,7 +388,7 @@ function ReviewPitchPageInner() {
 					<Separator />
 
 					{/* Summary */}
-					<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100 fill-mode-both border-0 shadow-md overflow-hidden">
+					<Card className="bg-card border border-border/50 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
 						<CardHeader className="bg-primary/5 border-b border-border/40 pb-4">
 							<CardTitle className="text-lg flex items-center gap-2">
 								<ClipboardList className="h-5 w-5" /> Executive Summary
@@ -445,7 +445,7 @@ function ReviewPitchPageInner() {
 					</Card>
 
 					{/* Problem */}
-					<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150 fill-mode-both border-0 shadow-md overflow-hidden">
+					<Card className="bg-card border border-border/50 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
 						<CardHeader className="bg-primary/5 border-b border-border/40 pb-4">
 							<CardTitle className="text-lg flex items-center gap-2">
 								<Search className="h-5 w-5" /> The Problem
@@ -474,7 +474,7 @@ function ReviewPitchPageInner() {
 					</Card>
 
 					{/* Solution */}
-					<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200 fill-mode-both border-0 shadow-md overflow-hidden">
+					<Card className="bg-card border border-border/50 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
 						<CardHeader className="bg-primary/5 border-b border-border/40 pb-4">
 							<CardTitle className="text-lg flex items-center gap-2">
 								<Lightbulb className="h-5 w-5" /> Solution
@@ -503,7 +503,7 @@ function ReviewPitchPageInner() {
 					</Card>
 
 					{/* Business Model */}
-					<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300 fill-mode-both border-0 shadow-md overflow-hidden">
+					<Card className="bg-card border border-border/50 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
 						<CardHeader className="bg-primary/5 border-b border-border/40 pb-4">
 							<CardTitle className="text-lg flex items-center gap-2">
 								<BarChart3 className="h-5 w-5" /> Business Model
@@ -533,7 +533,7 @@ function ReviewPitchPageInner() {
 					</Card>
 
 					{/* Financials */}
-					<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 delay-500 fill-mode-both border-0 shadow-md overflow-hidden">
+					<Card className="bg-card border border-border/50 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
 						<CardHeader className="bg-primary/5 border-b border-border/40 pb-4">
 							<CardTitle className="text-lg flex items-center gap-2">
 								<DollarSign className="h-5 w-5" /> Financials
@@ -578,7 +578,7 @@ function ReviewPitchPageInner() {
 					</Card>
 
 					{/* Documents & Completeness */}
-					<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 delay-700 fill-mode-both border-0 shadow-md overflow-hidden mb-32">
+					<Card className="bg-card border border-border/50 shadow-sm overflow-hidden hover:shadow-md transition-shadow mb-32">
 						<CardHeader className="bg-primary/5 border-b border-border/40 pb-4">
 							<div className="flex items-center justify-between">
 								<div>
@@ -674,76 +674,77 @@ function ReviewPitchPageInner() {
 							{/* Uploaded Files Details */}
 							<div>
 								<h4 className="font-medium text-sm mb-3">Files</h4>
-								{submission.documents && submission.documents.length > 0 ? (
+								{docStatuses && docStatuses.length > 0 ? (
 									<div className="space-y-3">
-										{submission.documents.map((doc, idx) => {
-											const docStatus = docStatuses.find(
-												(ds) => ds.filename === doc.name,
-											);
-											return (
-												<div
-													key={`${doc.name}-${idx}`}
-													className="flex items-center justify-between rounded-lg border p-3"
-												>
-													<div className="flex items-center gap-3 min-w-0">
-														<FileUp className="h-4 w-4 shrink-0 text-muted-foreground" />
-														<div className="min-w-0">
-															<p className="text-sm font-medium truncate">
-																{doc.name}
+										{docStatuses.map((doc) => (
+											<div
+												key={doc._id}
+												className="flex items-center justify-between rounded-lg border p-3"
+											>
+												<div className="flex items-center gap-3 min-w-0">
+													<FileUp className="h-4 w-4 shrink-0 text-muted-foreground" />
+													<div className="min-w-0">
+														<p className="text-sm font-medium truncate">
+															{doc.filename}
+														</p>
+														<p className="text-xs text-muted-foreground capitalize">
+															{doc.type.replace(/_/g, " ")}
+														</p>
+														{doc.processingError && (
+															<p className="text-xs text-destructive mt-1">
+																{doc.processingError}
 															</p>
-															<p className="text-xs text-muted-foreground capitalize">
-																{doc.type.replace(/_/g, " ")}
-															</p>
-															{docStatus?.processingError && (
-																<p className="text-xs text-destructive mt-1">
-																	{docStatus.processingError}
-																</p>
-															)}
-														</div>
-													</div>
-													<div className="flex items-center gap-2 shrink-0">
-														{docStatus?.status === "processed" && (
-															<Badge
-																variant="default"
-																className="gap-1 bg-emerald-600"
-															>
-																<CheckCircle2 className="h-3 w-3" /> Verified
-															</Badge>
 														)}
-														{docStatus?.status === "processing" && (
-															<Badge variant="secondary" className="gap-1">
-																<Loader2 className="h-3 w-3 animate-spin" />{" "}
-																Processing
-															</Badge>
-														)}
-														{docStatus?.status === "failed" && (
-															<Badge variant="destructive" className="gap-1">
-																<XCircle className="h-3 w-3" /> Failed
-															</Badge>
-														)}
-														{docStatus?.status === "flagged" && (
-															<Badge
-																variant="destructive"
-																className="gap-1 bg-amber-600 hover:bg-amber-700"
-															>
-																<XCircle className="h-3 w-3" /> Suspicious
-															</Badge>
-														)}
-														{(!docStatus ||
-															docStatus?.status === "uploaded") && (
-															<Badge variant="outline">Uploaded</Badge>
-														)}
-														<a
-															href={doc.url}
-															target="_blank"
-															rel="noopener noreferrer"
-														>
-															<ExternalLink className="h-4 w-4 text-muted-foreground hover:text-primary" />
-														</a>
 													</div>
 												</div>
-											);
-										})}
+												<div className="flex items-center gap-2 shrink-0">
+													{doc.status === "processed" && (
+														<Badge
+															variant="default"
+															className="gap-1 bg-emerald-600"
+														>
+															<CheckCircle2 className="h-3 w-3" /> Verified
+														</Badge>
+													)}
+													{doc.status === "processing" && (
+														<Badge variant="secondary" className="gap-1">
+															<Loader2 className="h-3 w-3 animate-spin" />{" "}
+															Processing
+														</Badge>
+													)}
+													{doc.status === "failed" && (
+														<Badge variant="destructive" className="gap-1">
+															<XCircle className="h-3 w-3" /> Failed
+														</Badge>
+													)}
+													{doc.status === "flagged" && (
+														<Badge
+															variant="destructive"
+															className="gap-1 bg-amber-600 hover:bg-amber-700"
+														>
+															<XCircle className="h-3 w-3" /> Suspicious
+														</Badge>
+													)}
+													{doc.status === "uploaded" && (
+														<Badge variant="outline">Uploaded</Badge>
+													)}
+													{(() => {
+														const submDoc = submission.documents?.find(
+															(d) => d.name === doc.filename,
+														);
+														return submDoc?.url ? (
+															<a
+																href={submDoc.url}
+																target="_blank"
+																rel="noopener noreferrer"
+															>
+																<ExternalLink className="h-4 w-4 text-muted-foreground hover:text-primary" />
+															</a>
+														) : null;
+													})()}
+												</div>
+											</div>
+										))}
 									</div>
 								) : (
 									<p className="text-sm text-muted-foreground">

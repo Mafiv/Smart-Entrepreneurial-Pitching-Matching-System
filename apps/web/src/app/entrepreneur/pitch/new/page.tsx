@@ -2,14 +2,17 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+	AlertCircle,
 	BarChart3,
 	CheckCircle2,
 	ClipboardList,
 	DollarSign,
+	FileText,
 	FileUp,
 	Lightbulb,
 	Loader2,
 	Search,
+	ShieldCheck,
 	Trash2,
 	XCircle,
 } from "lucide-react";
@@ -508,10 +511,21 @@ function NewPitchPageInner() {
 			case 5:
 				isValid = await financialsForm.trigger();
 				break;
-			case 6:
-				// Documents step — no form validation, just proceed
-				isValid = true;
+			case 6: {
+				const missingDocs = docCategories
+					.filter((d) => d.required)
+					.filter((d) => !uploadedDocs.some((u) => u.type === d.value));
+
+				if (missingDocs.length > 0) {
+					showErrorToast(
+						`Please upload all required documents: ${missingDocs.map((d) => d.label).join(", ")}`,
+					);
+					isValid = false;
+				} else {
+					isValid = true;
+				}
 				break;
+			}
 		}
 
 		if (isValid) {
@@ -1097,6 +1111,70 @@ function NewPitchPageInner() {
 											</CardDescription>
 										</CardHeader>
 										<CardContent className="px-6 sm:px-10 py-8 max-w-3xl space-y-8">
+											{/* KYC Business Verification Notice */}
+											<div className="rounded-xl border border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/40 p-4 flex gap-3">
+												<ShieldCheck className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+												<div className="space-y-1">
+													<p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+														Business Verification Required
+													</p>
+													<p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
+														To protect investors and maintain platform
+														integrity, every pitch requires a
+														<strong> TIN Certificate</strong> and{" "}
+														<strong>Business License</strong> issued to your
+														registered company. These documents must match the
+														business details on your pitch and will be carefully
+														reviewed by our admins before your pitch is
+														approved.
+													</p>
+												</div>
+											</div>
+
+											{/* Required Documents Checklist */}
+											<div className="space-y-3">
+												<h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+													<AlertCircle className="h-4 w-4 text-primary" />
+													Required for your stage
+												</h4>
+												<div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+													{docCategories
+														.filter((d) => d.required)
+														.map((doc) => {
+															const isUploaded = uploadedDocs.some(
+																(d) => d.type === doc.value,
+															);
+															const isKyc =
+																doc.value === "tin_certificate" ||
+																doc.value === "business_license";
+															return (
+																<div
+																	key={doc.value}
+																	className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+																		isUploaded
+																			? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400"
+																			: isKyc
+																				? "border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-400"
+																				: "border-border bg-muted/30 text-muted-foreground"
+																	}`}
+																>
+																	{isUploaded ? (
+																		<CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+																	) : (
+																		<FileText className="h-3.5 w-3.5 shrink-0" />
+																	)}
+																	<span>{doc.label}</span>
+																	{isKyc && !isUploaded && (
+																		<span className="ml-auto text-amber-600 dark:text-amber-400 font-bold">
+																			!
+																		</span>
+																	)}
+																</div>
+															);
+														})}
+												</div>
+											</div>
+
 											{!submissionId && (
 												<div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
 													Please save your pitch draft first (go back and fill
@@ -1144,7 +1222,7 @@ function NewPitchPageInner() {
 																			: "Click to browse and upload"}
 																	</p>
 																	<p className="text-xs text-muted-foreground">
-																		SVG, PNG, JPG, GIF up to 25MB
+																		PDF, JPG, PNG, PPTX, XLSX up to 25MB
 																	</p>
 																</div>
 																<Input
@@ -1221,9 +1299,10 @@ function NewPitchPageInner() {
 														<div className="rounded-lg border-2 border-dashed border-border p-8 text-center">
 															<FileUp className="mx-auto h-10 w-10 text-muted-foreground/50 mb-3" />
 															<p className="text-sm text-muted-foreground">
-																No documents uploaded yet. Upload your pitch
-																deck, financials, or legal docs to strengthen
-																your submission.
+																No documents uploaded yet. Start with your
+																<strong> TIN Certificate</strong> and{" "}
+																<strong>Business License</strong> — these are
+																mandatory for all pitches.
 															</p>
 														</div>
 													)}
