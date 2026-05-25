@@ -373,6 +373,30 @@ export const DocumentAnalysisService = {
 					"registration_number",
 					"date",
 				];
+			case "tin_certificate":
+				return [
+					"company_name",
+					"business_name",
+					"tin_number",
+					"tax_id",
+					"date",
+				];
+			case "business_license":
+				return [
+					"company_name",
+					"business_name",
+					"license_number",
+					"registration_number",
+					"date",
+				];
+			case "moa_aoa":
+				return [
+					"company_name",
+					"business_name",
+					"registration_number",
+					"person_name",
+					"date",
+				];
 			case "other":
 				return [
 					"company_name",

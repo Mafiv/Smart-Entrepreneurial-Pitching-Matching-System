@@ -1,5 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { DocumentModel } from "../models/Document";
+import { DocumentEntity } from "../models/DocumentEntity";
+import { EntrepreneurProfile } from "../models/EntrepreneurProfile";
 import { type ISubmission, Submission } from "../models/Submission";
 import type { IUser } from "../models/User";
 import { redactPII } from "../utils/redact-pii";

@@ -71,24 +71,21 @@ const API = (
 	process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api"
 ).replace(/\/+$/, "");
 
-function typeConfig(
-	type: string,
-	t: Record<string, any>
-): {
+function typeConfig(type: string): {
 	label: string;
 	variant: "default" | "secondary" | "outline" | "destructive";
 } {
 	switch (type) {
 		case "escrow_hold":
-			return { label: t.portfolio?.escrowHold || "Escrow Hold", variant: "secondary" };
+			return { label: "Escrow Hold", variant: "secondary" };
 		case "escrow_release":
-			return { label: t.portfolio?.escrowRelease || "Escrow Release", variant: "default" };
+			return { label: "Escrow Release", variant: "default" };
 		case "platform_fee":
-			return { label: t.portfolio?.platformFee || "Platform Fee", variant: "outline" };
+			return { label: "Platform Fee", variant: "outline" };
 		case "milestone_payout":
-			return { label: t.portfolio?.payout || "Payout", variant: "default" };
+			return { label: "Payout", variant: "default" };
 		case "milestone_refund":
-			return { label: t.portfolio?.refund || "Refund", variant: "destructive" };
+			return { label: "Refund", variant: "destructive" };
 		default:
 			return { label: type, variant: "outline" };
 	}
@@ -114,10 +111,10 @@ export default function InvestorPortfolioPage() {
 			if (data.status === "success") {
 				setSummary(data.summary);
 			} else {
-				showErrorToast(t.portfolio.failedToLoad);
+				showErrorToast("Failed to load portfolio summary");
 			}
 		} catch {
-			showErrorToast(t.portfolio.networkError);
+			showErrorToast(t.invitations.networkError);
 		} finally {
 			setLoading(false);
 		}
@@ -142,203 +139,232 @@ export default function InvestorPortfolioPage() {
 	return (
 		<ProtectedRoute allowedRoles={["investor"]}>
 			<DashboardLayout navItems={INVESTOR_NAV} title="Portfolio">
-				<div className="space-y-8">
+				<>
 					{/* Header */}
-					<div>
-						<h1 className="text-3xl font-bold tracking-tight admin-header-gradient flex items-center gap-2">
-							<PieChart className="h-8 w-8 text-primary" />
-							{t.nav.portfolio}
-						</h1>
-						<p className="text-muted-foreground mt-2">
-							{t.portfolio.subtitle}
-						</p>
+					<div className="admin-greeting-card bg-card mb-8 p-6 sm:p-8 admin-content-fade">
+						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+							<div>
+								<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient flex items-center gap-2">
+									<PieChart className="h-8 w-8 text-primary" />
+									Investment Portfolio
+								</h1>
+								<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
+									Track your commitments, escrow holdings, and investment
+									history.
+								</p>
+							</div>
+							<Badge
+								variant="outline"
+								className="text-xs font-medium gap-1.5 py-1 px-3 w-fit"
+							>
+								<Briefcase className="h-3.5 w-3.5" />
+								{summary.perProject.length} Active Projects
+							</Badge>
+						</div>
 					</div>
 
 					{/* Stats Cards */}
-					<div className="grid gap-4 md:grid-cols-3">
-						<Card className="admin-stat-card border-l-4 border-l-primary shadow-sm">
-							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-								<CardTitle className="text-sm font-medium">
-									{t.portfolio.totalCommitted}
-								</CardTitle>
-								<DollarSign className="h-4 w-4 text-primary" />
-							</CardHeader>
-							<CardContent>
-								<div className="text-2xl font-bold">
-									ETB {summary.totalCommitted.toLocaleString()}
+					<div className="admin-stat-grid grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-8">
+						<div className="admin-stat-card bg-card">
+							<div className="p-5">
+								<div className="flex items-center gap-3">
+									<div className="admin-icon-glow admin-icon-blue rounded-xl p-2.5 flex items-center justify-center shadow-sm">
+										<DollarSign className="h-4.5 w-4.5 text-white" />
+									</div>
+									<div className="min-w-0 flex-1">
+										<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
+											Total Committed
+										</p>
+										<p className="text-2xl font-bold tracking-tight truncate">
+											ETB {summary.totalCommitted.toLocaleString()}
+										</p>
+									</div>
 								</div>
-								<p className="text-xs text-muted-foreground mt-1">
-									{t.portfolio.totalCommittedDesc}
-								</p>
-							</CardContent>
-						</Card>
-						<Card className="admin-stat-card border-l-4 border-l-emerald-500 shadow-sm">
-							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-								<CardTitle className="text-sm font-medium">
-									{t.portfolio.totalReleased}
-								</CardTitle>
-								<TrendingUp className="h-4 w-4 text-emerald-500" />
-							</CardHeader>
-							<CardContent>
-								<div className="text-2xl font-bold">
-									ETB {summary.totalReleased.toLocaleString()}
+							</div>
+						</div>
+						<div className="admin-stat-card bg-card">
+							<div className="p-5">
+								<div className="flex items-center gap-3">
+									<div className="admin-icon-glow admin-icon-emerald rounded-xl p-2.5 flex items-center justify-center shadow-sm">
+										<TrendingUp className="h-4.5 w-4.5 text-white" />
+									</div>
+									<div className="min-w-0 flex-1">
+										<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
+											Total Released
+										</p>
+										<p className="text-2xl font-bold tracking-tight truncate">
+											ETB {summary.totalReleased.toLocaleString()}
+										</p>
+									</div>
 								</div>
-								<p className="text-xs text-muted-foreground mt-1">
-									{t.portfolio.totalReleasedDesc}
-								</p>
-							</CardContent>
-						</Card>
-						<Card className="admin-stat-card border-l-4 border-l-amber-500 shadow-sm">
-							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-								<CardTitle className="text-sm font-medium">
-									{t.portfolio.platformFees}
-								</CardTitle>
-								<BarChart3 className="h-4 w-4 text-amber-500" />
-							</CardHeader>
-							<CardContent>
-								<div className="text-2xl font-bold">
-									ETB {summary.platformFeesPaid.toLocaleString()}
+							</div>
+						</div>
+						<div className="admin-stat-card bg-card">
+							<div className="p-5">
+								<div className="flex items-center gap-3">
+									<div className="admin-icon-glow admin-icon-amber rounded-xl p-2.5 flex items-center justify-center shadow-sm">
+										<BarChart3 className="h-4.5 w-4.5 text-white" />
+									</div>
+									<div className="min-w-0 flex-1">
+										<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
+											Platform Fees
+										</p>
+										<p className="text-2xl font-bold tracking-tight truncate">
+											ETB {summary.platformFeesPaid.toLocaleString()}
+										</p>
+									</div>
 								</div>
-								<p className="text-xs text-muted-foreground mt-1">
-									{t.portfolio.platformFeesDesc}
-								</p>
-							</CardContent>
-						</Card>
+							</div>
+						</div>
 					</div>
 
 					{/* Projects Breakdown */}
-					<Card>
-						<CardHeader>
-							<CardTitle className="flex items-center gap-2">
-								<Briefcase className="h-5 w-5 text-primary" />
-								{t.portfolio.perProjectBreakdown}
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<Table>
-								<TableHeader>
+					<div className="mb-3">
+						<h2 className="text-lg font-semibold tracking-tight">
+							Per-Project Breakdown
+						</h2>
+					</div>
+					<div className="rounded-lg border bg-card overflow-hidden mb-8">
+						<Table>
+							<TableHeader>
+								<TableRow className="bg-muted/30">
+									<TableHead className="font-semibold">{t.portfolio.projectTitle}</TableHead>
+									<TableHead className="font-semibold text-center">
+										Milestones
+									</TableHead>
+									<TableHead className="font-semibold text-right">
+										Total Invested
+									</TableHead>
+									<TableHead className="font-semibold text-right">
+										Status
+									</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{summary.perProject.length === 0 ? (
 									<TableRow>
-										<TableHead>{t.portfolio.projectTitle}</TableHead>
-										<TableHead className="text-center">{t.portfolio.milestones}</TableHead>
-										<TableHead className="text-right">{t.portfolio.totalInvested}</TableHead>
-										<TableHead className="text-right">{t.portfolio.status}</TableHead>
+										<TableCell
+											colSpan={4}
+											className="text-center py-8 text-muted-foreground"
+										>
+											No investment data available for projects.
+										</TableCell>
 									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{summary.perProject.length === 0 ? (
-										<TableRow>
-											<TableCell
-												colSpan={4}
-												className="text-center py-8 text-muted-foreground"
-											>
-												{t.portfolio.noInvestmentData}
+								) : (
+									summary.perProject.map((project) => (
+										<TableRow
+											key={project.title}
+											className="group hover:bg-muted/30 transition-colors"
+										>
+											<TableCell>
+												<div className="font-medium text-sm text-foreground">
+													{project.title}
+												</div>
+											</TableCell>
+											<TableCell className="text-center text-sm text-muted-foreground">
+												{project.paidMilestones} / {project.milestoneCount}
+											</TableCell>
+											<TableCell className="text-right text-sm font-semibold text-foreground">
+												ETB {project.totalInvested.toLocaleString()}
+											</TableCell>
+											<TableCell className="text-right">
+												<Badge variant="outline" className="capitalize text-xs">
+													{project.escrowStatus === "none"
+														? "Active"
+														: project.escrowStatus}
+												</Badge>
 											</TableCell>
 										</TableRow>
-									) : (
-										summary.perProject.map((project) => (
-											<TableRow key={project.title}>
-												<TableCell className="font-medium">
-													{project.title}
-												</TableCell>
-												<TableCell className="text-center">
-													{project.paidMilestones} / {project.milestoneCount}
-												</TableCell>
-												<TableCell className="text-right font-semibold">
-													ETB {project.totalInvested.toLocaleString()}
-												</TableCell>
-												<TableCell className="text-right">
-													<Badge variant="outline" className="capitalize">
-														{project.escrowStatus === "none"
-															? t.portfolio.active
-															: project.escrowStatus}
-													</Badge>
-												</TableCell>
-											</TableRow>
-										))
-									)}
-								</TableBody>
-							</Table>
-						</CardContent>
-					</Card>
+									))
+								)}
+							</TableBody>
+						</Table>
+					</div>
 
 					{/* Recent Ledger Entries */}
-					<Card>
-						<CardHeader>
-							<CardTitle className="flex items-center gap-2">
-								<History className="h-5 w-5 text-primary" />
-								{t.portfolio.recentTransactions}
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<Table>
-								<TableHeader>
+					<div className="mb-3">
+						<h2 className="text-lg font-semibold tracking-tight">
+							Recent Transactions
+						</h2>
+					</div>
+					<div className="rounded-lg border bg-card overflow-hidden">
+						<Table>
+							<TableHeader>
+								<TableRow className="bg-muted/30">
+									<TableHead className="font-semibold">{t.adminFinance.date}</TableHead>
+									<TableHead className="font-semibold">{t.earnings.description}</TableHead>
+									<TableHead className="font-semibold">{t.portfolio.type}</TableHead>
+									<TableHead className="font-semibold text-right">
+										Amount
+									</TableHead>
+									<TableHead className="font-semibold text-right">
+										Status
+									</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{summary.recentLedger.length === 0 ? (
 									<TableRow>
-										<TableHead>{t.portfolio.date}</TableHead>
-										<TableHead>{t.portfolio.description}</TableHead>
-										<TableHead>{t.portfolio.type}</TableHead>
-										<TableHead className="text-right">{t.portfolio.amount}</TableHead>
-										<TableHead className="text-right">{t.portfolio.status}</TableHead>
+										<TableCell
+											colSpan={5}
+											className="text-center py-8 text-muted-foreground"
+										>
+											No transaction history found.
+										</TableCell>
 									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{summary.recentLedger.length === 0 ? (
-										<TableRow>
-											<TableCell
-												colSpan={5}
-												className="text-center py-8 text-muted-foreground"
+								) : (
+									summary.recentLedger.map((entry) => {
+										const cfg = typeConfig(entry.type);
+										return (
+											<TableRow
+												key={entry._id}
+												className="group hover:bg-muted/30 transition-colors"
 											>
-												{t.portfolio.noTransactions}
-											</TableCell>
-										</TableRow>
-									) : (
-										summary.recentLedger.map((entry) => {
-											const cfg = typeConfig(entry.type, t);
-											return (
-												<TableRow key={entry._id}>
-													<TableCell className="text-muted-foreground">
-														{new Date(entry.occurredAt).toLocaleDateString()}
-													</TableCell>
-													<TableCell>
-														<div className="font-medium">
-															{entry.description}
-														</div>
-														{entry.milestoneId && (
-															<div className="text-xs text-muted-foreground flex items-center gap-1">
-																<FileText className="h-3 w-3" />
+												<TableCell className="text-xs text-muted-foreground truncate">
+													{new Date(entry.occurredAt).toLocaleDateString()}
+												</TableCell>
+												<TableCell>
+													<div className="font-medium text-sm text-foreground">
+														{entry.description}
+													</div>
+													{entry.milestoneId && (
+														<div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+															<FileText className="h-3 w-3 shrink-0" />
+															<span className="truncate max-w-[150px]">
 																{entry.milestoneId.title}
-															</div>
-														)}
-													</TableCell>
-													<TableCell>
-														<Badge
-															variant={cfg.variant}
-															className="whitespace-nowrap font-bold"
-														>
-															{cfg.label}
-														</Badge>
-													</TableCell>
-													<TableCell className="text-right font-semibold">
-														ETB {entry.amount.toLocaleString()}
-													</TableCell>
-													<TableCell className="text-right">
-														<div className="flex items-center justify-end gap-1.5 capitalize text-xs">
-															{entry.status === "completed" ? (
-																<CheckCircle2 className="h-3 w-3 text-emerald-500" />
-															) : (
-																<Loader2 className="h-3 w-3 animate-spin text-amber-500" />
-															)}
-															{entry.status}
+															</span>
 														</div>
-													</TableCell>
-												</TableRow>
-											);
-										})
-									)}
-								</TableBody>
-							</Table>
-						</CardContent>
-					</Card>
-				</div>
+													)}
+												</TableCell>
+												<TableCell>
+													<Badge
+														variant={cfg.variant}
+														className="whitespace-nowrap font-medium text-xs"
+													>
+														{cfg.label}
+													</Badge>
+												</TableCell>
+												<TableCell className="text-right text-sm font-semibold text-foreground">
+													ETB {entry.amount.toLocaleString()}
+												</TableCell>
+												<TableCell className="text-right">
+													<div className="flex items-center justify-end gap-1.5 capitalize text-xs">
+														{entry.status === "completed" ? (
+															<CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+														) : (
+															<Loader2 className="h-3 w-3 animate-spin text-amber-500" />
+														)}
+														{entry.status}
+													</div>
+												</TableCell>
+											</TableRow>
+										);
+									})
+								)}
+							</TableBody>
+						</Table>
+					</div>
+				</>
 			</DashboardLayout>
 		</ProtectedRoute>
 	);

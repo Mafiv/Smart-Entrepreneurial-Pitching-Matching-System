@@ -216,7 +216,7 @@ function ReviewPitchPageInner() {
 			}
 		} catch (err) {
 			console.error("Submit error:", err);
-			setError(t.pitchReview.failedToSubmit);
+			setError("Failed to submit pitch");
 		} finally {
 			setSubmitting(false);
 		}
@@ -247,15 +247,15 @@ function ReviewPitchPageInner() {
 				},
 			);
 			if (res.ok) {
-				showSuccessToast(approved ? t.pitchReview.requestApproved : t.pitchReview.requestDeclined);
+				showSuccessToast(approved ? "Request approved!" : "Request declined.");
 				setMatchRequests((prev) => prev.filter((m) => m._id !== matchId));
 			} else {
 				const data = await res.json();
-				showErrorToast(data.message || t.pitchReview.failedToRespond);
+				showErrorToast(data.message || "Failed to respond to request");
 			}
 		} catch (err) {
 			console.error("Approval error:", err);
-			showErrorToast(t.pitchReview.networkError);
+			showErrorToast(t.invitations.networkError);
 		} finally {
 			setRespondingMatchId(null);
 		}
@@ -291,21 +291,21 @@ function ReviewPitchPageInner() {
 							size="sm"
 							onClick={() => router.push(`/entrepreneur/pitch/new?id=${id}`)}
 						>
-							{t.pitchReview.backToEdit}
+							← Back to Edit
 						</Button>
 						<Badge
 							variant="outline"
 							className="bg-background/50 backdrop-blur-sm"
 						>
-							{t.pitch.reviewPitch}
+							Review Mode
 						</Badge>
 					</div>
 				</header>
 
 				<main className="mx-auto max-w-4xl px-4 py-8 pb-40 space-y-8">
 					{/* Title & Overview */}
-					<div className="admin-greeting-card bg-card p-8 rounded-2xl admin-content-fade shadow-sm text-center space-y-4">
-						<h1 className="text-3xl sm:text-4xl font-bold tracking-tight admin-header-gradient">
+					<div className="border border-border/50 bg-card/80 backdrop-blur-sm p-8 rounded-3xl shadow-sm text-center space-y-4 transition-shadow hover:shadow-md">
+						<h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
 							{submission.title}
 						</h1>
 						<div className="flex items-center justify-center gap-3 mt-4 flex-wrap">
@@ -324,10 +324,10 @@ function ReviewPitchPageInner() {
 
 					{/* Investment Requests section */}
 					{matchRequests.length > 0 && (
-						<div className="space-y-4 admin-content-fade">
+						<div className="space-y-4">
 							<h2 className="text-xl font-bold flex items-center gap-2">
 								<Handshake className="h-5 w-5 text-primary" />
-								{t.pitchReview.investmentRequests}
+								Investment Requests
 							</h2>
 							<div className="grid gap-4">
 								{matchRequests.map((request) => (
@@ -343,14 +343,13 @@ function ReviewPitchPageInner() {
 													</div>
 													<div>
 														<h3 className="font-bold text-lg">
-															{request.investorId?.fullName ||
-																t.pitchReview.privateInvestor}
+															{request.investorId?.fullName || t.pitchReview.privateInvestor}
 														</h3>
 														<p className="text-sm text-muted-foreground">
-															{t.pitchReview.matchScore}: {(request.score * 100).toFixed(0)}%
+															Match Score: {(request.score * 100).toFixed(0)}%
 														</p>
 														<p className="text-xs text-muted-foreground mt-1">
-															{t.pitchReview.requestedOn}{" "}
+															Requested on{" "}
 															{new Date(request.matchedAt).toLocaleDateString()}
 														</p>
 													</div>
@@ -364,7 +363,7 @@ function ReviewPitchPageInner() {
 															handleApproveRequest(request._id, false)
 														}
 													>
-														{t.pitchReview.decline}
+														Decline
 													</Button>
 													<Button
 														className="flex-1 sm:flex-none"
@@ -374,7 +373,7 @@ function ReviewPitchPageInner() {
 														}
 													>
 														{respondingMatchId === request._id
-															? t.pitchReview.processing
+															? "Processing..."
 															: t.pitchReview.approveInvestment}
 													</Button>
 												</div>
@@ -390,21 +389,21 @@ function ReviewPitchPageInner() {
 					<Separator />
 
 					{/* Summary */}
-					<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100 fill-mode-both border-0 shadow-md overflow-hidden">
+					<Card className="bg-card border border-border/50 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
 						<CardHeader className="bg-primary/5 border-b border-border/40 pb-4">
 							<CardTitle className="text-lg flex items-center gap-2">
-								<ClipboardList className="h-5 w-5" /> {t.pitchReview.executiveSummary}
+								<ClipboardList className="h-5 w-5" /> Executive Summary
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
 							<p className="text-muted-foreground leading-relaxed">
-								{submission.summary || t.pitchReview.notProvided}
+								{submission.summary || "Not provided"}
 							</p>
 							{submission.pitchVideoUrl ? (
 								<div className="mt-6">
 									<div className="flex items-center justify-between mb-3">
 										<h4 className="font-medium text-sm text-foreground">
-											{t.pitchReview.pitchVideo}
+											Pitch Video
 										</h4>
 										<Badge
 											variant={
@@ -418,18 +417,18 @@ function ReviewPitchPageInner() {
 											}
 											className="capitalize"
 										>
-											{submission.videoStatus || t.pitchReview.pending}
+											{submission.videoStatus || "pending"}
 										</Badge>
 									</div>
 									{submission.videoStatus === "flagged" && (
 										<div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md text-sm text-destructive">
-											<strong>{t.pitchReview.actionRequired}</strong>{" "}
+											<strong>Action Required:</strong>{" "}
 											{submission.videoFlagReason}
 										</div>
 									)}
 									{submission.videoStatus === "rejected" && (
 										<div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md text-sm text-destructive">
-											<strong>{t.pitchReview.videoRejected}</strong>{" "}
+											<strong>Video Rejected:</strong>{" "}
 											{submission.videoFlagReason}
 										</div>
 									)}
@@ -439,7 +438,7 @@ function ReviewPitchPageInner() {
 								<div className="mt-6 rounded-lg border-2 border-dashed border-border/50 p-6 text-center">
 									<ClipboardList className="mx-auto h-8 w-8 text-muted-foreground/40 mb-2" />
 									<p className="text-sm text-muted-foreground">
-										{t.pitchReview.noPitchVideo}
+										No pitch video added
 									</p>
 								</div>
 							)}
@@ -447,132 +446,132 @@ function ReviewPitchPageInner() {
 					</Card>
 
 					{/* Problem */}
-					<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150 fill-mode-both border-0 shadow-md overflow-hidden">
+					<Card className="bg-card border border-border/50 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
 						<CardHeader className="bg-primary/5 border-b border-border/40 pb-4">
 							<CardTitle className="text-lg flex items-center gap-2">
-								<Search className="h-5 w-5" /> {t.pitchReview.theProblem}
+								<Search className="h-5 w-5" /> The Problem
 							</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-4">
 							<div>
-								<h4 className="font-medium mb-1">{t.pitchReview.problemStatement}</h4>
+								<h4 className="font-medium mb-1">{t.landing.problemStatement}</h4>
 								<p className="text-muted-foreground">
-									{submission.problem?.statement || t.pitchReview.notProvided}
+									{submission.problem?.statement || "Not provided"}
 								</p>
 							</div>
 							<div>
-								<h4 className="font-medium mb-1">{t.pitchReview.targetMarket}</h4>
+								<h4 className="font-medium mb-1">{t.landing.targetMarket}</h4>
 								<p className="text-muted-foreground">
-									{submission.problem?.targetMarket || t.pitchReview.notProvided}
+									{submission.problem?.targetMarket || "Not provided"}
 								</p>
 							</div>
 							<div>
-								<h4 className="font-medium mb-1">{t.pitchReview.marketSize}</h4>
+								<h4 className="font-medium mb-1">{t.landing.marketSize}</h4>
 								<p className="text-muted-foreground">
-									{submission.problem?.marketSize || t.pitchReview.notProvided}
+									{submission.problem?.marketSize || "Not provided"}
 								</p>
 							</div>
 						</CardContent>
 					</Card>
 
 					{/* Solution */}
-					<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200 fill-mode-both border-0 shadow-md overflow-hidden">
+					<Card className="bg-card border border-border/50 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
 						<CardHeader className="bg-primary/5 border-b border-border/40 pb-4">
 							<CardTitle className="text-lg flex items-center gap-2">
-								<Lightbulb className="h-5 w-5" /> {t.pitchReview.solution}
+								<Lightbulb className="h-5 w-5" /> Solution
 							</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-4">
 							<div>
-								<h4 className="font-medium mb-1">{t.pitchReview.description}</h4>
+								<h4 className="font-medium mb-1">{t.earnings.description}</h4>
 								<p className="text-muted-foreground">
-									{submission.solution?.description || t.pitchReview.notProvided}
+									{submission.solution?.description || "Not provided"}
 								</p>
 							</div>
 							<div>
-								<h4 className="font-medium mb-1">{t.pitchReview.uniqueValueProposition}</h4>
+								<h4 className="font-medium mb-1">{t.pitchNew.uniqueValue}</h4>
 								<p className="text-muted-foreground">
-									{submission.solution?.uniqueValue || t.pitchReview.notProvided}
+									{submission.solution?.uniqueValue || "Not provided"}
 								</p>
 							</div>
 							<div>
-								<h4 className="font-medium mb-1">{t.pitchReview.competitiveAdvantage}</h4>
+								<h4 className="font-medium mb-1">{t.pitchNew.competitiveAdvantage}</h4>
 								<p className="text-muted-foreground">
-									{submission.solution?.competitiveAdvantage || t.pitchReview.notProvided}
+									{submission.solution?.competitiveAdvantage || "Not provided"}
 								</p>
 							</div>
 						</CardContent>
 					</Card>
 
 					{/* Business Model */}
-					<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300 fill-mode-both border-0 shadow-md overflow-hidden">
+					<Card className="bg-card border border-border/50 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
 						<CardHeader className="bg-primary/5 border-b border-border/40 pb-4">
 							<CardTitle className="text-lg flex items-center gap-2">
-								<BarChart3 className="h-5 w-5" /> {t.pitchReview.businessModel}
+								<BarChart3 className="h-5 w-5" /> Business Model
 							</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-4">
 							<div>
-								<h4 className="font-medium mb-1">{t.pitchReview.revenueStreams}</h4>
+								<h4 className="font-medium mb-1">{t.pitchNew.revenueStreams}</h4>
 								<p className="text-muted-foreground">
-									{submission.businessModel?.revenueStreams || t.pitchReview.notProvided}
+									{submission.businessModel?.revenueStreams || "Not provided"}
 								</p>
 							</div>
 							<div>
-								<h4 className="font-medium mb-1">{t.pitchReview.pricingStrategy}</h4>
+								<h4 className="font-medium mb-1">{t.pitchNew.pricingStrategy}</h4>
 								<p className="text-muted-foreground">
-									{submission.businessModel?.pricingStrategy || t.pitchReview.notProvided}
+									{submission.businessModel?.pricingStrategy || "Not provided"}
 								</p>
 							</div>
 							<div>
-								<h4 className="font-medium mb-1">{t.pitchReview.customerAcquisition}</h4>
+								<h4 className="font-medium mb-1">{t.pitchNew.customerAcquisition}</h4>
 								<p className="text-muted-foreground">
 									{submission.businessModel?.customerAcquisition ||
-										t.pitchReview.notProvided}
+										"Not provided"}
 								</p>
 							</div>
 						</CardContent>
 					</Card>
 
 					{/* Financials */}
-					<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 delay-500 fill-mode-both border-0 shadow-md overflow-hidden">
+					<Card className="bg-card border border-border/50 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
 						<CardHeader className="bg-primary/5 border-b border-border/40 pb-4">
 							<CardTitle className="text-lg flex items-center gap-2">
-								<DollarSign className="h-5 w-5" /> {t.pitchReview.financials}
+								<DollarSign className="h-5 w-5" /> Financials
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
 							<div className="grid gap-4 sm:grid-cols-2">
 								<div className="rounded-lg bg-muted/50 p-4">
 									<p className="text-sm text-muted-foreground">
-										{t.pitchReview.currentRevenue}
+										Current Revenue
 									</p>
 									<p className="font-semibold">
-										{submission.financials?.currentRevenue || t.pitchReview.notProvided}
+										{submission.financials?.currentRevenue || "Not provided"}
 									</p>
 								</div>
 								<div className="rounded-lg bg-muted/50 p-4">
 									<p className="text-sm text-muted-foreground">
-										{t.pitchReview.projectedRevenue}
+										Projected Revenue
 									</p>
 									<p className="font-semibold">
-										{submission.financials?.projectedRevenue || t.pitchReview.notProvided}
+										{submission.financials?.projectedRevenue || "Not provided"}
 									</p>
 								</div>
 								<div className="rounded-lg bg-muted/50 p-4">
 									<p className="text-sm text-muted-foreground">
-										{t.pitchReview.monthlyBurnRate}
+										Monthly Burn Rate
 									</p>
 									<p className="font-semibold">
-										{submission.financials?.burnRate || t.pitchReview.notProvided}
+										{submission.financials?.burnRate || "Not provided"}
 									</p>
 								</div>
 								<div className="rounded-lg bg-muted/50 p-4">
 									<p className="text-sm text-muted-foreground">
-										{t.pitchReview.remainingRunway}
+										Remaining Runway
 									</p>
 									<p className="font-semibold">
-										{submission.financials?.runway || t.pitchReview.notProvided}
+										{submission.financials?.runway || "Not provided"}
 									</p>
 								</div>
 							</div>
@@ -580,19 +579,19 @@ function ReviewPitchPageInner() {
 					</Card>
 
 					{/* Documents & Completeness */}
-					<Card className="admin-greeting-card bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 delay-700 fill-mode-both border-0 shadow-md overflow-hidden mb-32">
+					<Card className="bg-card border border-border/50 shadow-sm overflow-hidden hover:shadow-md transition-shadow mb-32">
 						<CardHeader className="bg-primary/5 border-b border-border/40 pb-4">
 							<div className="flex items-center justify-between">
 								<div>
 									<CardTitle className="text-lg flex items-center gap-2">
-										<FileUp className="h-5 w-5" /> {t.pitchReview.supportingDocuments}
+										<FileUp className="h-5 w-5" /> Supporting Documents
 									</CardTitle>
-									<CardDescription>{t.pitchReview.aiVerificationChecklist}</CardDescription>
+									<CardDescription>AI-Verification Checklist</CardDescription>
 								</div>
 								{completeness && (
 									<div className="flex flex-col items-end">
 										<span className="text-sm font-medium">
-											{t.pitchReview.completenessScore}
+											Completeness Score
 										</span>
 										<Badge
 											variant={
@@ -615,7 +614,7 @@ function ReviewPitchPageInner() {
 							{completeness && completeness.checklist.length > 0 && (
 								<div className="space-y-2">
 									<h4 className="font-medium text-sm mb-3">
-										{t.pitchReview.requiredVsUploaded}
+										Required vs Uploaded
 									</h4>
 									<div className="grid gap-2 sm:grid-cols-2">
 										{completeness.checklist
@@ -652,17 +651,18 @@ function ReviewPitchPageInner() {
 														)}
 														{item.status === "missing" && item.required && (
 															<span className="text-xs text-destructive font-medium">
-																{t.pitchReview.missing}
+																Missing
 															</span>
 														)}
 														{item.status === "missing" && !item.required && (
 															<span className="text-xs text-muted-foreground">
-																{t.pitchReview.optional}
+																Optional
 															</span>
 														)}
 													</div>
 													<div className="text-xs text-muted-foreground">
-														{item.count} {t.pitchReview.filesUploaded}
+														{item.count} file{item.count !== 1 ? "s" : ""}{" "}
+														uploaded
 													</div>
 												</div>
 											))}
@@ -674,81 +674,83 @@ function ReviewPitchPageInner() {
 
 							{/* Uploaded Files Details */}
 							<div>
-								<h4 className="font-medium text-sm mb-3">{t.pitchReview.files}</h4>
-								{submission.documents && submission.documents.length > 0 ? (
+								<h4 className="font-medium text-sm mb-3">Files</h4>
+								{docStatuses && docStatuses.length > 0 ? (
 									<div className="space-y-3">
-										{submission.documents.map((doc, idx) => {
-											const docStatus = docStatuses.find(
-												(ds) => ds.filename === doc.name,
-											);
-											return (
-												<div
-													key={`${doc.name}-${idx}`}
-													className="flex items-center justify-between rounded-lg border p-3"
-												>
-													<div className="flex items-center gap-3 min-w-0">
-														<FileUp className="h-4 w-4 shrink-0 text-muted-foreground" />
-														<div className="min-w-0">
-															<p className="text-sm font-medium truncate">
-																{doc.name}
+										{docStatuses.map((doc) => (
+											<div
+												key={doc._id}
+												className="flex items-center justify-between rounded-lg border p-3"
+											>
+												<div className="flex items-center gap-3 min-w-0">
+													<FileUp className="h-4 w-4 shrink-0 text-muted-foreground" />
+													<div className="min-w-0">
+														<p className="text-sm font-medium truncate">
+															{doc.filename}
+														</p>
+														<p className="text-xs text-muted-foreground capitalize">
+															{doc.type.replace(/_/g, " ")}
+														</p>
+														{doc.processingError && (
+															<p className="text-xs text-destructive mt-1">
+																{doc.processingError}
 															</p>
-															<p className="text-xs text-muted-foreground capitalize">
-																{doc.type.replace(/_/g, " ")}
-															</p>
-															{docStatus?.processingError && (
-																<p className="text-xs text-destructive mt-1">
-																	{docStatus.processingError}
-																</p>
-															)}
-														</div>
-													</div>
-													<div className="flex items-center gap-2 shrink-0">
-														{docStatus?.status === "processed" && (
-															<Badge
-																variant="default"
-																className="gap-1 bg-emerald-600"
-															>
-																<CheckCircle2 className="h-3 w-3" /> {t.pitchReview.verified}
-															</Badge>
 														)}
-														{docStatus?.status === "processing" && (
-															<Badge variant="secondary" className="gap-1">
-																<Loader2 className="h-3 w-3 animate-spin" />{" "}
-																{t.pitchReview.processing}
-															</Badge>
-														)}
-														{docStatus?.status === "failed" && (
-															<Badge variant="destructive" className="gap-1">
-																<XCircle className="h-3 w-3" /> {t.pitchReview.failed}
-															</Badge>
-														)}
-														{docStatus?.status === "flagged" && (
-															<Badge
-																variant="destructive"
-																className="gap-1 bg-amber-600 hover:bg-amber-700"
-															>
-																<XCircle className="h-3 w-3" /> {t.pitchReview.suspicious}
-															</Badge>
-														)}
-														{(!docStatus ||
-															docStatus?.status === "uploaded") && (
-															<Badge variant="outline">{t.pitchReview.uploaded}</Badge>
-														)}
-														<a
-															href={doc.url}
-															target="_blank"
-															rel="noopener noreferrer"
-														>
-															<ExternalLink className="h-4 w-4 text-muted-foreground hover:text-primary" />
-														</a>
 													</div>
 												</div>
-											);
-										})}
+												<div className="flex items-center gap-2 shrink-0">
+													{doc.status === "processed" && (
+														<Badge
+															variant="default"
+															className="gap-1 bg-emerald-600"
+														>
+															<CheckCircle2 className="h-3 w-3" /> Verified
+														</Badge>
+													)}
+													{doc.status === "processing" && (
+														<Badge variant="secondary" className="gap-1">
+															<Loader2 className="h-3 w-3 animate-spin" />{" "}
+															Processing
+														</Badge>
+													)}
+													{doc.status === "failed" && (
+														<Badge variant="destructive" className="gap-1">
+															<XCircle className="h-3 w-3" /> Failed
+														</Badge>
+													)}
+													{doc.status === "flagged" && (
+														<Badge
+															variant="destructive"
+															className="gap-1 bg-amber-600 hover:bg-amber-700"
+														>
+															<XCircle className="h-3 w-3" /> Suspicious
+														</Badge>
+													)}
+													{doc.status === "uploaded" && (
+														<Badge variant="outline">{t.pitchNew.uploaded}</Badge>
+													)}
+													{(() => {
+														const submDoc = submission.documents?.find(
+															(d) => d.name === doc.filename,
+														);
+														return submDoc?.url ? (
+															<a
+																href={submDoc.url}
+																target="_blank"
+																rel="noopener noreferrer"
+															>
+																<ExternalLink className="h-4 w-4 text-muted-foreground hover:text-primary" />
+															</a>
+														) : null;
+													})()}
+												</div>
+											</div>
+										))}
 									</div>
 								) : (
 									<p className="text-sm text-muted-foreground">
-										{t.pitchReview.noDocumentsAttached}
+										No documents attached. Consider adding supporting files to
+										strengthen your pitch.
 									</p>
 								)}
 							</div>
@@ -758,25 +760,27 @@ function ReviewPitchPageInner() {
 					{/* Document processing & completeness warning */}
 					{(hasDocIssues || (completeness && !completeness.complete)) && (
 						<div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
-							<strong>{t.pitchReview.missingOrInvalidDocs}</strong>{" "}
+							<strong>⚠ Missing or invalid documents:</strong>{" "}
 							<ul className="list-disc ml-5 mt-1">
 								{completeness && !completeness.complete && (
 									<li>
-										{t.pitchReview.missingRequiredDocs}{" "}
+										Missing required documents:{" "}
 										{completeness.missingRequired.join(", ")}
 									</li>
 								)}
 								{docStatuses.some((d) => d.status === "processing") && (
-									<li>{t.pitchReview.documentsProcessing}</li>
+									<li>Some documents are still being processed.</li>
 								)}
 								{docStatuses.some((d) => d.status === "failed") && (
 									<li>
-										{t.pitchReview.documentsFailed}
+										Some documents failed validation — please go back and
+										re-upload them.
 									</li>
 								)}
 								{docStatuses.some((d) => d.status === "flagged") && (
 									<li className="text-amber-700 font-semibold">
-										{t.pitchReview.documentsFlagged}
+										Some documents were flagged as suspicious and require admin
+										review.
 									</li>
 								)}
 							</ul>
@@ -786,7 +790,7 @@ function ReviewPitchPageInner() {
 					{/* Error */}
 					{error && (
 						<div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive fixed bottom-24 left-4 right-4 max-w-4xl mx-auto z-40 backdrop-blur-md shadow-lg">
-							<strong>{t.pitchReview.submissionIncomplete}</strong> {error}
+							<strong>Submission incomplete:</strong> {error}
 						</div>
 					)}
 
@@ -794,9 +798,9 @@ function ReviewPitchPageInner() {
 					<div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-t border-border/40 shadow-[0_-20px_40px_-20px_rgba(0,0,0,0.1)] p-4 sm:p-6">
 						<div className="mx-auto max-w-4xl flex flex-col sm:flex-row items-center justify-between gap-4">
 							<div className="text-center sm:text-left">
-								<h3 className="font-semibold text-lg">{t.pitchReview.readyToSubmit}</h3>
+								<h3 className="font-semibold text-lg">Ready to submit?</h3>
 								<p className="text-sm text-muted-foreground">
-									{t.pitchReview.pitchAnalyzed}
+									Your pitch will be analyzed by our AI system for scoring.
 								</p>
 							</div>
 							<div className="flex gap-3 w-full sm:w-auto">
@@ -807,14 +811,14 @@ function ReviewPitchPageInner() {
 										router.push(`/entrepreneur/pitch/new?id=${id}`)
 									}
 								>
-									{t.pitchReview.editDraft}
+									Edit Draft
 								</Button>
 								<Button
 									onClick={handleSubmit}
 									disabled={submitting}
 									className="flex-1 sm:flex-none shadow-md hover:shadow-lg transition-all"
 								>
-									{submitting ? t.pitchReview.submitting : t.pitchReview.submitForReview}
+									{submitting ? "Submitting..." : "Submit for AI Review 🚀"}
 								</Button>
 							</div>
 						</div>

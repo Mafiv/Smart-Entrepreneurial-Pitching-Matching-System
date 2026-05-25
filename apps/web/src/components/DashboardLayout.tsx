@@ -2,14 +2,22 @@
 // Architectural Unit: Initial Dashboard structure setup
 
 import { ChevronsUpDown, LogOut, Settings, User } from "lucide-react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { Logo } from "@/components/Logo";
 import NotificationBell from "@/components/NotificationBell";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import {
+	Breadcrumb,
+	BreadcrumbItem,
+	BreadcrumbLink,
+	BreadcrumbList,
+	BreadcrumbPage,
+	BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -44,9 +52,14 @@ import {
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
 import VerificationGate from "@/components/VerificationGate";
-import type { NavItem } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/i18n/LanguageContext";
+
+interface NavItem {
+	label: string;
+	href: string;
+	icon: string | React.ReactNode;
+}
 
 interface DashboardLayoutProps {
 	children: React.ReactNode;
@@ -66,9 +79,22 @@ export default function DashboardLayout({
 	const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 	const [unreadCount, setUnreadCount] = useState(0);
 
+	const pathSegments = pathname?.split("/").filter(Boolean) || [];
+
 	const api = (
 		process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
 	).replace(/\/+$/, "");
+
+	const getPortalName = () => {
+		if (pathname?.startsWith("/admin")) {
+			return userProfile?.adminLevel === "super_admin"
+				? "Superadmin Portal"
+				: "Admin Portal";
+		}
+		if (pathname?.startsWith("/investor")) return "Investor Portal";
+		if (pathname?.startsWith("/entrepreneur")) return "Entrepreneur Portal";
+		return t.nav.dashboard;
+	};
 
 	const fetchUnreadCount = useCallback(async () => {
 		if (!user) return;
@@ -101,29 +127,49 @@ export default function DashboardLayout({
 			.slice(0, 2) || "U";
 
 	return (
-		<SidebarProvider>
-			<Sidebar collapsible="icon">
-				<SidebarHeader className="h-16 border-b flex items-center justify-center group-data-[collapsible=icon]:px-0">
-					<SidebarMenu className="group-data-[collapsible=icon]:items-center">
-						<SidebarMenuItem>
-							<SidebarMenuButton
-								size="lg"
-								className="pointer-events-none group-data-[collapsible=icon]:!justify-center group-data-[collapsible=icon]:!bg-transparent group-data-[collapsible=icon]:!p-0"
-							>
-								<div className="flex aspect-square size-8 items-center justify-center group-data-[collapsible=icon]:size-10 transition-all">
-									<Logo className="size-8 group-data-[collapsible=icon]:size-10" />
-								</div>
-								<div className="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
-									<span className="truncate font-bold tracking-tight text-lg">
-										{title}
-									</span>
-								</div>
-							</SidebarMenuButton>
-						</SidebarMenuItem>
-					</SidebarMenu>
+		<SidebarProvider
+			className="bg-zinc-50 dark:bg-black"
+			style={
+				{
+					"--sidebar": "transparent",
+					"--sidebar-border": "transparent",
+				} as React.CSSProperties
+			}
+		>
+			<Sidebar
+				variant="inset"
+				collapsible="icon"
+				className="border-none bg-transparent"
+			>
+				<SidebarHeader className="p-4 pt-5 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:pt-5 border-b border-transparent">
+					<div className="flex w-full items-center justify-between group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-4">
+						<SidebarMenu className="flex-1">
+							<SidebarMenuItem>
+								<SidebarMenuButton
+									size="lg"
+									className="pointer-events-none group-data-[collapsible=icon]:!justify-center group-data-[collapsible=icon]:!bg-transparent group-data-[collapsible=icon]:!p-0"
+								>
+									<div className="flex aspect-square size-8 items-center justify-center group-data-[collapsible=icon]:size-10 transition-all">
+										<Logo className="size-8 group-data-[collapsible=icon]:size-10" />
+									</div>
+									<div className="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden mt-0.5">
+										<span className="truncate font-bold tracking-tight text-[15px]">
+											SEPMS
+										</span>
+										<span className="truncate text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
+											{getPortalName()}
+										</span>
+									</div>
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+						</SidebarMenu>
+
+						{/* Desktop Sidebar Resizer Icon */}
+						<SidebarTrigger className="hidden md:flex ml-auto group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:mb-2" />
+					</div>
 				</SidebarHeader>
 
-				<SidebarContent className="px-3 py-4 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:items-center">
+				<SidebarContent className="px-3 py-2 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:items-center">
 					<SidebarGroup className="group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:items-center mt-2">
 						<SidebarGroupContent className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:items-center">
 							<SidebarMenu className="gap-2 group-data-[collapsible=icon]:items-center">
@@ -131,28 +177,25 @@ export default function DashboardLayout({
 									const isActive =
 										pathname === item.href ||
 										pathname.startsWith(`${item.href}/`);
-									const displayLabel =
-										(item.labelKey && t.nav[item.labelKey]) || item.label;
-									const isMessages = item.labelKey === "messages";
 									return (
 										<SidebarMenuItem key={item.href}>
 											<SidebarMenuButton
 												isActive={isActive}
 												onClick={() => router.push(item.href)}
-												tooltip={displayLabel}
+												tooltip={item.label}
 												className={`cursor-pointer rounded-xl transition-all h-10 px-3 flex items-center gap-3 ${isActive ? "bg-primary/5 font-semibold text-primary" : "text-muted-foreground hover:bg-muted font-medium"} group-data-[collapsible=icon]:!justify-center group-data-[collapsible=icon]:!p-0`}
 											>
 												<div className="relative flex items-center justify-center shrink-0">
 													{item.icon}
-													{isMessages && unreadCount > 0 && (
+													{item.label === t.nav.messages && unreadCount > 0 && (
 														<span className="absolute -top-1.5 -right-1.5 hidden h-3.5 w-3.5 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground shadow-sm group-data-[collapsible=icon]:flex">
 															{unreadCount > 9 ? "9+" : unreadCount}
 														</span>
 													)}
 												</div>
 												<span className="flex-1 flex items-center justify-between group-data-[collapsible=icon]:hidden tracking-wide text-[15px]">
-													{displayLabel}
-													{isMessages && unreadCount > 0 && (
+													{item.label}
+													{item.label === t.nav.messages && unreadCount > 0 && (
 														<Badge
 															variant="destructive"
 															className="ml-2 px-1.5 py-0 h-4 min-w-4 text-[10px] flex items-center justify-center leading-none"
@@ -193,7 +236,7 @@ export default function DashboardLayout({
 										</Avatar>
 										<div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
 											<span className="truncate font-semibold">
-												{userProfile?.displayName || "User"}
+												{userProfile?.displayName || t.adminUsers.userLabel}
 											</span>
 											<span className="truncate text-xs">
 												{userProfile?.email || ""}
@@ -234,17 +277,17 @@ export default function DashboardLayout({
 									</DropdownMenuLabel>
 									<DropdownMenuSeparator />
 									<DropdownMenuItem className="cursor-pointer">
-										<User className="mr-2 h-4 w-4" /> {t.common.profile}
+										<User className="mr-2 h-4 w-4" /> Profile
 									</DropdownMenuItem>
 									<DropdownMenuItem className="cursor-pointer">
-										<Settings className="mr-2 h-4 w-4" /> {t.common.settings}
+										<Settings className="mr-2 h-4 w-4" /> Settings
 									</DropdownMenuItem>
 									<DropdownMenuSeparator />
 									<DropdownMenuItem
 										onClick={() => setShowLogoutDialog(true)}
 										className="cursor-pointer text-destructive focus:text-destructive"
 									>
-										<LogOut className="mr-2 h-4 w-4" /> {t.common.signOut}
+										<LogOut className="mr-2 h-4 w-4" /> Sign Out
 									</DropdownMenuItem>
 								</DropdownMenuContent>
 							</DropdownMenu>
@@ -254,16 +297,63 @@ export default function DashboardLayout({
 				<SidebarRail />
 			</Sidebar>
 
-			<SidebarInset>
-				<header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between gap-2 border-b bg-background/80 backdrop-blur-xl px-4 sm:px-6 lg:px-8">
+			<SidebarInset className="md:m-3 md:ml-0 md:peer-data-[state=collapsed]:ml-3 md:rounded-[1.5rem] md:border border-black/5 dark:border-white/10 shadow-sm md:shadow-xl overflow-hidden bg-white dark:bg-zinc-950">
+				<header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between gap-2 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl px-4 sm:px-6 lg:px-8 border-b border-black/5 dark:border-white/5 md:border-none">
 					<div className="flex items-center gap-2">
-						<SidebarTrigger className="-ml-2" />
-						<Separator orientation="vertical" className="mr-2 h-4" />
-						<h1 className="text-sm font-semibold">{title}</h1>
+						{/* Mobile-only Trigger */}
+						<SidebarTrigger className="md:hidden -ml-2" />
+						<Separator orientation="vertical" className="mr-2 h-4 md:hidden" />
+						<Breadcrumb>
+							<BreadcrumbList>
+								{pathSegments.map((segment, index) => {
+									const href = `/${pathSegments.slice(0, index + 1).join("/")}`;
+									const isLast = index === pathSegments.length - 1;
+
+									// Format: capitalize and replace dashes with spaces
+									let segmentName =
+										segment.charAt(0).toUpperCase() +
+										segment.slice(1).replace(/-/g, " ");
+
+									// Special case for Superadmin
+									if (
+										index === 0 &&
+										segment === "admin" &&
+										userProfile?.adminLevel === "super_admin"
+									) {
+										segmentName = "Superadmin";
+									}
+
+									return (
+										<Fragment key={href}>
+											<BreadcrumbItem
+												className={index === 0 ? "hidden sm:block" : ""}
+											>
+												{!isLast ? (
+													<BreadcrumbLink
+														asChild
+														className="font-medium text-muted-foreground"
+													>
+														<Link href={href}>{segmentName}</Link>
+													</BreadcrumbLink>
+												) : (
+													<BreadcrumbPage className="font-semibold tracking-tight">
+														{segmentName}
+													</BreadcrumbPage>
+												)}
+											</BreadcrumbItem>
+											{!isLast && (
+												<BreadcrumbSeparator
+													className={index === 0 ? "hidden sm:block" : ""}
+												/>
+											)}
+										</Fragment>
+									);
+								})}
+							</BreadcrumbList>
+						</Breadcrumb>
 					</div>
 
 					<div className="flex items-center gap-2">
-						<LanguageSwitcher />
 						<NotificationBell />
 						<ThemeToggle />
 					</div>
@@ -278,14 +368,16 @@ export default function DashboardLayout({
 				<DialogContent className="max-w-md">
 					<DialogHeader>
 						<DialogTitle>{t.common.signOut}</DialogTitle>
-						<DialogDescription>{t.common.signOutConfirm}</DialogDescription>
+						<DialogDescription>
+							Are you sure you want to sign out of your account?
+						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter className="mt-4 gap-2 sm:justify-end">
 						<Button
 							variant="outline"
 							onClick={() => setShowLogoutDialog(false)}
 						>
-							{t.common.cancel}
+							Cancel
 						</Button>
 						<Button
 							onClick={() => {
@@ -294,7 +386,7 @@ export default function DashboardLayout({
 							}}
 							variant="destructive"
 						>
-							{t.common.signOut}
+							Sign Out
 						</Button>
 					</DialogFooter>
 				</DialogContent>

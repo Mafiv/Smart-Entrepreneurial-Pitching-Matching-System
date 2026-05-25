@@ -16,6 +16,9 @@ const validDocumentTypes: DocumentType[] = [
 	"financial_model",
 	"product_demo",
 	"customer_testimonials",
+	"tin_certificate",
+	"business_license",
+	"moa_aoa",
 	"other",
 ];
 
@@ -369,6 +372,20 @@ export class DocumentController {
 					resource_type: "raw",
 				});
 			}
+
+			// Remove from submission if attached
+			if (document.submissionId) {
+				const submission = await Submission.findById(document.submissionId);
+				if (submission) {
+					submission.documents = submission.documents.filter(
+						(doc: any) => doc.cloudinaryId !== document.cloudinaryPublicId,
+					);
+					await submission.save();
+				}
+			}
+
+			// Delete extracted entities to prevent them from blocking future uniqueness checks
+			await DocumentEntity.deleteMany({ documentId: document._id });
 
 			await document.deleteOne();
 
