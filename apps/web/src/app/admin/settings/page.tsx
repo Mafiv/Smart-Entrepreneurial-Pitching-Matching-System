@@ -40,6 +40,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ADMIN_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -49,15 +50,12 @@ import {
 
 export default function AdminSettingsPage() {
 	const { user, userProfile, refreshUserProfile, signOut } = useAuth();
+	const { t } = useLanguage();
 	const isSuperAdmin = userProfile?.adminLevel === "super_admin";
 
 	const API_URL = (
 		process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
 	).replace(/\/+$/, "");
-
-	// Account editing
-	const [editName, setEditName] = useState(userProfile?.displayName || "");
-	const [savingProfile, setSavingProfile] = useState(false);
 
 	// Stats for platform info
 	const [platformStats, setPlatformStats] = useState<{
@@ -71,10 +69,6 @@ export default function AdminSettingsPage() {
 	// Confirmation dialogs
 	const [confirmAction, setConfirmAction] = useState<string | null>(null);
 	const [actionLoading, setActionLoading] = useState(false);
-
-	useEffect(() => {
-		if (userProfile?.displayName) setEditName(userProfile.displayName);
-	}, [userProfile?.displayName]);
 
 	// Fetch platform stats
 	useEffect(() => {
@@ -103,31 +97,6 @@ export default function AdminSettingsPage() {
 		}
 		fetchStats();
 	}, [user, API_URL]);
-
-	const handleUpdateProfile = async () => {
-		if (!user || !editName.trim()) return;
-		setSavingProfile(true);
-		try {
-			const token = await user.getIdToken();
-			const res = await fetch(`${API_URL}/users/me`, {
-				method: "PATCH",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({ fullName: editName.trim() }),
-			});
-			if (!res.ok) throw new Error("Failed to update profile");
-			await refreshUserProfile();
-			showSuccessToast("Profile updated successfully!");
-		} catch (err) {
-			showErrorToast(
-				err instanceof Error ? err.message : "Failed to update profile",
-			);
-		} finally {
-			setSavingProfile(false);
-		}
-	};
 
 	const handleBulkAction = async (action: string) => {
 		if (!user || !isSuperAdmin) return;
@@ -232,7 +201,7 @@ export default function AdminSettingsPage() {
 		}
 	};
 
-	const displayName = userProfile?.displayName || "Admin";
+	const displayName = userProfile?.displayName || t.adminUsers.roleAdmin;
 	const email = userProfile?.email || "";
 	const adminLevel = userProfile?.adminLevel || "admin";
 
@@ -246,163 +215,17 @@ export default function AdminSettingsPage() {
 	return (
 		<ProtectedRoute allowedRoles={["admin"]}>
 			<DashboardLayout navItems={ADMIN_NAV} title="SEPMS Admin">
-				<Tabs defaultValue="account" className="space-y-6">
+				<Tabs defaultValue="platform" className="space-y-6">
 					<TabsList>
-						<TabsTrigger value="account" className="gap-1.5">
-							<Shield className="h-3.5 w-3.5" />
-							Account
-						</TabsTrigger>
 						<TabsTrigger value="platform" className="gap-1.5">
 							<Globe className="h-3.5 w-3.5" />
-							Platform
+							{t.adminSettings.platform}
 						</TabsTrigger>
 						<TabsTrigger value="security" className="gap-1.5">
 							<Lock className="h-3.5 w-3.5" />
-							Security
+							{t.adminSettings.security}
 						</TabsTrigger>
 					</TabsList>
-
-					{/* ─── Account Tab ─── */}
-					<TabsContent value="account" className="space-y-6 mt-0">
-						{/* Editable Profile */}
-						<Card>
-							<CardHeader>
-								<CardTitle className="text-base flex items-center gap-2">
-									<Shield className="h-4 w-4 text-primary" />
-									Your Profile
-								</CardTitle>
-								<CardDescription>
-									Update your personal information.
-								</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-6">
-								<div className="flex flex-col sm:flex-row items-start gap-6 pb-2">
-									<div className="shrink-0">
-										<Label className="text-sm text-muted-foreground block mb-3">
-											Profile Picture
-										</Label>
-										<ProfilePictureUpload size="h-20 w-20" />
-									</div>
-									<Separator
-										orientation="vertical"
-										className="hidden sm:block h-28"
-									/>
-									<Separator className="sm:hidden" />
-									<div className="flex-1 grid gap-4 sm:grid-cols-2 w-full">
-										<div className="space-y-2">
-											<Label htmlFor="admin-edit-name" className="text-sm">
-												Full Name
-											</Label>
-											<Input
-												id="admin-edit-name"
-												value={editName}
-												onChange={(e) => setEditName(e.target.value)}
-												placeholder="Your full name"
-											/>
-										</div>
-										<div className="space-y-2">
-											<Label className="text-sm text-muted-foreground">
-												Email Address
-											</Label>
-											<div className="flex items-center gap-1.5 pt-2">
-												<p className="text-sm font-medium">{email}</p>
-												{userProfile?.emailVerified && (
-													<CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-												)}
-											</div>
-											<p className="text-xs text-muted-foreground">
-												Email is managed by Google
-											</p>
-										</div>
-										<div className="space-y-2">
-											<Label className="text-sm text-muted-foreground">
-												Role
-											</Label>
-											<div className="flex items-center gap-2 pt-2">
-												<Badge
-													variant="destructive"
-													className="text-xs capitalize"
-												>
-													{adminLevel === "super_admin"
-														? "Super Admin"
-														: "Admin"}
-												</Badge>
-											</div>
-										</div>
-										<div className="space-y-2">
-											<Label className="text-sm text-muted-foreground">
-												Account Status
-											</Label>
-											<div className="pt-2">
-												<Badge
-													variant="default"
-													className="text-xs capitalize bg-green-500/10 text-green-600 border-green-500/20"
-												>
-													{userProfile?.status}
-												</Badge>
-											</div>
-										</div>
-									</div>
-								</div>
-							</CardContent>
-							<CardFooter className="flex justify-end border-t pt-4">
-								<Button
-									onClick={handleUpdateProfile}
-									disabled={
-										savingProfile ||
-										editName.trim() === (userProfile?.displayName || "")
-									}
-									className="gap-2"
-								>
-									{savingProfile ? (
-										<>
-											<Loader2 className="h-4 w-4 animate-spin" /> Saving...
-										</>
-									) : (
-										<>
-											<Save className="h-4 w-4" /> Save Changes
-										</>
-									)}
-								</Button>
-							</CardFooter>
-						</Card>
-
-						{/* Session Info */}
-						<Card>
-							<CardHeader>
-								<CardTitle className="text-base flex items-center gap-2">
-									<Lock className="h-4 w-4 text-primary" />
-									Session
-								</CardTitle>
-							</CardHeader>
-							<CardContent className="space-y-3">
-								<div className="grid gap-3 sm:grid-cols-2">
-									<div className="rounded-lg border p-3">
-										<p className="text-xs text-muted-foreground">
-											Firebase UID
-										</p>
-										<p className="text-xs font-mono mt-1 truncate">
-											{user?.uid || "—"}
-										</p>
-									</div>
-									<div className="rounded-lg border p-3">
-										<p className="text-xs text-muted-foreground">Provider</p>
-										<p className="text-xs font-medium mt-1">
-											Google Authentication
-										</p>
-									</div>
-								</div>
-								<Separator />
-								<Button
-									variant="outline"
-									onClick={() => setConfirmAction("signout")}
-									className="gap-2 text-destructive hover:text-destructive"
-								>
-									Sign Out of Account
-								</Button>
-							</CardContent>
-						</Card>
-					</TabsContent>
 
 					{/* ─── Platform Tab ─── */}
 					<TabsContent value="platform" className="space-y-6 mt-0">
@@ -411,18 +234,16 @@ export default function AdminSettingsPage() {
 							<CardHeader>
 								<CardTitle className="text-base flex items-center gap-2">
 									<Globe className="h-4 w-4 text-primary" />
-									Platform Overview
+									{t.adminSettings.platformOverview}
 								</CardTitle>
-								<CardDescription>
-									Current platform statistics and health.
-								</CardDescription>
+								<CardDescription>{t.adminSettings.currentPlatformStats}</CardDescription>
 							</CardHeader>
 							<CardContent>
 								{loadingStats ? (
 									<div className="flex items-center gap-2 py-4">
 										<Loader2 className="h-4 w-4 animate-spin text-primary" />
 										<p className="text-sm text-muted-foreground">
-											Loading stats...
+											{t.adminSettings.loadingStats}
 										</p>
 									</div>
 								) : platformStats ? (
@@ -432,7 +253,7 @@ export default function AdminSettingsPage() {
 												{platformStats.totalUsers}
 											</p>
 											<p className="text-xs text-muted-foreground mt-1">
-												Total Users
+												{t.adminSettings.totalUsers}
 											</p>
 										</div>
 										<div className="rounded-lg border p-4 text-center">
@@ -440,7 +261,7 @@ export default function AdminSettingsPage() {
 												{platformStats.pendingKyc}
 											</p>
 											<p className="text-xs text-muted-foreground mt-1">
-												Pending KYC
+												{t.adminSettings.pendingKyc}
 											</p>
 										</div>
 										<div className="rounded-lg border p-4 text-center">
@@ -448,7 +269,7 @@ export default function AdminSettingsPage() {
 												{platformStats.admins}
 											</p>
 											<p className="text-xs text-muted-foreground mt-1">
-												Admins
+												{t.adminSettings.admins}
 											</p>
 										</div>
 										<div className="rounded-lg border p-4 text-center">
@@ -458,14 +279,12 @@ export default function AdminSettingsPage() {
 													platformStats.admins}
 											</p>
 											<p className="text-xs text-muted-foreground mt-1">
-												Active Users
+												{t.adminSettings.activeUsers}
 											</p>
 										</div>
 									</div>
 								) : (
-									<p className="text-sm text-muted-foreground">
-										Unable to load stats
-									</p>
+									<p className="text-sm text-muted-foreground">{t.adminSettings.unableToLoadStats}</p>
 								)}
 							</CardContent>
 						</Card>
@@ -475,55 +294,51 @@ export default function AdminSettingsPage() {
 							<CardHeader>
 								<CardTitle className="text-base flex items-center gap-2">
 									<Settings className="h-4 w-4 text-primary" />
-									Platform Information
+									{t.adminSettings.platformInfo}
 								</CardTitle>
 							</CardHeader>
 							<CardContent>
 								<div className="grid gap-4 sm:grid-cols-2">
 									<div className="rounded-lg border p-3">
 										<p className="text-xs text-muted-foreground">
-											Platform Name
+											{t.adminSettings.platformName}
 										</p>
-										<p className="text-sm font-medium mt-1">SEPMS</p>
+										<p className="text-sm font-medium mt-1">{t.auth.signInLeftTitle2}</p>
 									</div>
 									<div className="rounded-lg border p-3">
-										<p className="text-xs text-muted-foreground">Version</p>
+										<p className="text-xs text-muted-foreground">{t.adminSettings.version}</p>
 										<p className="text-sm font-medium mt-1">1.0.0</p>
 									</div>
 									<div className="rounded-lg border p-3">
 										<p className="text-xs text-muted-foreground">
-											API Endpoint
+											{t.adminSettings.apiEndpoint}
 										</p>
 										<p className="text-xs font-mono mt-1 truncate">{API_URL}</p>
 									</div>
 									<div className="rounded-lg border p-3">
-										<p className="text-xs text-muted-foreground">Environment</p>
+										<p className="text-xs text-muted-foreground">{t.adminSettings.environment}</p>
 										<p className="text-sm font-medium mt-1">
 											{API_URL.includes("localhost")
 												? "Development"
-												: "Production"}
+												: t.adminSettings.production}
 										</p>
 									</div>
 									<div className="rounded-lg border p-3">
 										<p className="text-xs text-muted-foreground">
-											KYC Verification
+											{t.adminSettings.kycVerification}
 										</p>
 										<div className="flex items-center gap-1.5 mt-1">
 											<CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-											<span className="text-sm font-medium">
-												Required — Manual review
-											</span>
+											<span className="text-sm font-medium">{t.adminSettings.requiredManualReview}</span>
 										</div>
 									</div>
 									<div className="rounded-lg border p-3">
 										<p className="text-xs text-muted-foreground">
-											Authentication
+											{t.adminSettings.authentication}
 										</p>
 										<div className="flex items-center gap-1.5 mt-1">
 											<Shield className="h-3.5 w-3.5 text-primary" />
-											<span className="text-sm font-medium">
-												Firebase / Google
-											</span>
+											<span className="text-sm font-medium">{t.adminSettings.firebaseGoogle}</span>
 										</div>
 									</div>
 								</div>
@@ -535,21 +350,17 @@ export default function AdminSettingsPage() {
 							<CardHeader>
 								<CardTitle className="text-base flex items-center gap-2">
 									<ClipboardList className="h-4 w-4 text-primary" />
-									KYC Document Requirements
+									{t.adminSettings.kycDocRequirements}
 								</CardTitle>
-								<CardDescription>
-									Documents required for user verification.
-								</CardDescription>
+								<CardDescription>{t.adminSettings.docsRequiredForVerification}</CardDescription>
 							</CardHeader>
 							<CardContent>
 								<div className="space-y-3">
 									<div className="rounded-lg border p-3">
 										<div className="flex items-center justify-between">
 											<div>
-												<p className="text-sm font-medium">Entrepreneurs</p>
-												<p className="text-xs text-muted-foreground mt-0.5">
-													National ID + Business License + TIN Certificate
-												</p>
+												<p className="text-sm font-medium">{t.admin.entrepreneurs}</p>
+												<p className="text-xs text-muted-foreground mt-0.5">{t.adminSettings.entrepreneurDocsList}</p>
 											</div>
 											<Badge variant="secondary" className="text-xs">
 												3 documents
@@ -559,10 +370,8 @@ export default function AdminSettingsPage() {
 									<div className="rounded-lg border p-3">
 										<div className="flex items-center justify-between">
 											<div>
-												<p className="text-sm font-medium">Investors</p>
-												<p className="text-xs text-muted-foreground mt-0.5">
-													National ID + Financial Accreditation Document
-												</p>
+												<p className="text-sm font-medium">{t.admin.investors}</p>
+												<p className="text-xs text-muted-foreground mt-0.5">{t.adminSettings.investorDocsList}</p>
 											</div>
 											<Badge variant="secondary" className="text-xs">
 												2 documents
@@ -572,7 +381,7 @@ export default function AdminSettingsPage() {
 									<div className="rounded-lg border p-3">
 										<div className="flex items-center justify-between">
 											<div>
-												<p className="text-sm font-medium">Accepted Formats</p>
+												<p className="text-sm font-medium">{t.adminSettings.acceptedFormats}</p>
 												<div className="flex flex-wrap gap-1.5 mt-1">
 													{["PDF", "JPG", "PNG", "WEBP"].map((fmt) => (
 														<Badge
@@ -585,9 +394,7 @@ export default function AdminSettingsPage() {
 													))}
 												</div>
 											</div>
-											<Badge variant="secondary" className="text-xs">
-												Max 10MB
-											</Badge>
+											<Badge variant="secondary" className="text-xs">{t.adminSettings.max10MB}</Badge>
 										</div>
 									</div>
 								</div>
@@ -601,11 +408,9 @@ export default function AdminSettingsPage() {
 							<CardHeader>
 								<CardTitle className="text-base flex items-center gap-2">
 									<Shield className="h-4 w-4 text-primary" />
-									Authentication Details
+									{t.adminSettings.authDetails}
 								</CardTitle>
-								<CardDescription>
-									How your account and the platform are secured.
-								</CardDescription>
+								<CardDescription>{t.adminSettings.howAccountSecured}</CardDescription>
 							</CardHeader>
 							<CardContent className="space-y-4">
 								<div className="rounded-lg border bg-muted/30 p-4 space-y-3">
@@ -615,17 +420,15 @@ export default function AdminSettingsPage() {
 										</div>
 										<div>
 											<p className="text-sm font-medium">
-												Google Authentication
+												{t.adminSettings.googleAuth}
 											</p>
-											<p className="text-xs text-muted-foreground">
-												Your account uses Google Sign-In via Firebase.
-											</p>
+											<p className="text-xs text-muted-foreground">{t.adminSettings.googleSignInViaFirebase}</p>
 										</div>
 										<Badge
 											variant="default"
 											className="ml-auto text-xs bg-green-500/10 text-green-600 border-green-500/20"
 										>
-											Active
+											{t.portfolio.active}
 										</Badge>
 									</div>
 								</div>
@@ -633,39 +436,35 @@ export default function AdminSettingsPage() {
 								<Separator />
 
 								<div className="space-y-2">
-									<p className="text-sm font-medium">Access Control Summary</p>
+									<p className="text-sm font-medium">{t.adminSettings.accessControlSummary}</p>
 									<div className="space-y-2">
 										<div className="flex items-center justify-between rounded-lg border p-3">
 											<div>
-												<p className="text-sm">Role-based access control</p>
-												<p className="text-xs text-muted-foreground">
-													Admin, Entrepreneur, Investor
-												</p>
+												<p className="text-sm">{t.adminSettings.roleBasedAccessControl}</p>
+												<p className="text-xs text-muted-foreground">{t.adminSettings.adminEntInv}</p>
 											</div>
 											<Badge
 												variant="default"
 												className="text-xs bg-green-500/10 text-green-600 border-green-500/20"
 											>
-												Enabled
+												{t.adminSettings.enabled}
 											</Badge>
 										</div>
 										<div className="flex items-center justify-between rounded-lg border p-3">
 											<div>
-												<p className="text-sm">Super Admin protection</p>
-												<p className="text-xs text-muted-foreground">
-													Regular admins cannot modify super admin accounts
-												</p>
+												<p className="text-sm">{t.adminSettings.superAdminProtection}</p>
+												<p className="text-xs text-muted-foreground">{t.adminSettings.regularAdminsCannotModify}</p>
 											</div>
 											<Badge
 												variant="default"
 												className="text-xs bg-green-500/10 text-green-600 border-green-500/20"
 											>
-												Enabled
+												{t.adminSettings.enabled}
 											</Badge>
 										</div>
 										<div className="flex items-center justify-between rounded-lg border p-3">
 											<div>
-												<p className="text-sm">API Rate Limiting</p>
+												<p className="text-sm">{t.adminSettings.apiRateLimiting}</p>
 												<p className="text-xs text-muted-foreground">
 													500 requests per 15 minutes per IP
 												</p>
@@ -674,26 +473,24 @@ export default function AdminSettingsPage() {
 												variant="default"
 												className="text-xs bg-green-500/10 text-green-600 border-green-500/20"
 											>
-												Enabled
+												{t.adminSettings.enabled}
 											</Badge>
 										</div>
 										<div className="flex items-center justify-between rounded-lg border p-3">
 											<div>
-												<p className="text-sm">JWT Token Authentication</p>
-												<p className="text-xs text-muted-foreground">
-													Firebase ID tokens verified on every API request
-												</p>
+												<p className="text-sm">{t.adminSettings.jwtTokenAuth}</p>
+												<p className="text-xs text-muted-foreground">{t.adminSettings.firebaseIdTokensVerified}</p>
 											</div>
 											<Badge
 												variant="default"
 												className="text-xs bg-green-500/10 text-green-600 border-green-500/20"
 											>
-												Enabled
+												{t.adminSettings.enabled}
 											</Badge>
 										</div>
 										<div className="flex items-center justify-between rounded-lg border p-3">
 											<div>
-												<p className="text-sm">MongoDB Injection Protection</p>
+												<p className="text-sm">{t.adminSettings.mongoProtection}</p>
 												<p className="text-xs text-muted-foreground">
 													express-mongo-sanitize active on all inputs
 												</p>
@@ -702,7 +499,7 @@ export default function AdminSettingsPage() {
 												variant="default"
 												className="text-xs bg-green-500/10 text-green-600 border-green-500/20"
 											>
-												Enabled
+												{t.adminSettings.enabled}
 											</Badge>
 										</div>
 									</div>
@@ -716,7 +513,7 @@ export default function AdminSettingsPage() {
 								<CardHeader>
 									<CardTitle className="text-base flex items-center gap-2 text-destructive">
 										<Shield className="h-4 w-4" />
-										Danger Zone
+										{t.adminSettings.dangerZone}
 									</CardTitle>
 									<CardDescription>
 										Bulk actions that affect multiple users. These cannot be
@@ -726,7 +523,7 @@ export default function AdminSettingsPage() {
 								<CardContent className="space-y-3">
 									<div className="flex items-center justify-between rounded-lg border border-destructive/20 p-4">
 										<div>
-											<p className="text-sm font-medium">Reset All User KYC</p>
+											<p className="text-sm font-medium">{t.adminSettings.resetAllUserKyc}</p>
 											<p className="text-xs text-muted-foreground">
 												Mark all verified entrepreneurs and investors as
 												unverified. They'll need to re-submit documents.
@@ -739,14 +536,12 @@ export default function AdminSettingsPage() {
 											onClick={() => setConfirmAction("reset-kyc")}
 										>
 											<Trash2 className="h-3.5 w-3.5 mr-1.5" />
-											Reset All
+											{t.adminSettings.resetAll}
 										</Button>
 									</div>
 									<div className="flex items-center justify-between rounded-lg border border-destructive/20 p-4">
 										<div>
-											<p className="text-sm font-medium">
-												Suspend Unverified Accounts
-											</p>
+											<p className="text-sm font-medium">{t.adminSettings.suspendUnverifiedAccounts}</p>
 											<p className="text-xs text-muted-foreground">
 												Suspend all non-admin accounts that haven't completed
 												KYC verification.
@@ -759,7 +554,7 @@ export default function AdminSettingsPage() {
 											onClick={() => setConfirmAction("suspend-unverified")}
 										>
 											<UserX className="h-3.5 w-3.5 mr-1.5" />
-											Suspend
+											{t.admin.suspend}
 										</Button>
 									</div>
 								</CardContent>
@@ -776,14 +571,12 @@ export default function AdminSettingsPage() {
 					<DialogContent className="sm:max-w-md">
 						<DialogHeader>
 							<DialogTitle className="text-destructive">
-								Confirm Action
+								{t.adminSettings.confirmAction}
 							</DialogTitle>
 							<DialogDescription>
 								{confirmAction === "reset-kyc"
 									? "This will mark ALL verified entrepreneurs and investors as unverified. They will need to re-upload their KYC documents."
-									: confirmAction === "signout"
-										? "Are you sure you want to sign out of your account?"
-										: "This will suspend all non-admin accounts that haven't completed KYC verification. Suspended users cannot access the platform."}
+									: "This will suspend all non-admin accounts that haven't completed KYC verification. Suspended users cannot access the platform."}
 							</DialogDescription>
 						</DialogHeader>
 						<DialogFooter className="gap-2 sm:gap-0">
@@ -792,20 +585,16 @@ export default function AdminSettingsPage() {
 							</Button>
 							<Button
 								variant="destructive"
-								onClick={() =>
-									confirmAction === "signout"
-										? signOut()
-										: confirmAction && handleBulkAction(confirmAction)
-								}
+								onClick={() => confirmAction && handleBulkAction(confirmAction)}
 								disabled={actionLoading}
 								className="gap-2"
 							>
 								{actionLoading ? (
 									<>
-										<Loader2 className="h-4 w-4 animate-spin" /> Processing...
+										<Loader2 className="h-4 w-4 animate-spin" /> {t.pitchReview.processing}
 									</>
 								) : (
-									"Confirm"
+									t.common.confirm
 								)}
 							</Button>
 						</DialogFooter>

@@ -69,3 +69,21 @@ export const sendOtpEmail = async (options: {
 		html,
 	});
 };
+
+export const sendEmail = async (options: {
+	to: string;
+	subject: string;
+	text?: string;
+	html?: string;
+}) => {
+	const from = getSmtpFrom();
+	const transport = getTransporter();
+
+	await transport.sendMail({
+		from: from.name ? `${from.name} <${from.email}>` : from.email,
+		to: options.to,
+		subject: options.subject,
+		text: options.text,
+		html: options.html,
+	});
+};

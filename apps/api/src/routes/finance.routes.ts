@@ -142,4 +142,35 @@ router.post(
 	FinanceController.disburseMilestone,
 );
 
+/**
+ * POST /api/finance/request-payout
+ * Entrepreneur requests payout for a verified milestone. Stores bank details and notifies admin.
+ */
+router.post(
+	"/request-payout",
+	authorize("entrepreneur"),
+	FinanceController.requestPayout,
+);
+
+// Admin: list payout requests
+router.get(
+	"/payout-requests",
+	authorize("admin"),
+	FinanceController.getPayoutRequests,
+);
+
+// Admin: get individual payout request (detail)
+router.get(
+	"/payout-requests/:id",
+	authorize("admin"),
+	FinanceController.getPayoutRequestDetail,
+);
+
+// Admin: process a payout request (approve/reject)
+router.post(
+	"/payout-requests/:id/process",
+	authorize("admin"),
+	FinanceController.processPayoutRequest,
+);
+
 export default router;

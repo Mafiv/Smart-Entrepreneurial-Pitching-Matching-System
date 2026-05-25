@@ -60,6 +60,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { ADMIN_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -194,6 +195,7 @@ function DocLink({
 
 export default function AdminOversight() {
 	const { user, userProfile } = useAuth();
+	const { t } = useLanguage();
 	const router = useRouter();
 	const isSuperAdmin = userProfile?.adminLevel === "super_admin";
 	const [users, setUsers] = useState<UserRecord[]>([]);
@@ -527,17 +529,16 @@ export default function AdminOversight() {
 					<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 						<div>
 							<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient">
-								Admin Overview
+								{t.admin.adminOverview}
 							</h1>
 							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
-								Monitor platform health, manage users, and review KYC
-								submissions
+								{t.admin.monitorPlatform}
 							</p>
 						</div>
 						<div className="flex items-center gap-2 shrink-0">
 							<div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
 							<span className="text-xs font-medium text-muted-foreground">
-								System Online
+								{t.admin.systemOnline}
 							</span>
 						</div>
 					</div>
@@ -547,42 +548,42 @@ export default function AdminOversight() {
 				<div className="admin-stat-grid grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 mb-8">
 					{[
 						{
-							label: "Total Users",
+							label: t.admin.totalUsers,
 							value: userStats.total,
 							icon: <Users className="h-4.5 w-4.5 text-white" />,
 							gradient: "admin-icon-blue",
 							change: null,
 						},
 						{
-							label: "Entrepreneurs",
+							label: t.admin.entrepreneurs,
 							value: userStats.entrepreneurs || 0,
 							icon: <Rocket className="h-4.5 w-4.5 text-white" />,
 							gradient: "admin-icon-violet",
 							change: null,
 						},
 						{
-							label: "Investors",
+							label: t.admin.investors,
 							value: userStats.investors || 0,
 							icon: <DollarSign className="h-4.5 w-4.5 text-white" />,
 							gradient: "admin-icon-emerald",
 							change: null,
 						},
 						{
-							label: "Pending KYC",
+							label: t.admin.pendingKYC,
 							value: pendingCount,
 							icon: <UserCheck className="h-4.5 w-4.5 text-white" />,
 							gradient: "admin-icon-amber",
 							change: pendingCount > 0 ? "action" : null,
 						},
 						{
-							label: "Submitted",
+							label: t.pitch.submitted,
 							value: subStats.submitted || 0,
 							icon: <Send className="h-4.5 w-4.5 text-white" />,
 							gradient: "admin-icon-cyan",
 							change: null,
 						},
 						{
-							label: "Approved",
+							label: t.pitch.approved,
 							value: subStats.approved || 0,
 							icon: <CheckCircle2 className="h-4.5 w-4.5 text-white" />,
 							gradient: "admin-icon-teal",
@@ -611,7 +612,7 @@ export default function AdminOversight() {
 											</p>
 											{stat.change === "action" && (
 												<span className="text-[10px] font-semibold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded-full">
-													Needs review
+													{t.admin.needsReview}
 												</span>
 											)}
 										</div>
@@ -624,10 +625,10 @@ export default function AdminOversight() {
 
 				<Tabs defaultValue="users">
 					<TabsList className="mb-6">
-						<TabsTrigger value="users">Users</TabsTrigger>
-						<TabsTrigger value="submissions">Submissions</TabsTrigger>
+						<TabsTrigger value="users">{t.nav.users}</TabsTrigger>
+						<TabsTrigger value="submissions">{t.nav.submissions}</TabsTrigger>
 						<TabsTrigger value="kyc-queue" className="gap-1.5">
-							KYC Queue
+							{t.admin.kycQueue}
 							{pendingCount > 0 && (
 								<Badge
 									variant="destructive"
@@ -640,7 +641,7 @@ export default function AdminOversight() {
 						{isSuperAdmin && (
 							<TabsTrigger value="admins" className="gap-1.5">
 								<Crown className="h-3.5 w-3.5" />
-								Manage Admins
+								{t.admin.manageAdmins}
 							</TabsTrigger>
 						)}
 					</TabsList>
@@ -651,17 +652,19 @@ export default function AdminOversight() {
 							<CardHeader className="pb-3">
 								<CardTitle className="text-base flex items-center gap-2">
 									<ShieldCheck className="h-4 w-4 text-primary" />
-									Pending KYC Reviews
+									{t.admin.pendingKYCReviews}
 								</CardTitle>
 							</CardHeader>
 							<Table>
 								<TableHeader>
 									<TableRow>
-										<TableHead>Name</TableHead>
-										<TableHead>Email</TableHead>
-										<TableHead>Role</TableHead>
-										<TableHead>Joined</TableHead>
-										<TableHead className="text-right">Actions</TableHead>
+										<TableHead>{t.admin.name}</TableHead>
+										<TableHead>{t.admin.email}</TableHead>
+										<TableHead>{t.admin.role}</TableHead>
+										<TableHead>{t.admin.joined}</TableHead>
+										<TableHead className="text-right">
+											{t.admin.actions}
+										</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
@@ -671,7 +674,7 @@ export default function AdminOversight() {
 												colSpan={5}
 												className="text-center py-8 text-muted-foreground"
 											>
-												Loading...
+												{t.common.loading}
 											</TableCell>
 										</TableRow>
 									) : pendingUsers.length === 0 ? (
@@ -682,10 +685,8 @@ export default function AdminOversight() {
 											>
 												<div className="flex flex-col items-center gap-2">
 													<CheckCircle2 className="h-8 w-8 text-green-500/50" />
-													<p className="font-medium">All caught up!</p>
-													<p className="text-xs">
-														No pending KYC reviews at the moment.
-													</p>
+													<p className="font-medium">{t.admin.allCaughtUp}</p>
+													<p className="text-xs">{t.admin.noPendingKYC}</p>
 												</div>
 											</TableCell>
 										</TableRow>
@@ -718,7 +719,7 @@ export default function AdminOversight() {
 															fetchUserProfile(u._id);
 														}}
 													>
-														Review KYC
+														{t.admin.reviewKYC}
 													</Button>
 												</TableCell>
 											</TableRow>
@@ -741,18 +742,18 @@ export default function AdminOversight() {
 									}}
 								>
 									<SelectTrigger className="w-40">
-										<SelectValue placeholder="Filter role" />
+										<SelectValue placeholder={t.adminUsers.filterRole} />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value="all">All roles</SelectItem>
-										<SelectItem value="entrepreneur">Entrepreneur</SelectItem>
-										<SelectItem value="investor">Investor</SelectItem>
-										<SelectItem value="admin">Admin</SelectItem>
+										<SelectItem value="all">{t.adminUsers.allRoles}</SelectItem>
+										<SelectItem value="entrepreneur">{t.adminUsers.roleEntrepreneur}</SelectItem>
+										<SelectItem value="investor">{t.adminUsers.roleInvestor}</SelectItem>
+										<SelectItem value="admin">{t.adminUsers.roleAdmin}</SelectItem>
 									</SelectContent>
 								</Select>
 							</div>
 							<p className="text-sm text-muted-foreground">
-								{users.length} user{users.length !== 1 ? "s" : ""}
+								{users.length} {t.adminUsers.usersFound}
 							</p>
 						</div>
 
@@ -760,12 +761,14 @@ export default function AdminOversight() {
 							<Table>
 								<TableHeader>
 									<TableRow>
-										<TableHead>Name</TableHead>
-										<TableHead>Email</TableHead>
-										<TableHead>Role</TableHead>
-										<TableHead>Status</TableHead>
-										<TableHead>Joined</TableHead>
-										<TableHead className="text-right">Actions</TableHead>
+										<TableHead>{t.admin.name}</TableHead>
+										<TableHead>{t.admin.email}</TableHead>
+										<TableHead>{t.admin.role}</TableHead>
+										<TableHead>{t.admin.status}</TableHead>
+										<TableHead>{t.admin.joined}</TableHead>
+										<TableHead className="text-right">
+											{t.admin.actions}
+										</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
@@ -775,7 +778,7 @@ export default function AdminOversight() {
 												colSpan={6}
 												className="text-center py-8 text-muted-foreground"
 											>
-												Loading...
+												{t.common.loading}
 											</TableCell>
 										</TableRow>
 									) : users.length === 0 ? (
@@ -784,7 +787,7 @@ export default function AdminOversight() {
 												colSpan={6}
 												className="text-center py-8 text-muted-foreground"
 											>
-												No users found
+												{t.admin.noUsersFound}
 											</TableCell>
 										</TableRow>
 									) : (
@@ -854,7 +857,7 @@ export default function AdminOversight() {
 																fetchUserProfile(u._id);
 															}}
 														>
-															Manage
+															{t.admin.manage}
 														</Button>
 													)}
 												</TableCell>
@@ -867,8 +870,8 @@ export default function AdminOversight() {
 							{totalUserPages > 1 && (
 								<div className="flex items-center justify-between p-4 border-t border-border/50">
 									<p className="text-sm text-muted-foreground">
-										Showing {(userPage - 1) * ITEMS_PER_PAGE + 1}–
-										{Math.min(userPage * ITEMS_PER_PAGE, users.length)} of{" "}
+										{t.adminUsers.showing} {(userPage - 1) * ITEMS_PER_PAGE + 1}–
+										{Math.min(userPage * ITEMS_PER_PAGE, users.length)} {t.adminUsers.ofInfo}{" "}
 										{users.length}
 									</p>
 									<div className="flex items-center gap-1">
@@ -879,7 +882,7 @@ export default function AdminOversight() {
 											disabled={userPage === 1}
 											className="h-8 px-3"
 										>
-											Previous
+											{t.adminUsers.previous}
 										</Button>
 										{Array.from(
 											{ length: totalUserPages },
@@ -904,7 +907,7 @@ export default function AdminOversight() {
 											disabled={userPage === totalUserPages}
 											className="h-8 px-3"
 										>
-											Next
+											{t.common.next}
 										</Button>
 									</div>
 								</div>
@@ -923,16 +926,16 @@ export default function AdminOversight() {
 								}}
 							>
 								<SelectTrigger className="w-44">
-									<SelectValue placeholder="Filter status" />
+									<SelectValue placeholder={t.adminUsers.filterStatus} />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value="all">All statuses</SelectItem>
-									<SelectItem value="draft">Draft</SelectItem>
-									<SelectItem value="submitted">Submitted</SelectItem>
-									<SelectItem value="under_review">Under Review</SelectItem>
-									<SelectItem value="approved">Approved</SelectItem>
-									<SelectItem value="rejected">Rejected</SelectItem>
-									<SelectItem value="suspended">Suspended</SelectItem>
+									<SelectItem value="all">{t.adminUsers.allStatuses}</SelectItem>
+									<SelectItem value="draft">{t.pitch.draft}</SelectItem>
+									<SelectItem value="submitted">{t.pitch.submitted}</SelectItem>
+									<SelectItem value="under_review">{t.pitch.underReview}</SelectItem>
+									<SelectItem value="approved">{t.pitch.approved}</SelectItem>
+									<SelectItem value="rejected">{t.pitch.rejected}</SelectItem>
+									<SelectItem value="suspended">{t.adminUsers.statusSuspended}</SelectItem>
 								</SelectContent>
 							</Select>
 						</div>
@@ -941,13 +944,13 @@ export default function AdminOversight() {
 							<Table>
 								<TableHeader>
 									<TableRow>
-										<TableHead>Title</TableHead>
-										<TableHead>Entrepreneur</TableHead>
-										<TableHead>Sector</TableHead>
-										<TableHead>Amount</TableHead>
-										<TableHead>Status</TableHead>
+										<TableHead>{t.pitch.title}</TableHead>
+										<TableHead>{t.admin.entrepreneurs}</TableHead>
+										<TableHead>{t.pitch.sector}</TableHead>
+										<TableHead>{t.pitch.targetAmount}</TableHead>
+										<TableHead>{t.admin.status}</TableHead>
 										<TableHead>Updated</TableHead>
-										<TableHead className="text-right">Actions</TableHead>
+										<TableHead className="text-right">{t.admin.actions}</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
@@ -957,7 +960,7 @@ export default function AdminOversight() {
 												colSpan={6}
 												className="text-center py-8 text-muted-foreground"
 											>
-												Loading...
+												{t.common.loading}
 											</TableCell>
 										</TableRow>
 									) : submissions.length === 0 ? (
@@ -966,7 +969,7 @@ export default function AdminOversight() {
 												colSpan={7}
 												className="text-center py-8 text-muted-foreground"
 											>
-												No submissions found
+												{t.common.noResults}
 											</TableCell>
 										</TableRow>
 									) : (
@@ -1007,7 +1010,7 @@ export default function AdminOversight() {
 														variant="outline"
 														onClick={() => router.push(`/admin/pitch/${s._id}`)}
 													>
-														View Full Pitch
+														{t.pitch.viewFullPitch}
 													</Button>
 												</TableCell>
 											</TableRow>
@@ -1052,7 +1055,7 @@ export default function AdminOversight() {
 								<CardHeader className="pb-3 flex flex-row items-center justify-between">
 									<CardTitle className="text-base flex items-center gap-2">
 										<Crown className="h-4 w-4 text-amber-500" />
-										Admin Team
+										{t.adminUsers.adminTeam}
 									</CardTitle>
 									<Button
 										size="sm"
@@ -1060,17 +1063,17 @@ export default function AdminOversight() {
 										onClick={() => setShowInviteDialog(true)}
 									>
 										<Plus className="h-3.5 w-3.5" />
-										Add Admin
+										{t.adminUsers.addAdmin}
 									</Button>
 								</CardHeader>
 								<Table>
 									<TableHeader>
 										<TableRow>
-											<TableHead>Name</TableHead>
-											<TableHead>Email</TableHead>
-											<TableHead>Level</TableHead>
-											<TableHead>Joined</TableHead>
-											<TableHead className="text-right">Actions</TableHead>
+											<TableHead>{t.admin.name}</TableHead>
+											<TableHead>{t.admin.email}</TableHead>
+											<TableHead>{t.adminUsers.level}</TableHead>
+											<TableHead>{t.admin.joined}</TableHead>
+											<TableHead className="text-right">{t.admin.actions}</TableHead>
 										</TableRow>
 									</TableHeader>
 									<TableBody>
@@ -1080,7 +1083,7 @@ export default function AdminOversight() {
 													colSpan={5}
 													className="text-center py-8 text-muted-foreground"
 												>
-													No admins found
+													{t.adminUsers.noAdminsFound}
 												</TableCell>
 											</TableRow>
 										) : (
@@ -1107,8 +1110,8 @@ export default function AdminOversight() {
 															className="text-xs capitalize"
 														>
 															{a.adminLevel === "super_admin"
-																? "Super Admin"
-																: "Admin"}
+																? t.adminUsers.superAdmin
+																: t.adminUsers.roleAdmin}
 														</Badge>
 													</TableCell>
 													<TableCell className="text-sm text-muted-foreground">
@@ -1128,11 +1131,11 @@ export default function AdminOversight() {
 																}
 															>
 																<Trash2 className="h-3.5 w-3.5" />
-																Remove
+																{t.adminUsers.remove}
 															</Button>
 														) : (
 															<span className="text-xs text-muted-foreground">
-																Protected
+																{t.adminUsers.protectedUser}
 															</span>
 														)}
 													</TableCell>
@@ -1158,11 +1161,10 @@ export default function AdminOversight() {
 									<DialogHeader>
 										<DialogTitle className="flex items-center gap-2">
 											<ShieldAlert className="h-5 w-5 text-primary" />
-											Add New Admin
+											{t.adminUsers.addNewAdmin}
 										</DialogTitle>
 										<DialogDescription>
-											Promote an existing user by email or generate an invite
-											link for new users.
+											{t.adminUsers.addNewAdminDesc}
 										</DialogDescription>
 									</DialogHeader>
 									<Tabs defaultValue="add-by-email" className="mt-2">
@@ -1172,14 +1174,14 @@ export default function AdminOversight() {
 												className="flex-1 gap-1.5"
 											>
 												<Mail className="h-3.5 w-3.5" />
-												Add by Email
+												{t.adminUsers.addByEmail}
 											</TabsTrigger>
 											<TabsTrigger
 												value="invite-link"
 												className="flex-1 gap-1.5"
 											>
 												<Link2 className="h-3.5 w-3.5" />
-												Invite Link
+												{t.adminUsers.inviteLink}
 											</TabsTrigger>
 										</TabsList>
 
@@ -1190,15 +1192,14 @@ export default function AdminOversight() {
 													<Mail className="h-7 w-7 text-primary" />
 												</div>
 												<p className="text-sm text-muted-foreground text-center">
-													Promote an existing platform user to admin by entering
-													their email address.
+													{t.adminUsers.promoteByEmailDesc}
 												</p>
 												<div className="space-y-2">
 													<Label
 														htmlFor="admin-email"
 														className="text-sm font-medium"
 													>
-														User Email
+														{t.adminUsers.userEmail}
 													</Label>
 													<Input
 														id="admin-email"
@@ -1224,11 +1225,11 @@ export default function AdminOversight() {
 														<ShieldCheck className="h-4 w-4" />
 													)}
 													{addByEmailLoading
-														? "Promoting..."
-														: "Promote to Admin"}
+														? t.adminUsers.promoting
+														: t.adminUsers.promoteToAdmin}
 												</Button>
 												<p className="text-xs text-muted-foreground/70 text-center">
-													The user must already have an account on the platform.
+													{t.adminUsers.userMustHaveAccount}
 												</p>
 											</div>
 										</TabsContent>
@@ -1251,11 +1252,10 @@ export default function AdminOversight() {
 														}}
 													>
 														<Copy className="h-4 w-4" />
-														Copy Link
+														{t.adminUsers.copyLink}
 													</Button>
 													<p className="text-xs text-muted-foreground text-center">
-														Share this link with the person you want to invite
-														as admin.
+														{t.adminUsers.shareInviteLink}
 													</p>
 												</div>
 											) : (
@@ -1264,9 +1264,7 @@ export default function AdminOversight() {
 														<Link2 className="h-7 w-7 text-primary" />
 													</div>
 													<p className="text-sm text-muted-foreground">
-														Generate a one-time invite link for someone who
-														doesn&apos;t have an account yet. Links expire in 7
-														days.
+														{t.adminUsers.generateInviteDesc}
 													</p>
 													<Button
 														onClick={handleInviteAdmin}
@@ -1279,8 +1277,8 @@ export default function AdminOversight() {
 															<Plus className="h-4 w-4" />
 														)}
 														{inviting
-															? "Generating..."
-															: "Generate Invite Link"}
+															? t.adminUsers.generating
+															: t.adminUsers.generateInviteLink}
 													</Button>
 												</div>
 											)}
@@ -1300,12 +1298,11 @@ export default function AdminOversight() {
 									<DialogHeader>
 										<DialogTitle className="flex items-center gap-2 text-destructive">
 											<ShieldAlert className="h-5 w-5" />
-											Remove Admin Access
+											{t.adminUsers.removeAdminAccess}
 										</DialogTitle>
 										<DialogDescription>
-											Are you sure you want to remove{" "}
-											<strong>{adminToRemove?.name}</strong> from the admin
-											team? They will lose all administrative privileges.
+											{t.adminUsers.removeAdminConfirmPrefix}{" "}
+											<strong>{adminToRemove?.name}</strong> {t.adminUsers.removeAdminConfirm}
 										</DialogDescription>
 									</DialogHeader>
 									<DialogFooter className="mt-4">
@@ -1313,10 +1310,10 @@ export default function AdminOversight() {
 											variant="outline"
 											onClick={() => setAdminToRemove(null)}
 										>
-											Cancel
+											{t.common.cancel}
 										</Button>
 										<Button variant="destructive" onClick={handleRemoveAdmin}>
-											Remove Admin
+											{t.adminUsers.removeAdmin}
 										</Button>
 									</DialogFooter>
 								</DialogContent>
@@ -1341,19 +1338,18 @@ export default function AdminOversight() {
 									{actionUser?.status === "pending" ? (
 										<>
 											<ShieldCheck className="h-5 w-5 text-primary" />
-											KYC Review
+											{t.adminUsers.kycReview}
 										</>
 									) : (
 										<>
 											<Users className="h-5 w-5" />
-											Manage User
+											{t.adminUsers.manageUser}
 										</>
 									)}
 								</DialogTitle>
 								{actionUser?.status === "pending" && (
 									<DialogDescription>
-										Review the submitted KYC documents and approve or reject
-										this user.
+										{t.adminUsers.kycReviewDesc}
 									</DialogDescription>
 								)}
 							</DialogHeader>
@@ -1404,14 +1400,14 @@ export default function AdminOversight() {
 									<div className="space-y-3">
 										<h4 className="text-sm font-semibold flex items-center gap-2">
 											<FileText className="h-4 w-4" />
-											KYC Documents
+											{t.adminUsers.kycDocuments}
 										</h4>
 
 										{loadingProfile ? (
 											<div className="flex items-center justify-center py-8">
 												<Loader2 className="h-5 w-5 animate-spin text-primary" />
 												<p className="ml-2 text-sm text-muted-foreground">
-													Loading documents...
+													{t.adminUsers.loadingDocs}
 												</p>
 											</div>
 										) : actionUserProfile &&
@@ -1420,8 +1416,8 @@ export default function AdminOversight() {
 												{/* National ID — Common for both roles */}
 												<DocLink
 													url={actionUserProfile.nationalIdUrl}
-													label="Ethiopian National ID"
-													missing="National ID not uploaded"
+													label={t.adminUsers.ethiopianNationalId}
+													missing={t.adminUsers.nationalIdMissing}
 												/>
 
 												{/* Role-specific documents */}
@@ -1429,13 +1425,13 @@ export default function AdminOversight() {
 													<>
 														<DocLink
 															url={actionUserProfile.businessLicenseUrl}
-															label="Business License"
-															missing="Business license not uploaded"
+															label={t.adminUsers.businessLicense}
+															missing={t.adminUsers.businessLicenseMissing}
 														/>
 														<DocLink
 															url={actionUserProfile.tinNumber}
-															label="TIN Certificate"
-															missing="TIN certificate not uploaded"
+															label={t.adminUsers.tinCertificate}
+															missing={t.adminUsers.tinCertificateMissing}
 														/>
 													</>
 												)}
@@ -1443,8 +1439,8 @@ export default function AdminOversight() {
 												{actionUser.role === "investor" && (
 													<DocLink
 														url={actionUserProfile.accreditationDocumentUrl}
-														label="Financial Accreditation"
-														missing="Accreditation not uploaded"
+														label={t.adminUsers.financialAccreditation}
+														missing={t.adminUsers.accreditationMissing}
 													/>
 												)}
 											</div>
@@ -1452,7 +1448,7 @@ export default function AdminOversight() {
 											<div className="rounded-lg border border-dashed p-4 text-center">
 												<AlertCircle className="h-5 w-5 text-muted-foreground/50 mx-auto mb-2" />
 												<p className="text-sm text-muted-foreground">
-													No profile or documents found for this user.
+													{t.adminUsers.noProfileFound}
 												</p>
 											</div>
 										)}
@@ -1463,14 +1459,14 @@ export default function AdminOversight() {
 										<>
 											<Separator />
 											<div className="space-y-3">
-												<h4 className="text-sm font-semibold">Quick Actions</h4>
+												<h4 className="text-sm font-semibold">{t.adminUsers.quickActions}</h4>
 												<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 													<Button
 														className="gap-2"
 														onClick={() => handleStatusUpdate("verified")}
 													>
 														<ShieldCheck className="h-4 w-4" />
-														Approve KYC
+														{t.adminUsers.approveKyc}
 													</Button>
 													<Button
 														variant="destructive"
@@ -1484,7 +1480,7 @@ export default function AdminOversight() {
 														}}
 													>
 														<ShieldX className="h-4 w-4" />
-														Reject KYC
+														{t.adminUsers.rejectKyc}
 													</Button>
 												</div>
 
@@ -1495,11 +1491,11 @@ export default function AdminOversight() {
 															htmlFor="rejection-reason"
 															className="text-sm font-medium text-destructive"
 														>
-															Rejection Reason (required)
+															{t.adminUsers.rejectionReasonRequired}
 														</Label>
 														<Textarea
 															id="rejection-reason"
-															placeholder="e.g. The National ID image is blurry and unreadable. Please re-upload a clearer photo."
+															placeholder={t.adminUsers.rejectionReasonPlaceholder}
 															value={rejectionReason}
 															onChange={(e) =>
 																setRejectionReason(e.target.value)
@@ -1518,7 +1514,7 @@ export default function AdminOversight() {
 																	)
 																}
 															>
-																Confirm Rejection
+																{t.adminUsers.confirmRejection}
 															</Button>
 														)}
 													</div>
@@ -1532,25 +1528,25 @@ export default function AdminOversight() {
 										<>
 											<Separator />
 											<div className="space-y-2">
-												<div className="text-sm font-medium">Update Status</div>
+												<div className="text-sm font-medium">{t.adminUsers.updateStatus}</div>
 												<Select value={newStatus} onValueChange={setNewStatus}>
 													<SelectTrigger>
 														<SelectValue />
 													</SelectTrigger>
 													<SelectContent>
 														<SelectItem value="unverified">
-															Unverified
+															{t.adminUsers.statusUnverified}
 														</SelectItem>
-														<SelectItem value="pending">Pending</SelectItem>
-														<SelectItem value="verified">Verified</SelectItem>
-														<SelectItem value="suspended">Suspended</SelectItem>
+														<SelectItem value="pending">{t.adminUsers.statusPending}</SelectItem>
+														<SelectItem value="verified">{t.adminUsers.statusVerified}</SelectItem>
+														<SelectItem value="suspended">{t.adminUsers.statusSuspended}</SelectItem>
 													</SelectContent>
 												</Select>
 
 												{newStatus === "unverified" &&
 													actionUser.status !== "unverified" && (
 														<Textarea
-															placeholder="Optional: Provide a reason for rejection..."
+															placeholder={t.adminUsers.optionalReason}
 															value={rejectionReason}
 															onChange={(e) =>
 																setRejectionReason(e.target.value)
@@ -1574,11 +1570,11 @@ export default function AdminOversight() {
 										setRejectionReason("");
 									}}
 								>
-									Cancel
+									{t.common.cancel}
 								</Button>
 								{actionUser?.status !== "pending" && (
 									<Button onClick={() => handleStatusUpdate()}>
-										Save Changes
+										{t.common.save}
 									</Button>
 								)}
 							</DialogFooter>

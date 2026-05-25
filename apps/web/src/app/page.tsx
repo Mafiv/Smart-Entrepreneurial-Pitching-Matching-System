@@ -26,128 +26,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 /* ──────────────────────────────────────────────
-   DATA
+   ICONS (language-independent)
    ────────────────────────────────────────────── */
 
-const FEATURES = [
-	{
-		icon: (
-			<Zap className="w-5 h-5 text-foreground drop-shadow-[0_0_8px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
-		),
-		title: "Secure Document Uploads",
-		desc: "Easily upload and manage your supporting documents, financial models, and business plans in one safe place.",
-	},
-	{
-		icon: (
-			<LinkIcon className="w-5 h-5 text-foreground drop-shadow-[0_0_8px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
-		),
-		title: "Smart Investor Matching",
-		desc: "Our matching engine understands the context of your pitch and connects you with investors whose interests and focus align with your startup.",
-	},
-	{
-		icon: (
-			<ShieldCheck className="w-5 h-5 text-foreground drop-shadow-[0_0_8px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
-		),
-		title: "Verified Profiles",
-		desc: "Every profile goes through verification so you can trust who you are connecting with on the platform.",
-	},
-	{
-		icon: (
-			<BarChart3 className="w-5 h-5 text-foreground drop-shadow-[0_0_8px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
-		),
-		title: "Dashboard Overview",
-		desc: "Monitor your pitch status, see how you match with investors, and manage your connections from a centralized hub.",
-	},
-	{
-		icon: (
-			<Radio className="w-5 h-5 text-foreground drop-shadow-[0_0_8px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
-		),
-		title: "Saved Pitches",
-		desc: "Investors can easily save promising pitches to their personal watchlists to review them later.",
-	},
-	{
-		icon: (
-			<MessageSquare className="w-5 h-5 text-foreground drop-shadow-[0_0_8px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
-		),
-		title: "Direct Conversations",
-		desc: "Once a match is made, start a secure private conversation directly on the platform.",
-	},
+const FEATURE_ICONS = [
+	<Zap key="zap" className="w-5 h-5 text-foreground drop-shadow-[0_0_8px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />,
+	<LinkIcon key="link" className="w-5 h-5 text-foreground drop-shadow-[0_0_8px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />,
+	<ShieldCheck key="shield" className="w-5 h-5 text-foreground drop-shadow-[0_0_8px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />,
+	<BarChart3 key="chart" className="w-5 h-5 text-foreground drop-shadow-[0_0_8px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />,
+	<Radio key="radio" className="w-5 h-5 text-foreground drop-shadow-[0_0_8px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />,
+	<MessageSquare key="msg" className="w-5 h-5 text-foreground drop-shadow-[0_0_8px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />,
 ];
 
-const PLATFORM_FEATURES = [
-	{
-		title: "For Entrepreneurs",
-		subtitle: "Everything you need to get funded",
-		items: [
-			"Guided pitch submission process",
-			"AI feedback to strengthen your pitch",
-			"Secure document uploads",
-			"Investor match insights",
-			"Track your pitch status",
-			"Manage pitches easily",
-		],
-	},
-	{
-		title: "For Investors",
-		subtitle: "Discover high-quality deal flow",
-		items: [
-			"Personalized pitch feed",
-			"Filter by sector and stage",
-			"See pitch quality scores",
-			"Track your investments",
-			"Save promising pitches",
-			"Message founders directly",
-		],
-	},
-];
-
-const STEPS = [
-	{
-		step: "01",
-		title: "Register & create profile",
-		desc: "Create an account and set up your profile to tell us a bit about yourself and your goals.",
-	},
-	{
-		step: "02",
-		title: "Submit your pitch",
-		desc: "Walk through our step-by-step form to describe your problem, solution, business model, and upload documents.",
-	},
-	{
-		step: "03",
-		title: "Smart Matching",
-		desc: "The platform intelligently matches your pitch with verified investors whose sector focus and preferences align with yours.",
-	},
-	{
-		step: "04",
-		title: "Connect and grow",
-		desc: "Matched investors can review your pitch and start a direct conversation with you.",
-	},
-];
-
-const FAQ = [
-	{
-		q: "How does the registration process work?",
-		a: "Simply sign up, verify your email, and fill out your profile details. Once your profile is complete, you can start submitting pitches or discovering startups.",
-	},
-	{
-		q: "How does investor matching work?",
-		a: "Our matching engine compares the context of your pitch against the preferences set by our investors to find the most relevant connections.",
-	},
-	{
-		q: "Is my data secure?",
-		a: "Yes. We use standard authentication and secure storage so that your interactions, documents, and pitches are protected.",
-	},
-	{
-		q: "What does it cost?",
-		a: "The platform is currently free to join for both entrepreneurs and investors. You can submit pitches, get matched, and start conversations.",
-	},
-	{
-		q: "How long does it take to get matches?",
-		a: "Once your pitch is submitted and approved, our system automatically finds relevant investors and you will be notified of any strong matches.",
-	},
-];
+const STEP_NUMBERS = ["01", "02", "03", "04"];
 
 /* ──────────────────────────────────────────────
    COMPONENT
@@ -156,6 +50,45 @@ const FAQ = [
 export default function Home() {
 	const { user, userProfile } = useAuth();
 	const router = useRouter();
+	const { t } = useLanguage();
+
+	// Build translated data
+	const FEATURES = [
+		{ icon: FEATURE_ICONS[0], title: t.landing.feature1Title, desc: t.landing.feature1Desc },
+		{ icon: FEATURE_ICONS[1], title: t.landing.feature2Title, desc: t.landing.feature2Desc },
+		{ icon: FEATURE_ICONS[2], title: t.landing.feature3Title, desc: t.landing.feature3Desc },
+		{ icon: FEATURE_ICONS[3], title: t.landing.feature4Title, desc: t.landing.feature4Desc },
+		{ icon: FEATURE_ICONS[4], title: t.landing.feature5Title, desc: t.landing.feature5Desc },
+		{ icon: FEATURE_ICONS[5], title: t.landing.feature6Title, desc: t.landing.feature6Desc },
+	];
+
+	const PLATFORM_FEATURES = [
+		{
+			title: t.landing.platformEntrepreneurTitle,
+			subtitle: t.landing.platformEntrepreneurSubtitle,
+			items: t.landing.platformEntrepreneurItems,
+		},
+		{
+			title: t.landing.platformInvestorTitle,
+			subtitle: t.landing.platformInvestorSubtitle,
+			items: t.landing.platformInvestorItems,
+		},
+	];
+
+	const STEPS = [
+		{ step: "01", title: t.landing.step1Title, desc: t.landing.step1Desc },
+		{ step: "02", title: t.landing.step2Title, desc: t.landing.step2Desc },
+		{ step: "03", title: t.landing.step3Title, desc: t.landing.step3Desc },
+		{ step: "04", title: t.landing.step4Title, desc: t.landing.step4Desc },
+	];
+
+	const FAQ = [
+		{ q: t.landing.faq1Q, a: t.landing.faq1A },
+		{ q: t.landing.faq2Q, a: t.landing.faq2A },
+		{ q: t.landing.faq3Q, a: t.landing.faq3A },
+		{ q: t.landing.faq4Q, a: t.landing.faq4A },
+		{ q: t.landing.faq5Q, a: t.landing.faq5A },
+	];
 
 	// Dashboard Mockup setup
 	const dashboardRef = useRef<HTMLDivElement>(null);
@@ -243,7 +176,7 @@ export default function Home() {
 									<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
 									<span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500" />
 								</span>
-								AI-Powered Investment Matching Platform
+								{t.landing.heroBadge}
 							</div>
 						</motion.div>
 
@@ -269,7 +202,7 @@ export default function Home() {
 									},
 								}}
 							>
-								Where growing startups
+								{t.landing.heroTitle1}
 							</motion.span>
 							<motion.span
 								className="block relative bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent pb-4 inline-block mx-auto"
@@ -289,7 +222,7 @@ export default function Home() {
 									},
 								}}
 							>
-								meet the right capital
+								{t.landing.heroTitle2}
 								{/* Animated under-line */}
 								<motion.svg
 									className="absolute -bottom-1 left-0 w-full h-5 overflow-visible"
@@ -342,8 +275,7 @@ export default function Home() {
 								},
 							}}
 						>
-							Submit your pitch and connect with verified investors who are
-							actively looking for startups like yours all in one platform.
+							{t.landing.heroSubtitle}
 						</motion.p>
 
 						<motion.div
@@ -365,7 +297,7 @@ export default function Home() {
 									onClick={() => router.push(dashboardRoute as string)}
 								>
 									<span className="relative z-10 transition-transform duration-300 group-hover:scale-105 inline-block">
-										Go to my Dashboard
+										{t.landing.heroCtaDashboard}
 									</span>
 									<motion.div
 										className="absolute inset-0 bg-white/20"
@@ -382,7 +314,7 @@ export default function Home() {
 										onClick={() => router.push("/sign-up?role=entrepreneur")}
 									>
 										<span className="relative z-10 transition-transform duration-300 group-hover:scale-105 inline-block">
-											Start pitching for free
+											{t.landing.heroCtaPitch}
 										</span>
 										<motion.div
 											className="absolute inset-0 bg-white/20"
@@ -397,7 +329,7 @@ export default function Home() {
 										className="h-12 px-8 text-sm font-semibold rounded-full hover:bg-muted transition-transform duration-300 hover:scale-105"
 										onClick={() => router.push("/sign-up?role=investor")}
 									>
-										I&apos;m an investor
+										{t.landing.heroCtaInvestor}
 									</Button>
 								</>
 							)}
@@ -410,7 +342,7 @@ export default function Home() {
 								visible: { opacity: 1, transition: { duration: 1 } },
 							}}
 						>
-							No credit card required · Free tier available · Setup in 5 minutes
+							{t.landing.heroFootnote}
 						</motion.p>
 					</motion.div>
 				</div>
@@ -464,14 +396,13 @@ export default function Home() {
 						transition={{ duration: 0.5 }}
 					>
 						<Badge variant="secondary" className="mb-4 px-3 py-1 text-xs">
-							Core Features
+							{t.landing.featuresBadge}
 						</Badge>
 						<h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-							Everything you need to get funded
+							{t.landing.featuresTitle}
 						</h2>
 						<p className="mt-4 text-muted-foreground">
-							From submission to funding, our platform handles the heavy lifting
-							so you can focus on building.
+							{t.landing.featuresSubtitle}
 						</p>
 					</motion.div>
 					<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -516,14 +447,13 @@ export default function Home() {
 						transition={{ duration: 0.5 }}
 					>
 						<Badge variant="secondary" className="mb-4 px-3 py-1 text-xs">
-							Platform
+							{t.landing.platformBadge}
 						</Badge>
 						<h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-							Built for founders & investors
+							{t.landing.platformTitle}
 						</h2>
 						<p className="mt-4 text-muted-foreground">
-							Tailored tools and dashboards for both entrepreneurs seeking
-							capital and investors searching for opportunities.
+							{t.landing.platformSubtitle}
 						</p>
 					</motion.div>
 					<div className="grid gap-6 sm:grid-cols-2 max-w-4xl mx-auto">
@@ -572,14 +502,13 @@ export default function Home() {
 						transition={{ duration: 0.5 }}
 					>
 						<Badge variant="secondary" className="mb-4 px-3 py-1 text-xs">
-							How it works
+							{t.landing.howItWorksBadge}
 						</Badge>
 						<h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-							From pitch to partnership in four steps
+							{t.landing.howItWorksTitle}
 						</h2>
 						<p className="mt-4 text-muted-foreground">
-							A clear path from submitting your pitch to a funded partnership
-							with the right investor.
+							{t.landing.howItWorksSubtitle}
 						</p>
 					</motion.div>
 					<div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
@@ -621,10 +550,10 @@ export default function Home() {
 						transition={{ duration: 0.5 }}
 					>
 						<Badge variant="secondary" className="mb-4 px-3 py-1 text-xs">
-							FAQ
+							{t.landing.faqBadge}
 						</Badge>
 						<h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-							Frequently asked questions
+							{t.landing.faqTitle}
 						</h2>
 					</motion.div>
 
@@ -661,11 +590,10 @@ export default function Home() {
 							<CardContent className="relative p-8 sm:p-12 lg:p-16 text-center z-10">
 								<div className="relative">
 									<h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
-										Ready to accelerate your funding?
+										{t.landing.ctaTitle}
 									</h2>
 									<p className="mx-auto max-w-lg text-muted-foreground mb-8">
-										Join hundreds of entrepreneurs who&apos;ve already connected
-										with the right investors through AI-powered matching.
+										{t.landing.ctaSubtitle}
 									</p>
 									<div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
 										{user && dashboardRoute ? (
@@ -674,7 +602,7 @@ export default function Home() {
 												className="h-12 px-8 font-semibold hover:scale-105 transition-transform duration-300"
 												onClick={() => router.push(dashboardRoute as string)}
 											>
-												Go to Dashboard
+												{t.landing.ctaDashboard}
 											</Button>
 										) : (
 											<>
@@ -684,7 +612,7 @@ export default function Home() {
 													onClick={() => router.push("/sign-up")}
 												>
 													<span className="relative z-10">
-														Create free account
+														{t.landing.ctaButton}
 													</span>
 													<motion.div
 														className="absolute inset-0 bg-white/20"
@@ -699,7 +627,7 @@ export default function Home() {
 													className="h-12 px-8 font-semibold hover:scale-105 hover:bg-muted transition-all duration-300"
 													onClick={() => router.push("/sign-in")}
 												>
-													Sign in
+													{t.landing.ctaSignIn}
 												</Button>
 											</>
 										)}
@@ -722,23 +650,15 @@ export default function Home() {
 								<span className="font-semibold text-sm">SEPMS</span>
 							</div>
 							<p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
-								Smart Entrepreneurial Pitching & Matching System helping
-								founders connect with the right investors through intelligent
-								matching.
+								{t.landing.footerBrand}
 							</p>
 						</div>
 
 						{/* Product */}
 						<div>
-							<h4 className="font-semibold text-sm mb-4">Product</h4>
+							<h4 className="font-semibold text-sm mb-4">{t.landing.footerProduct}</h4>
 							<ul className="space-y-2.5">
-								{[
-									"Investor Matching",
-									"Profile Verification",
-									"Saved Pitches",
-									"Direct Messaging",
-									"Performance Dashboard",
-								].map((item) => (
+								{t.landing.footerProductItems.map((item) => (
 									<li key={item}>
 										<Link
 											href="#features"
@@ -753,15 +673,9 @@ export default function Home() {
 
 						{/* Resources */}
 						<div>
-							<h4 className="font-semibold text-sm mb-4">Resources</h4>
+							<h4 className="font-semibold text-sm mb-4">{t.landing.footerResources}</h4>
 							<ul className="space-y-2.5">
-								{[
-									"How it Works",
-									"FAQ",
-									"Getting Started Guide",
-									"Help Center",
-									"Privacy Policy",
-								].map((item) => (
+								{t.landing.footerResourceItems.map((item) => (
 									<li key={item}>
 										<Link
 											href="#faq"
@@ -776,15 +690,9 @@ export default function Home() {
 
 						{/* Company */}
 						<div>
-							<h4 className="font-semibold text-sm mb-4">Company</h4>
+							<h4 className="font-semibold text-sm mb-4">{t.landing.footerCompany}</h4>
 							<ul className="space-y-2.5">
-								{[
-									"About SEPMS",
-									"Contact",
-									"Careers",
-									"Terms of Service",
-									"Cookie Policy",
-								].map((item) => (
+								{t.landing.footerCompanyItems.map((item) => (
 									<li key={item}>
 										<Link
 											href="#"
@@ -802,8 +710,7 @@ export default function Home() {
 
 					<div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
 						<p className="text-xs text-muted-foreground">
-							© {new Date().getFullYear()} SEPMS Smart Entrepreneurial Pitching
-							& Matching System. All rights reserved.
+							© {new Date().getFullYear()} {t.landing.footerCopyright}
 						</p>
 						<div className="flex items-center gap-4">
 							<Link

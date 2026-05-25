@@ -34,6 +34,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ADMIN_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -141,7 +142,7 @@ function avatarColor(id: string) {
 	return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
-function RoleBadge({ role }: { role?: string }) {
+function RoleBadge({ role, t }: { role?: string; t: any }) {
 	if (!role) return null;
 	const styles: Record<string, string> = {
 		admin: "bg-destructive/10 text-destructive border-transparent",
@@ -149,9 +150,9 @@ function RoleBadge({ role }: { role?: string }) {
 		entrepreneur: "bg-amber-500/10 text-amber-700 border-transparent",
 	};
 	const label: Record<string, string> = {
-		admin: "Admin",
-		investor: "Investor",
-		entrepreneur: "Entrepreneur",
+		admin: t.adminUsers?.roleAdmin || "Admin",
+		investor: t.admin?.investor || "Investor",
+		entrepreneur: t.admin?.entrepreneur || "Entrepreneur",
 	};
 
 	return (
@@ -166,6 +167,7 @@ function RoleBadge({ role }: { role?: string }) {
 
 function MessagesContent() {
 	const { user, userProfile } = useAuth();
+	const { t } = useLanguage();
 	const searchParams = useSearchParams();
 	const [conversations, setConversations] = useState<Conversation[]>([]);
 	const [activeConvo, setActiveConvo] = useState<Conversation | null>(null);
@@ -442,11 +444,11 @@ function MessagesContent() {
 			} else {
 				setMessages((prev) => prev.filter((m) => m._id !== optimisticMsg._id));
 				const err = await res.json();
-				showErrorToast(err.message || "Failed to send message");
+				showErrorToast(err.message || t.adminMessages.failedToSend);
 			}
 		} catch (_err) {
 			setMessages((prev) => prev.filter((m) => m._id !== optimisticMsg._id));
-			showErrorToast("Failed to send message");
+			showErrorToast(t.adminMessages.failedToSend);
 		} finally {
 			setSending(false);
 			inputRef.current?.focus();
@@ -474,9 +476,7 @@ function MessagesContent() {
 				},
 			);
 			if (res.ok) {
-				showSuccessToast(
-					"Report submitted. The conversation has been frozen and an admin has been alerted.",
-				);
+				showSuccessToast(t.adminMessages.reportSubmitted);
 				setShowReportDialog(false);
 				setReportReason("");
 				setReportDetails("");
@@ -484,10 +484,10 @@ function MessagesContent() {
 				setActiveConvo(null);
 			} else {
 				const err = await res.json();
-				showErrorToast(err.message || "Failed to submit report");
+				showErrorToast(err.message || t.adminMessages.failedToSubmitReport);
 			}
 		} catch (_err) {
-			showErrorToast("Failed to submit report");
+			showErrorToast(t.adminMessages.failedToSubmitReport);
 		} finally {
 			setReportLoading(false);
 		}
@@ -516,9 +516,9 @@ function MessagesContent() {
 	};
 
 	const getLastMessagePreview = (convo: Conversation) => {
-		if (!convo.lastMessage) return "No messages yet";
+		if (!convo.lastMessage) return t.adminMessages.noMessagesYet;
 		const body = convo.lastMessage.body;
-		if (convo.lastMessage.type === "file") return "📎 Attachment";
+		if (convo.lastMessage.type === "file") return "📎 " + t.adminMessages.attachment;
 		return body.length > 40 ? `${body.slice(0, 40)}…` : body;
 	};
 
@@ -532,7 +532,7 @@ function MessagesContent() {
 		}
 		const yesterday = new Date();
 		yesterday.setDate(yesterday.getDate() - 1);
-		if (d.toDateString() === yesterday.toDateString()) return "Yesterday";
+		if (d.toDateString() === yesterday.toDateString()) return t.adminMessages.yesterday;
 		return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 	};
 
@@ -573,14 +573,14 @@ function MessagesContent() {
 				},
 			);
 			if (res.ok) {
-				showSuccessToast("Admin added to group");
+				showSuccessToast(t.adminMessages.adminAdded);
 				loadConversations(false);
 			} else {
 				const err = await res.json();
-				showErrorToast(err.message || "Failed to add admin");
+				showErrorToast(err.message || t.adminMessages.failedToAddAdmin);
 			}
 		} catch (_err) {
-			showErrorToast("Failed to add admin");
+			showErrorToast(t.adminMessages.failedToAddAdmin);
 		} finally {
 			setManageParticipantLoading(null);
 		}
@@ -599,14 +599,14 @@ function MessagesContent() {
 				},
 			);
 			if (res.ok) {
-				showSuccessToast("Admin removed from group");
+				showSuccessToast(t.adminMessages.adminRemoved);
 				loadConversations(false);
 			} else {
 				const err = await res.json();
-				showErrorToast(err.message || "Failed to remove admin");
+				showErrorToast(err.message || t.adminMessages.failedToRemoveAdmin);
 			}
 		} catch (_err) {
-			showErrorToast("Failed to remove admin");
+			showErrorToast(t.adminMessages.failedToRemoveAdmin);
 		} finally {
 			setManageParticipantLoading(null);
 		}
@@ -634,10 +634,10 @@ function MessagesContent() {
 					{/* Header */}
 					<div className="mb-4 admin-content-fade">
 						<h1 className="text-2xl font-bold tracking-tight admin-header-gradient">
-							Messages
+							{t.adminMessages.messages}
 						</h1>
 						<p className="text-sm text-muted-foreground">
-							Communicate securely with your connections
+							{t.adminMessages.messagesDesc}
 						</p>
 					</div>
 
@@ -649,7 +649,7 @@ function MessagesContent() {
 							}`}
 						>
 							<div className="px-4 py-3.5 border-b border-border bg-muted/20">
-								<p className="text-sm font-semibold tracking-tight">Chats</p>
+								<p className="text-sm font-semibold tracking-tight">{t.adminMessages.chats}</p>
 							</div>
 							<div className="flex-1 overflow-y-auto">
 								{initialLoading ? (
@@ -662,11 +662,10 @@ function MessagesContent() {
 											<MessageSquare className="h-7 w-7 text-muted-foreground/40" />
 										</div>
 										<p className="text-sm font-medium text-muted-foreground">
-											No conversations yet
+											{t.adminMessages.noConversationsYet}
 										</p>
 										<p className="text-xs text-muted-foreground/60 mt-1 max-w-[200px]">
-											Start a conversation by messaging someone from a pitch
-											page
+											{t.adminMessages.startConversation}
 										</p>
 									</div>
 								) : (
@@ -717,11 +716,11 @@ function MessagesContent() {
 															>
 																<span className="truncate">
 																	{convo.isGroup
-																		? convo.title || "Group Chat"
-																		: other?.fullName || "Unknown"}
+																		? convo.title || t.adminMessages.groupChat
+																		: other?.fullName || t.adminMessages.unknown}
 																</span>
 																{!convo.isGroup && (
-																	<RoleBadge role={other?.role} />
+																	<RoleBadge role={other?.role} t={t} />
 																)}
 															</p>
 															<span
@@ -749,7 +748,7 @@ function MessagesContent() {
 																	variant="destructive"
 																	className="text-[9px] shrink-0 px-1.5 py-0"
 																>
-																	Frozen
+																	{t.adminMessages.frozen}
 																</Badge>
 															)}
 														</div>
@@ -773,9 +772,9 @@ function MessagesContent() {
 									<div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted/30 mb-4">
 										<MessageSquare className="h-9 w-9 opacity-30" />
 									</div>
-									<p className="text-base font-medium">Select a conversation</p>
+									<p className="text-base font-medium">{t.adminMessages.selectConversation}</p>
 									<p className="text-xs text-muted-foreground/60 mt-1">
-										Choose from your existing chats to start messaging
+										{t.adminMessages.chooseFromExisting}
 									</p>
 								</div>
 							) : (
@@ -815,19 +814,20 @@ function MessagesContent() {
 												<div className="flex items-center gap-2">
 													<p className="text-sm font-semibold leading-tight truncate">
 														{activeConvo.isGroup
-															? activeConvo.title || "Group Chat"
+															? activeConvo.title || t.adminMessages.groupChat
 															: getOtherParticipant(activeConvo)?.fullName ||
-																"Unknown"}
+																t.adminMessages.unknown}
 													</p>
 													{!activeConvo.isGroup && (
 														<RoleBadge
 															role={getOtherParticipant(activeConvo)?.role}
+															t={t}
 														/>
 													)}
 												</div>
 												<p className="text-[11px] text-muted-foreground leading-tight">
 													{activeConvo.isGroup
-														? `${activeConvo.participants.length} Participants`
+														? `${activeConvo.participants.length} ${t.adminMessages.participants}`
 														: getOtherParticipant(activeConvo)?.email}
 												</p>
 											</div>
@@ -844,7 +844,7 @@ function MessagesContent() {
 													}}
 												>
 													<Users className="h-3.5 w-3.5" />
-													<span className="hidden sm:inline">Participants</span>
+													<span className="hidden sm:inline">{t.adminMessages.participants}</span>
 												</Button>
 											)}
 											{!activeConvo.isArchived && (
@@ -855,7 +855,7 @@ function MessagesContent() {
 													onClick={() => setShowReportDialog(true)}
 												>
 													<ShieldAlert className="h-4 w-4" />
-													<span className="hidden sm:inline">Report</span>
+													<span className="hidden sm:inline">{t.adminMessages.report}</span>
 												</Button>
 											)}
 										</div>
@@ -881,9 +881,9 @@ function MessagesContent() {
 												<div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-3">
 													<Send className="h-6 w-6 text-primary/60" />
 												</div>
-												<p className="text-sm font-medium">No messages yet</p>
+												<p className="text-sm font-medium">{t.adminMessages.noMessagesYet}</p>
 												<p className="text-xs text-muted-foreground/60 mt-1">
-													Say hello! 👋
+													{t.adminMessages.sayHello}
 												</p>
 											</div>
 										) : (
@@ -916,7 +916,7 @@ function MessagesContent() {
 																	{activeConvo.isGroup && !isMine && (
 																		<span className="text-[10px] font-semibold opacity-60 mb-0.5 leading-none">
 																			{typeof msg.senderId === "string"
-																				? "Unknown Admin"
+																				? t.adminMessages.unknownAdmin
 																				: msg.senderId.fullName}
 																		</span>
 																	)}
@@ -931,7 +931,7 @@ function MessagesContent() {
 																			className="text-xs underline flex items-center gap-1 mt-1.5 opacity-80"
 																		>
 																			<Paperclip className="h-3 w-3" />{" "}
-																			Attachment
+																			{t.adminMessages.attachment}
 																		</a>
 																	)}
 																	{/* Time + Read Receipt */}
@@ -972,11 +972,10 @@ function MessagesContent() {
 												<ShieldAlert className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
 												<div>
 													<p className="text-sm font-semibold text-destructive">
-														Conversation Frozen
+														{t.adminMessages.conversationFrozen}
 													</p>
 													<p className="text-xs text-muted-foreground mt-1">
-														This conversation has been reported and is under
-														admin review.
+														{t.adminMessages.conversationFrozenDesc}
 													</p>
 												</div>
 											</div>
@@ -986,7 +985,7 @@ function MessagesContent() {
 											<div className="flex items-end gap-2">
 												<Input
 													ref={inputRef}
-													placeholder="Type a message..."
+													placeholder={t.adminMessages.typeMessage}
 													value={messageBody}
 													onChange={(e) => setMessageBody(e.target.value)}
 													onKeyDown={(e) => {
@@ -1025,28 +1024,27 @@ function MessagesContent() {
 						<DialogHeader>
 							<DialogTitle className="flex items-center gap-2">
 								<ShieldAlert className="h-5 w-5 text-destructive" />
-								Report Misconduct
+								{t.adminMessages.reportMisconduct}
 							</DialogTitle>
 							<DialogDescription>
-								Report suspicious or inappropriate behavior. The conversation
-								will be frozen and an admin will be alerted for urgent review.
+								{t.adminMessages.reportMisconductDesc}
 							</DialogDescription>
 						</DialogHeader>
 						<div className="space-y-4 py-2">
 							<div className="space-y-2">
-								<Label htmlFor="report-reason">Reason *</Label>
+								<Label htmlFor="report-reason">{t.adminMessages.reasonLabel}</Label>
 								<Input
 									id="report-reason"
-									placeholder="e.g., Harassment, demands outside platform, fraud"
+									placeholder={t.adminMessages.reasonPlaceholder}
 									value={reportReason}
 									onChange={(e) => setReportReason(e.target.value)}
 								/>
 							</div>
 							<div className="space-y-2">
-								<Label htmlFor="report-details">Additional Details</Label>
+								<Label htmlFor="report-details">{t.adminMessages.additionalDetails}</Label>
 								<Textarea
 									id="report-details"
-									placeholder="Provide any additional context or evidence..."
+									placeholder={t.adminMessages.additionalDetailsPlaceholder}
 									value={reportDetails}
 									onChange={(e) => setReportDetails(e.target.value)}
 									rows={4}
@@ -1058,7 +1056,7 @@ function MessagesContent() {
 								variant="outline"
 								onClick={() => setShowReportDialog(false)}
 							>
-								Cancel
+								{t.common.cancel}
 							</Button>
 							<Button
 								variant="destructive"
@@ -1068,7 +1066,7 @@ function MessagesContent() {
 								{reportLoading ? (
 									<Loader2 className="h-4 w-4 animate-spin mr-2" />
 								) : null}
-								Submit Report
+								{t.adminMessages.submitReport}
 							</Button>
 						</DialogFooter>
 					</DialogContent>
@@ -1078,14 +1076,14 @@ function MessagesContent() {
 				<Dialog open={showGroupDialog} onOpenChange={setShowGroupDialog}>
 					<DialogContent className="sm:max-w-[450px]">
 						<DialogHeader>
-							<DialogTitle>Group Participants</DialogTitle>
+							<DialogTitle>{t.adminMessages.groupParticipants}</DialogTitle>
 							<DialogDescription>
-								View members of the Global Admins Chat.
+								{t.adminMessages.groupParticipantsDesc}
 							</DialogDescription>
 						</DialogHeader>
 						<div className="space-y-4 py-2 mt-2">
 							<p className="text-sm font-semibold mb-2 text-muted-foreground">
-								Current Members
+								{t.adminMessages.currentMembers}
 							</p>
 							<div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-2 border rounded-md p-2 shadow-inner">
 								{activeConvo?.participants.map((p) => (
@@ -1127,7 +1125,7 @@ function MessagesContent() {
 							{userProfile?.adminLevel === "super_admin" && (
 								<div className="mt-6 pt-4 border-t">
 									<p className="text-sm font-semibold mb-3 text-muted-foreground">
-										Add Admins
+										{t.adminMessages.addAdmins}
 									</p>
 									{fetchingAdmins ? (
 										<div className="flex justify-center p-4">
@@ -1142,7 +1140,7 @@ function MessagesContent() {
 													),
 											).length === 0 ? (
 												<p className="text-sm text-center italic text-muted-foreground border border-dashed rounded-md p-4">
-													All admins are already in this group.
+													{t.adminMessages.allAdminsInGroup}
 												</p>
 											) : (
 												allAdmins
@@ -1181,7 +1179,7 @@ function MessagesContent() {
 																) : (
 																	<UserPlus className="h-3 w-3 mr-1.5" />
 																)}
-																Add
+																{t.adminMessages.add}
 															</Button>
 														</div>
 													))

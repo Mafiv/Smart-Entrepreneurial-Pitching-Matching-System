@@ -43,6 +43,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { ENTREPRENEUR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -189,6 +190,7 @@ function InvestorProfileModal({
 	investorName: string;
 }) {
 	const { user } = useAuth();
+	const { t } = useLanguage();
 	const [profile, setProfile] = useState<InvestorProfileData | null>(null);
 	const [investorUser, setInvestorUser] = useState<InvestorUser | null>(null);
 	const [loading, setLoading] = useState(false);
@@ -209,10 +211,10 @@ function InvestorProfileModal({
 						setProfile(data.profile);
 						setInvestorUser(data.user);
 					} else {
-						showErrorToast("Could not load investor profile");
+						showErrorToast(t.common.error);
 					}
 				})
-				.catch(() => showErrorToast("Network error loading profile"))
+				.catch(() => showErrorToast(t.common.error))
 				.finally(() => setLoading(false));
 		});
 	}, [open, investorUserId, user]);
@@ -226,10 +228,10 @@ function InvestorProfileModal({
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
 						<User className="h-5 w-5 text-primary" />
-						Investor Profile
+						{t.invitations.investorProfile}
 					</DialogTitle>
 					<DialogDescription>
-						Details about the investor who sent you this invitation.
+						{t.invitations.investorProfileDesc}
 					</DialogDescription>
 				</DialogHeader>
 
@@ -243,7 +245,7 @@ function InvestorProfileModal({
 							<User className="h-7 w-7 text-muted-foreground" />
 						</div>
 						<p className="text-sm text-muted-foreground">
-							This investor has not completed their profile yet.
+							{t.invitations.profileNotCompleted}
 						</p>
 					</div>
 				) : (
@@ -292,19 +294,19 @@ function InvestorProfileModal({
 						<div className="grid grid-cols-3 gap-3">
 							{[
 								{
-									label: "Experience",
+									label: t.invitations.experience,
 									value: profile.yearsExperience
 										? `${profile.yearsExperience} yrs`
 										: "—",
 									icon: <Star className="h-4 w-4 text-amber-500" />,
 								},
 								{
-									label: "Past Investments",
+									label: t.invitations.pastInvestments,
 									value: profile.previousInvestments ?? "—",
 									icon: <TrendingUp className="h-4 w-4 text-emerald-500" />,
 								},
 								{
-									label: "Portfolio",
+									label: t.nav.portfolio,
 									value: profile.portfolioCount ?? "—",
 									icon: <Briefcase className="h-4 w-4 text-blue-500" />,
 								},
@@ -328,7 +330,7 @@ function InvestorProfileModal({
 								<DollarSign className="h-5 w-5 text-emerald-500 shrink-0" />
 								<div>
 									<p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
-										Investment Range
+										{t.invitations.investmentRange}
 									</p>
 									<p className="font-bold text-base">
 										{formatCurrency(profile.investmentRange.min)} –{" "}
@@ -342,16 +344,16 @@ function InvestorProfileModal({
 						{profile.investmentType && profile.investmentType.length > 0 && (
 							<div>
 								<p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5">
-									<Layers className="h-3.5 w-3.5" /> Investment Types
+									<Layers className="h-3.5 w-3.5" /> {t.invitations.investmentTypes}
 								</p>
 								<div className="flex flex-wrap gap-1.5">
-									{profile.investmentType.map((t) => (
+									{profile.investmentType.map((typ) => (
 										<Badge
-											key={t}
+											key={typ}
 											variant="outline"
 											className="capitalize text-xs"
 										>
-											{t}
+											{typ}
 										</Badge>
 									))}
 								</div>
@@ -363,7 +365,7 @@ function InvestorProfileModal({
 							profile.preferredSectors.length > 0 && (
 								<div>
 									<p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-2">
-										Preferred Sectors
+										{t.invitations.preferredSectors}
 									</p>
 									<div className="flex flex-wrap gap-1.5">
 										{profile.preferredSectors.map((s) => (
@@ -383,7 +385,7 @@ function InvestorProfileModal({
 						{profile.preferredStages && profile.preferredStages.length > 0 && (
 							<div>
 								<p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-2">
-									Preferred Stages
+									{t.invitations.preferredStages}
 								</p>
 								<div className="flex flex-wrap gap-1.5">
 									{profile.preferredStages.map((s) => (
@@ -404,7 +406,7 @@ function InvestorProfileModal({
 							profile.industriesExpertise.length > 0 && (
 								<div>
 									<p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-2">
-										Industry Expertise
+										{t.invitations.industryExpertise}
 									</p>
 									<div className="flex flex-wrap gap-1.5">
 										{profile.industriesExpertise.map((i) => (
@@ -430,6 +432,7 @@ function InvestorProfileModal({
 
 export default function EntrepreneurInvitationsPage() {
 	const { user } = useAuth();
+	const { t } = useLanguage();
 
 	const [invitations, setInvitations] = useState<Invitation[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -463,10 +466,10 @@ export default function EntrepreneurInvitationsPage() {
 			if (data.status === "success") {
 				setInvitations(data.invitations);
 			} else {
-				showErrorToast("Failed to load invitations");
+				showErrorToast(t.common.error);
 			}
 		} catch {
-			showErrorToast("Network error loading invitations");
+			showErrorToast(t.common.error);
 		} finally {
 			setLoading(false);
 		}
@@ -499,8 +502,8 @@ export default function EntrepreneurInvitationsPage() {
 			if (data.status === "success") {
 				showSuccessToast(
 					status === "accepted"
-						? "Invitation approved — the investor can now create milestones"
-						: "Invitation declined",
+						? t.invitations.invitationApproved
+						: t.invitations.invitationDeclined,
 				);
 				setInvitations((prev) =>
 					prev.map((inv) =>
@@ -510,10 +513,10 @@ export default function EntrepreneurInvitationsPage() {
 				setRejectTarget(null);
 				setRejectMsg("");
 			} else {
-				showErrorToast(data.message ?? "Failed to respond to invitation");
+				showErrorToast(data.message ?? t.invitations.failedToRespond);
 			}
 		} catch {
-			showErrorToast("Network error");
+			showErrorToast(t.common.error);
 		} finally {
 			setResponding(null);
 		}
@@ -539,11 +542,10 @@ export default function EntrepreneurInvitationsPage() {
 						<div>
 							<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient flex items-center gap-2">
 								<Mail className="h-6 w-6 text-primary" />
-								Investment Invitations
+								{t.nav.invitations}
 							</h1>
 							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
-								Review and respond to investment invitations from matched
-								investors.
+								{t.invitations.reviewInvitations}
 							</p>
 						</div>
 						{stats.pending > 0 && (
@@ -552,7 +554,7 @@ export default function EntrepreneurInvitationsPage() {
 								className="text-xs font-medium gap-1.5 py-1 px-3 w-fit animate-pulse"
 							>
 								<Clock className="h-3 w-3" />
-								{stats.pending} Awaiting Your Response
+								{stats.pending} {t.invitations.awaitingResponse}
 							</Badge>
 						)}
 					</div>
@@ -562,25 +564,25 @@ export default function EntrepreneurInvitationsPage() {
 				<div className="admin-stat-grid grid gap-4 sm:grid-cols-4 mb-8">
 					{[
 						{
-							label: "Total Received",
+							label: t.invitations.totalReceived,
 							value: stats.total,
 							colorClass: "admin-icon-blue",
 							icon: <Mail className="h-4 w-4 text-white" />,
 						},
 						{
-							label: "Pending",
+							label: t.invitations.pending,
 							value: stats.pending,
 							colorClass: "admin-icon-amber",
 							icon: <Clock className="h-4 w-4 text-white" />,
 						},
 						{
-							label: "Approved",
+							label: t.invitations.approved,
 							value: stats.accepted,
 							colorClass: "admin-icon-emerald",
 							icon: <CheckCircle2 className="h-4 w-4 text-white" />,
 						},
 						{
-							label: "Declined",
+							label: t.invitations.declined,
 							value: stats.declined,
 							colorClass: "admin-icon-red",
 							icon: <XCircle className="h-4 w-4 text-white" />,
@@ -612,15 +614,15 @@ export default function EntrepreneurInvitationsPage() {
 				<div className="flex items-center gap-3 mb-6">
 					<Select value={statusFilter} onValueChange={setStatusFilter}>
 						<SelectTrigger className="w-48">
-							<SelectValue placeholder="Filter by status" />
+							<SelectValue placeholder={t.invitations.filterByStatus} />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value="all">All Statuses</SelectItem>
-							<SelectItem value="pending">Pending</SelectItem>
-							<SelectItem value="accepted">Accepted</SelectItem>
-							<SelectItem value="declined">Declined</SelectItem>
-							<SelectItem value="cancelled">Cancelled</SelectItem>
-							<SelectItem value="expired">Expired</SelectItem>
+							<SelectItem value="all">{t.invitations.allStatuses}</SelectItem>
+							<SelectItem value="pending">{t.invitations.pending}</SelectItem>
+							<SelectItem value="accepted">{t.invitations.accepted}</SelectItem>
+							<SelectItem value="declined">{t.invitations.declined}</SelectItem>
+							<SelectItem value="cancelled">{t.invitations.cancelled}</SelectItem>
+							<SelectItem value="expired">{t.invitations.expired}</SelectItem>
 						</SelectContent>
 					</Select>
 				</div>
@@ -640,13 +642,13 @@ export default function EntrepreneurInvitationsPage() {
 							</div>
 							<h3 className="text-lg font-semibold mb-2">
 								{statusFilter === "all"
-									? "No invitations yet"
-									: `No ${statusFilter} invitations`}
+									? t.invitations.noInvitationsYet
+									: `${t.invitations.noFilteredInvitations.replace("{status}", statusFilter)}`}
 							</h3>
 							<p className="text-sm text-muted-foreground text-center max-w-sm">
 								{statusFilter === "all"
-									? "Invitations from matched investors will appear here once they send one."
-									: "Try changing the status filter to see other invitations."}
+									? t.invitations.invitationsWillAppear
+									: t.invitations.tryChangingFilter}
 							</p>
 						</CardContent>
 					</Card>
@@ -709,15 +711,14 @@ export default function EntrepreneurInvitationsPage() {
 														}
 													>
 														<User className="h-3.5 w-3.5" />
-														View Profile
+														{t.invitations.viewProfile}
 													</Button>
 												</div>
 
 												{inv.message && (
 													<div className="mt-2 rounded-lg bg-muted/40 px-4 py-3 text-sm text-muted-foreground italic border-l-2 border-primary/40">
 														<span className="flex items-center gap-1.5 text-xs font-semibold text-foreground not-italic mb-1">
-															<MessageSquare className="h-3 w-3" /> Message from
-															investor
+															<MessageSquare className="h-3 w-3" /> {t.invitations.messageFromInvestor}
 														</span>
 														{inv.message}
 													</div>
@@ -726,7 +727,7 @@ export default function EntrepreneurInvitationsPage() {
 												{inv.responseMessage && (
 													<div className="mt-2 rounded-lg bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
 														<span className="font-semibold text-foreground mr-1">
-															Your response:
+															{t.invitations.yourResponse}
 														</span>
 														{inv.responseMessage}
 													</div>
@@ -740,14 +741,14 @@ export default function EntrepreneurInvitationsPage() {
 										<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
 											<div className="text-xs text-muted-foreground space-y-0.5">
 												<p>
-													Received:{" "}
+													{t.invitations.received}{" "}
 													<span className="font-medium text-foreground">
 														{new Date(inv.sentAt).toLocaleDateString()}
 													</span>
 												</p>
 												{isPending && (
 													<p>
-														Expires in:{" "}
+														{t.invitations.expiresIn}{" "}
 														<span
 															className={
 																expiryDays <= 2
@@ -761,7 +762,7 @@ export default function EntrepreneurInvitationsPage() {
 												)}
 												{inv.respondedAt && (
 													<p>
-														Responded:{" "}
+														{t.invitations.responded}{" "}
 														<span className="font-medium text-foreground">
 															{new Date(inv.respondedAt).toLocaleDateString()}
 														</span>
@@ -782,7 +783,7 @@ export default function EntrepreneurInvitationsPage() {
 														}}
 													>
 														<XCircle className="h-3.5 w-3.5 mr-1" />
-														Decline
+														{t.invitations.decline}
 													</Button>
 													<Button
 														size="sm"
@@ -796,7 +797,7 @@ export default function EntrepreneurInvitationsPage() {
 														) : (
 															<CheckCircle2 className="h-3.5 w-3.5 mr-1" />
 														)}
-														Approve
+														{t.invitations.approve}
 													</Button>
 												</div>
 											)}
@@ -815,14 +816,13 @@ export default function EntrepreneurInvitationsPage() {
 				>
 					<DialogContent className="max-w-md">
 						<DialogHeader>
-							<DialogTitle>Decline Invitation</DialogTitle>
+							<DialogTitle>{t.invitations.declineInvitation}</DialogTitle>
 							<DialogDescription>
-								Optionally add a message to let the investor know why you are
-								declining. This is visible to them.
+								{t.invitations.optionalMessagePlaceholder}
 							</DialogDescription>
 						</DialogHeader>
 						<Textarea
-							placeholder="Optional response message…"
+							placeholder={t.invitations.optionalMessage}
 							className="mt-2 resize-none"
 							rows={3}
 							maxLength={1200}
@@ -837,7 +837,7 @@ export default function EntrepreneurInvitationsPage() {
 									setRejectMsg("");
 								}}
 							>
-								Back
+								{t.common.back}
 							</Button>
 							<Button
 								variant="destructive"
@@ -854,7 +854,7 @@ export default function EntrepreneurInvitationsPage() {
 								{responding ? (
 									<Loader2 className="h-4 w-4 animate-spin mr-2" />
 								) : null}
-								Confirm Decline
+								{t.invitations.confirmDecline}
 							</Button>
 						</DialogFooter>
 					</DialogContent>

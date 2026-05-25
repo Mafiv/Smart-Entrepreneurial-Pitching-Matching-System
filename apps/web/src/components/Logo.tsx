@@ -16,22 +16,24 @@ export function Logo({ className, ...props }: LogoProps) {
 			{...props}
 		>
 			<title>SEPMS Logo</title>
-			{/* Outer geometric hexagon container */}
-			<path
-				d="M50 5 L90 27.5 L90 72.5 L50 95 L10 72.5 L10 27.5 Z"
-				fill="none"
-				className="stroke-foreground drop-shadow-sm"
-				strokeWidth="8"
-				strokeLinejoin="round"
+			{/* Foundation (Investor/Capital) */}
+			<rect
+				x="43"
+				y="28"
+				width="44"
+				height="44"
+				rx="14"
+				fill="currentColor"
+				className="text-primary"
 			/>
-			{/* Clean, minimalist 'S' inside */}
-			<path
-				d="M 65 35 C 65 25 35 25 35 35 C 35 50 65 50 65 65 C 65 75 35 75 35 65"
-				fill="none"
-				className="stroke-foreground"
-				strokeWidth="10"
-				strokeLinecap="round"
-				strokeLinejoin="round"
+			{/* Dynamic Element (Entrepreneur/Idea) with cutout overlap */}
+			<circle
+				cx="39"
+				cy="50"
+				r="26"
+				fill="currentColor"
+				className="text-foreground stroke-background"
+				strokeWidth="6"
 			/>
 		</svg>
 	);

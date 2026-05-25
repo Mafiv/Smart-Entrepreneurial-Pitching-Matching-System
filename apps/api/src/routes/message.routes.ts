@@ -567,4 +567,35 @@ router.patch(
 	MessageController.resolveReport,
 );
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// Real-Time Translation (SRS §7)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * @openapi
+ * /api/messages/translate:
+ *   post:
+ *     tags: [Communication]
+ *     summary: Translate a message to a target language
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [text, targetLang]
+ *             properties:
+ *               text:
+ *                 type: string
+ *               targetLang:
+ *                 type: string
+ *                 enum: [en, am]
+ *     responses:
+ *       200:
+ *         description: Translated text
+ */
+router.post("/translate", authenticate, MessageController.translateMessage);
+
 export default router;

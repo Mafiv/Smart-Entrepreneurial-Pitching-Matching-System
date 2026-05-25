@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -107,6 +108,7 @@ function ChipSelect({
 
 export default function InvestorOnboardingPage() {
 	const { user, userProfile } = useAuth();
+	const { t } = useLanguage();
 	const router = useRouter();
 
 	const [step, setStep] = useState(1);
@@ -218,15 +220,15 @@ export default function InvestorOnboardingPage() {
 
 			const data = await res.json();
 			if (res.ok && data.success) {
-				showSuccessToast("Profile created! Welcome to SEPMS.");
+				showSuccessToast(t.investorOnboarding.profileCreated);
 				router.push("/investor/matches");
 			} else {
 				const msg =
-					data.errors?.[0]?.msg ?? data.message ?? "Failed to create profile";
+					data.errors?.[0]?.msg ?? data.message ?? t.investorOnboarding.failedToCreate;
 				showErrorToast(msg);
 			}
 		} catch {
-			showErrorToast("Network error. Please try again.");
+			showErrorToast(t.investorOnboarding.networkError);
 		} finally {
 			setSaving(false);
 		}
@@ -243,10 +245,10 @@ export default function InvestorOnboardingPage() {
 					{/* Header */}
 					<div className="text-center space-y-1">
 						<h1 className="text-2xl font-bold tracking-tight">
-							Set up your investor profile
+							{t.investorOnboarding.setupProfile}
 						</h1>
 						<p className="text-sm text-muted-foreground">
-							This helps our AI match you with the right pitches from day one.
+							{t.investorOnboarding.setupDesc}
 						</p>
 					</div>
 
@@ -254,7 +256,7 @@ export default function InvestorOnboardingPage() {
 					<div className="space-y-1">
 						<div className="flex justify-between text-xs text-muted-foreground">
 							<span>
-								Step {step} of {TOTAL_STEPS}
+								{t.investorOnboarding.stepPrefix} {step} {t.investorOnboarding.stepOf} {TOTAL_STEPS}
 							</span>
 							<span>{Math.round(progress)}%</span>
 						</div>
@@ -265,10 +267,10 @@ export default function InvestorOnboardingPage() {
 					<Card>
 						<CardHeader className="pb-4">
 							<CardTitle className="text-base">
-								{step === 1 && "Basic information"}
-								{step === 2 && "Investment preferences"}
-								{step === 3 && "Investment range & expertise"}
-								{step === 4 && "Contact details (optional)"}
+								{step === 1 && t.investorOnboarding.basicInfo}
+								{step === 2 && t.investorOnboarding.investmentPrefs}
+								{step === 3 && t.investorOnboarding.investmentRangeExp}
+								{step === 4 && t.investorOnboarding.contactDetails}
 							</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-5">
@@ -277,7 +279,7 @@ export default function InvestorOnboardingPage() {
 								<>
 									<div className="space-y-2">
 										<Label htmlFor="fullName">
-											Full name <span className="text-destructive">*</span>
+											{t.investorOnboarding.fullName} <span className="text-destructive">*</span>
 										</Label>
 										<Input
 											id="fullName"
@@ -287,7 +289,7 @@ export default function InvestorOnboardingPage() {
 										/>
 									</div>
 									<div className="space-y-2">
-										<Label htmlFor="firm">Investment firm / organisation</Label>
+										<Label htmlFor="firm">{t.investorOnboarding.firm}</Label>
 										<Input
 											id="firm"
 											value={investmentFirm}
@@ -297,7 +299,7 @@ export default function InvestorOnboardingPage() {
 									</div>
 									<div className="grid grid-cols-2 gap-4">
 										<div className="space-y-2">
-											<Label htmlFor="position">Position / title</Label>
+											<Label htmlFor="position">{t.investorOnboarding.position}</Label>
 											<Input
 												id="position"
 												value={position}
@@ -306,7 +308,7 @@ export default function InvestorOnboardingPage() {
 											/>
 										</div>
 										<div className="space-y-2">
-											<Label htmlFor="exp">Years of experience</Label>
+											<Label htmlFor="exp">{t.investorOnboarding.yearsExp}</Label>
 											<Input
 												id="exp"
 												type="number"
@@ -326,11 +328,11 @@ export default function InvestorOnboardingPage() {
 								<>
 									<div className="space-y-2">
 										<Label>
-											Preferred sectors{" "}
+											{t.investorOnboarding.preferredSectors}{" "}
 											<span className="text-destructive">*</span>
 										</Label>
 										<p className="text-xs text-muted-foreground">
-											Select all that apply — used for AI matching
+											{t.investorOnboarding.selectAllThatApply}
 										</p>
 										<ChipSelect
 											options={SECTORS}
@@ -340,7 +342,7 @@ export default function InvestorOnboardingPage() {
 									</div>
 									<div className="space-y-2">
 										<Label>
-											Preferred stages{" "}
+											{t.investorOnboarding.preferredStages}{" "}
 											<span className="text-destructive">*</span>
 										</Label>
 										<ChipSelect
@@ -351,7 +353,7 @@ export default function InvestorOnboardingPage() {
 									</div>
 									<div className="space-y-2">
 										<Label>
-											Investment type{" "}
+											{t.investorOnboarding.investmentType}{" "}
 											<span className="text-destructive">*</span>
 										</Label>
 										<ChipSelect
@@ -368,13 +370,13 @@ export default function InvestorOnboardingPage() {
 								<>
 									<div className="space-y-2">
 										<Label>
-											Investment range (USD){" "}
+											{t.investorOnboarding.investmentRangeUsd}{" "}
 											<span className="text-destructive">*</span>
 										</Label>
 										<div className="grid grid-cols-2 gap-4">
 											<div className="space-y-1">
 												<span className="text-xs text-muted-foreground">
-													Minimum
+													{t.investorOnboarding.min}
 												</span>
 												<Input
 													type="number"
@@ -386,7 +388,7 @@ export default function InvestorOnboardingPage() {
 											</div>
 											<div className="space-y-1">
 												<span className="text-xs text-muted-foreground">
-													Maximum
+													{t.investorOnboarding.max}
 												</span>
 												<Input
 													type="number"
@@ -401,20 +403,20 @@ export default function InvestorOnboardingPage() {
 											rangeMax &&
 											Number(rangeMax) <= Number(rangeMin) && (
 												<p className="text-xs text-destructive">
-													Maximum must be greater than minimum
+													{t.investorOnboarding.maxGreaterThanMin}
 												</p>
 											)}
 									</div>
 									<div className="space-y-2">
-										<Label htmlFor="expertise">Industries of expertise</Label>
+										<Label htmlFor="expertise">{t.investorOnboarding.industriesExpertise}</Label>
 										<Input
 											id="expertise"
 											value={industriesExpertise}
 											onChange={(e) => setIndustriesExpertise(e.target.value)}
-											placeholder="SaaS, Fintech, AgriTech (comma-separated)"
+											placeholder={t.investorOnboarding.industriesExpertisePlaceholder}
 										/>
 										<p className="text-xs text-muted-foreground">
-											Used by the AI to improve semantic matching
+											{t.investorOnboarding.usedByAi}
 										</p>
 									</div>
 								</>
@@ -424,7 +426,7 @@ export default function InvestorOnboardingPage() {
 							{step === 4 && (
 								<>
 									<div className="space-y-2">
-										<Label htmlFor="phone">Phone number</Label>
+										<Label htmlFor="phone">{t.investorOnboarding.phoneNumber}</Label>
 										<Input
 											id="phone"
 											type="tel"
@@ -434,7 +436,7 @@ export default function InvestorOnboardingPage() {
 										/>
 									</div>
 									<div className="space-y-2">
-										<Label htmlFor="address">Address</Label>
+										<Label htmlFor="address">{t.investorOnboarding.address}</Label>
 										<Input
 											id="address"
 											value={address}
@@ -443,9 +445,7 @@ export default function InvestorOnboardingPage() {
 										/>
 									</div>
 									<div className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm text-muted-foreground">
-										Your profile preferences will be used immediately to rank
-										and match pitches. You can update them anytime from your
-										profile page.
+										{t.investorOnboarding.profilePreferencesNote}
 									</div>
 								</>
 							)}
@@ -459,7 +459,7 @@ export default function InvestorOnboardingPage() {
 							onClick={() => setStep((s) => s - 1)}
 							disabled={step === 1}
 						>
-							Back
+							{t.investorOnboarding.back}
 						</Button>
 
 						{step < TOTAL_STEPS ? (
@@ -467,11 +467,11 @@ export default function InvestorOnboardingPage() {
 								onClick={() => setStep((s) => s + 1)}
 								disabled={!canProceed()}
 							>
-								Continue
+								{t.investorOnboarding.continue}
 							</Button>
 						) : (
 							<Button onClick={handleSubmit} disabled={saving || !canProceed()}>
-								{saving ? "Saving..." : "Complete setup"}
+								{saving ? t.investorOnboarding.saving : t.investorOnboarding.completeSetup}
 							</Button>
 						)}
 					</div>

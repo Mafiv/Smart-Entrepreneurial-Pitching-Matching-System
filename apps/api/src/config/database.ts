@@ -36,7 +36,9 @@ export async function connectDB(): Promise<void> {
 		const options = {
 			dbName,
 			bufferCommands: false, // Disable Mongoose buffering; fail properly if not connected
-			serverSelectionTimeoutMS: 5000,
+			serverSelectionTimeoutMS: 15000, // Increased timeout for slow DNS/Network
+			socketTimeoutMS: 45000,
+			family: 4, // Force IPv4, helps with some DNS querySrv ETIMEOUT issues
 		};
 
 		globalPromise = mongoose.connect(MONGODB_URI as string, options);

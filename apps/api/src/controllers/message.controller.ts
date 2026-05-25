@@ -3,6 +3,7 @@ import { Conversation } from "../models/Conversation";
 import { MisconductReport } from "../models/MisconductReport";
 import { MessageService } from "../services/message.service";
 import { NotificationService } from "../services/notification.service";
+import { translateText } from "../services/translation.service";
 
 const handleMessageError = (
 	res: Response,
@@ -388,6 +389,43 @@ export class MessageController {
 			res
 				.status(500)
 				.json({ status: "error", message: "Failed to resolve report" });
+		}
+	}
+
+	/* ── Real-Time Translation ── */
+
+	static async translateMessage(req: Request, res: Response): Promise<void> {
+		try {
+			if (!req.user) {
+				res.status(401).json({ status: "error", message: "Unauthorized" });
+				return;
+			}
+
+			const { text, targetLang } = req.body;
+			if (!text || !targetLang) {
+				res.status(400).json({
+					status: "error",
+					message: "text and targetLang are required",
+				});
+				return;
+			}
+
+			const { translated, detectedSourceLang } = await translateText(
+				text,
+				targetLang,
+			);
+
+			res.status(200).json({
+				status: "success",
+				translated,
+				detectedSourceLang,
+				targetLang,
+			});
+		} catch (error) {
+			console.error("Translation error:", error);
+			const message =
+				error instanceof Error ? error.message : "Translation failed";
+			res.status(500).json({ status: "error", message });
 		}
 	}
 }

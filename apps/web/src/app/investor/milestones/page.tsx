@@ -36,6 +36,7 @@ import {
 	showSuccessToast,
 	showWarningToast,
 } from "@/lib/toast-messages";
+import { useLanguage } from "@/i18n/LanguageContext";
 import { cn } from "@/lib/utils";
 
 const API = (
@@ -58,6 +59,7 @@ function ProjectMilestoneGroup({
 	onMilestoneClick: (milestone: Milestone) => void;
 	selectedId?: string;
 }) {
+	const { t } = useLanguage();
 	const [collapsed, setCollapsed] = useState(false);
 
 	const totalAmount = group.milestones.reduce((sum, m) => sum + m.amount, 0);
@@ -93,7 +95,7 @@ function ProjectMilestoneGroup({
 							variant="outline"
 							className="text-xs border-primary/20 text-primary"
 						>
-							{group.milestones.length} Milestone
+							{group.milestones.length} {t.milestones.milestone}
 							{group.milestones.length !== 1 ? "s" : ""}
 						</Badge>
 					</div>
@@ -103,11 +105,11 @@ function ProjectMilestoneGroup({
 						<span>·</span>
 						<DollarSign className="h-3.5 w-3.5" />
 						<span>
-							{currency} {totalAmount.toLocaleString()} total
+							{currency} {totalAmount.toLocaleString()} {t.milestones.total}
 						</span>
 						<span>·</span>
 						<span className="text-emerald-600 dark:text-emerald-400 font-medium">
-							{paidCount}/{group.milestones.length} paid
+							{paidCount}/{group.milestones.length} {t.milestones.paid}
 						</span>
 					</div>
 					{/* Progress bar */}
@@ -208,6 +210,7 @@ function ProjectMilestoneGroup({
 
 export default function InvestorMilestonesPage() {
 	const { user } = useAuth();
+	const { t } = useLanguage();
 	const [milestones, setMilestones] = useState<Milestone[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(
@@ -245,23 +248,23 @@ export default function InvestorMilestonesPage() {
 							m.submissionId,
 						submissionTitle:
 							(m.submissionId as Record<string, string>)?.title ??
-							"Unnamed Project",
+							t.milestones.unnamedProject,
 						entrepreneurName:
 							(m.entrepreneurId as Record<string, string>)?.fullName ??
-							"Entrepreneur",
+							t.invitations.entrepreneur,
 						investorName:
 							(m.investorId as Record<string, string>)?.fullName ?? "Investor",
 					}),
 				);
 				setMilestones(list);
 			} else if (!res.ok) {
-				showErrorToast(data.message ?? "Failed to load milestones");
+				showErrorToast(data.message ?? t.milestones.failedToLoad);
 			} else {
 				setMilestones([]);
 			}
 		} catch (error) {
 			console.error("Fetch error:", error);
-			showErrorToast("Network error loading milestones");
+			showErrorToast(t.milestones.networkError);
 		} finally {
 			setLoading(false);
 		}
@@ -280,8 +283,8 @@ export default function InvestorMilestonesPage() {
 			if (!map.has(key)) {
 				map.set(key, {
 					submissionId: key,
-					submissionTitle: m.submissionTitle ?? "Unnamed Project",
-					entrepreneurName: m.entrepreneurName ?? "Entrepreneur",
+					submissionTitle: m.submissionTitle ?? t.milestones.unnamedProject,
+					entrepreneurName: m.entrepreneurName ?? t.invitations.entrepreneur,
 					milestones: [],
 				});
 			}
@@ -335,18 +338,17 @@ export default function InvestorMilestonesPage() {
 						<div>
 							<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient flex items-center gap-2">
 								<FileText className="h-6 w-6 text-primary" />
-								Investment Milestones
+								{t.milestones.title}
 							</h1>
 							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
-								Create and manage funding milestones grouped by project, review
-								proof, and release payments.
+								{t.milestones.subtitle}
 							</p>
 						</div>
 						<div className="flex items-center gap-3">
 							<div className="flex items-center gap-2 bg-primary/5 px-3 py-1.5 rounded-full border border-primary/10">
 								<Sparkles className="h-4 w-4 text-primary" />
 								<span className="text-xs font-bold text-primary">
-									Secure Payouts
+									{t.milestones.securePayouts}
 								</span>
 							</div>
 							<Button
@@ -354,7 +356,7 @@ export default function InvestorMilestonesPage() {
 								className="gap-2 shadow-md hover:shadow-primary/20 transition-all"
 							>
 								<PlusCircle className="h-4 w-4" />
-								New Milestone
+								{t.milestones.newMilestone}
 							</Button>
 						</div>
 					</div>
@@ -364,7 +366,7 @@ export default function InvestorMilestonesPage() {
 					<div className="flex flex-col items-center justify-center py-20 gap-4">
 						<Loader2 className="h-10 w-10 animate-spin text-primary" />
 						<p className="text-sm text-muted-foreground animate-pulse">
-							Loading your investment milestones...
+							{t.milestones.loadingMilestones}
 						</p>
 					</div>
 				) : milestones.length === 0 ? (
@@ -373,14 +375,13 @@ export default function InvestorMilestonesPage() {
 							<div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
 								<FileText className="h-8 w-8 text-muted-foreground" />
 							</div>
-							<h3 className="text-lg font-semibold mb-2">No milestones yet</h3>
+							<h3 className="text-lg font-semibold mb-2">{t.milestones.noMilestonesYet}</h3>
 							<p className="text-sm text-muted-foreground text-center max-w-sm mb-6">
-								Create your first funding milestone for one of your accepted
-								investment matches.
+								{t.milestones.noMilestonesDesc}
 							</p>
 							<Button onClick={handleCreateClick} className="gap-2">
 								<PlusCircle className="h-4 w-4" />
-								Create First Milestone
+								{t.milestones.createFirstMilestone}
 							</Button>
 						</CardContent>
 					</Card>
@@ -390,13 +391,13 @@ export default function InvestorMilestonesPage() {
 						<div className="lg:col-span-7 xl:col-span-8 space-y-6">
 							<div className="flex items-center justify-between">
 								<h2 className="text-lg font-bold flex items-center gap-2">
-									Projects
+									{t.milestones.projects}
 									<span className="text-xs font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-										{projectGroups.length} Project
+										{projectGroups.length} {t.milestones.project}
 										{projectGroups.length !== 1 ? "s" : ""}
 									</span>
 									<span className="text-xs font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-										{milestones.length} Milestone
+										{milestones.length} {t.milestones.milestone}
 										{milestones.length !== 1 ? "s" : ""}
 									</span>
 								</h2>
@@ -438,8 +439,7 @@ export default function InvestorMilestonesPage() {
 								<div className="bg-muted/30 border-2 border-dashed border-muted rounded-xl p-8 flex flex-col items-center justify-center text-center">
 									<AlertCircle className="h-8 w-8 text-muted-foreground mb-3" />
 									<p className="text-sm font-medium text-muted-foreground">
-										Select a milestone from a project to view details and take
-										actions.
+										{t.milestones.selectMilestoneHint}
 									</p>
 								</div>
 							)}

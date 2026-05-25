@@ -143,18 +143,20 @@ const REQUIRED_DOCS_BY_STAGE: Record<
 	(typeof STAGES)[number]["value"],
 	string[]
 > = {
-	mvp: ["pitch_deck"],
+	// Every pitch must prove it belongs to a registered, running business.
+	// TIN certificate + business license are mandatory KYC documents for ALL stages.
+	mvp: ["pitch_deck", "tin_certificate", "business_license"],
 	"early-revenue": [
 		"pitch_deck",
-		"financial_model",
 		"tin_certificate",
 		"business_license",
+		"financial_model",
 	],
 	scaling: [
 		"pitch_deck",
-		"financial_model",
 		"tin_certificate",
 		"business_license",
+		"financial_model",
 		"moa_aoa",
 	],
 };

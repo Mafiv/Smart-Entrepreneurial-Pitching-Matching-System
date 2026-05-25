@@ -6,6 +6,7 @@ import {
 	Check,
 	CheckCheck,
 	Clock,
+	Languages,
 	Loader2,
 	MessageSquare,
 	Paperclip,
@@ -36,6 +37,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ENTREPRENEUR_NAV, INVESTOR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -70,6 +72,7 @@ function MeetingCard({
 	data: MeetingCardData;
 	onJoin: (meetingId: string) => void;
 }) {
+	const { t } = useLanguage();
 	const scheduled = new Date(data.scheduledAt);
 	const now = new Date();
 	const isJoinable =
@@ -81,7 +84,7 @@ function MeetingCard({
 			<div className="flex items-center gap-2 mb-2">
 				<Video className="h-4 w-4 text-primary shrink-0" />
 				<span className="text-sm font-semibold text-primary">
-					Video Meeting
+					{t.meetings.videoMeeting}
 				</span>
 			</div>
 			<p className="text-xs font-medium mb-1 truncate">{data.title}</p>
@@ -99,7 +102,7 @@ function MeetingCard({
 					hour: "2-digit",
 					minute: "2-digit",
 				})}
-				{" · "}
+				{" Â· "}
 				{data.durationMinutes} min
 			</div>
 			{isJoinable ? (
@@ -109,22 +112,22 @@ function MeetingCard({
 					onClick={() => onJoin(data._id)}
 				>
 					<Video className="h-3.5 w-3.5" />
-					Join Now
+					{t.meetings.joinNow}
 				</Button>
 			) : (
 				<p className="text-xs text-center text-muted-foreground">
 					{data.status === "cancelled"
-						? "Meeting cancelled"
+						? t.meetings.meetingCancelled
 						: data.status === "completed"
-							? "Meeting ended"
-							: "Join button appears 15 min before start"}
+							? t.meetings.meetingEnded
+							: t.meetings.joinAppears}
 				</p>
 			)}
 		</div>
 	);
 }
 
-/* ── Types ── */
+/* â”€â”€ Types â”€â”€ */
 interface Participant {
 	_id: string;
 	fullName: string;
@@ -173,7 +176,7 @@ interface LocalProfile {
 	email?: string | null;
 }
 
-/* ── Helpers ── */
+/* â”€â”€ Helpers â”€â”€ */
 function formatTime(dateStr: string) {
 	return new Date(dateStr).toLocaleTimeString([], {
 		hour: "2-digit",
@@ -181,14 +184,14 @@ function formatTime(dateStr: string) {
 	});
 }
 
-function formatDateSeparator(dateStr: string) {
+function formatDateSeparator(dateStr: string, t: any) {
 	const d = new Date(dateStr);
 	const today = new Date();
 	const yesterday = new Date();
 	yesterday.setDate(yesterday.getDate() - 1);
 
-	if (d.toDateString() === today.toDateString()) return "Today";
-	if (d.toDateString() === yesterday.toDateString()) return "Yesterday";
+	if (d.toDateString() === today.toDateString()) return t.messages.today;
+	if (d.toDateString() === yesterday.toDateString()) return t.messages.yesterday;
 	return d.toLocaleDateString(undefined, {
 		weekday: "long",
 		month: "short",
@@ -200,7 +203,7 @@ function getInitials(name?: string) {
 	return (name || "??").slice(0, 2).toUpperCase();
 }
 
-/* ── Color palette for avatars ── */
+/* â”€â”€ Color palette for avatars â”€â”€ */
 const AVATAR_COLORS = [
 	"bg-violet-500/15 text-violet-600",
 	"bg-sky-500/15 text-sky-600",
@@ -219,6 +222,7 @@ function avatarColor(id: string) {
 }
 
 function RoleBadge({ role }: { role?: string }) {
+	const { t } = useLanguage();
 	if (!role) return null;
 	const styles: Record<string, string> = {
 		admin: "bg-destructive/10 text-destructive border-transparent",
@@ -226,9 +230,9 @@ function RoleBadge({ role }: { role?: string }) {
 		entrepreneur: "bg-amber-500/10 text-amber-700 border-transparent",
 	};
 	const label: Record<string, string> = {
-		admin: "Admin",
-		investor: "Investor",
-		entrepreneur: "Entrepreneur",
+		admin: t.adminUsers?.roleAdmin || "Admin",
+		investor: t.adminUsers?.roleInvestor || "Investor",
+		entrepreneur: t.adminUsers?.roleEntrepreneur || "Entrepreneur",
 	};
 
 	return (
@@ -243,6 +247,7 @@ function RoleBadge({ role }: { role?: string }) {
 
 function MessagesContent() {
 	const { user, userProfile } = useAuth();
+	const { t } = useLanguage();
 	const searchParams = useSearchParams();
 	const router = useRouter();
 	const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -262,12 +267,14 @@ function MessagesContent() {
 	const hasAutoOpenedRef = useRef(false);
 	const scrollContainerRef = useRef<HTMLDivElement>(null);
 	const isNearBottomRef = useRef(true);
+	const [translations, setTranslations] = useState<Record<string, string>>({});
+	const [translating, setTranslating] = useState<Record<string, boolean>>({});
 
 	const api = (
 		process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
 	).replace(/\/+$/, "");
 
-	// Typed cast — UserProfile from AuthContext has _id and role at runtime
+	// Typed cast â€” UserProfile from AuthContext has _id and role at runtime
 	const profile = userProfile as unknown as LocalProfile | null;
 
 	const getToken = useCallback(async () => {
@@ -275,7 +282,7 @@ function MessagesContent() {
 		return user.getIdToken();
 	}, [user]);
 
-	/* ── Load conversations (seamless — no loading flash on poll) ── */
+	/* â”€â”€ Load conversations (seamless â€” no loading flash on poll) â”€â”€ */
 	const loadConversations = useCallback(
 		async (isInitial = false) => {
 			if (!user) return;
@@ -312,7 +319,7 @@ function MessagesContent() {
 		loadConversations(true);
 	}, [loadConversations]);
 
-	/* ── Auto-open conversation from URL ?open=conversationId ── */
+	/* â”€â”€ Auto-open conversation from URL ?open=conversationId â”€â”€ */
 	useEffect(() => {
 		if (hasAutoOpenedRef.current || !user || initialLoading) return;
 		const openId = searchParams.get("open");
@@ -351,7 +358,7 @@ function MessagesContent() {
 		})();
 	}, [searchParams, conversations, user, initialLoading, api, getToken]);
 
-	/* ── Auto-mark message notifications as read when chat page opens ── */
+	/* â”€â”€ Auto-mark message notifications as read when chat page opens â”€â”€ */
 	useEffect(() => {
 		if (!user) return;
 		(async () => {
@@ -376,7 +383,7 @@ function MessagesContent() {
 		})();
 	}, [user, api]);
 
-	/* ── Load messages for active conversation ── */
+	/* â”€â”€ Load messages for active conversation â”€â”€ */
 	const loadMessages = useCallback(
 		async (conversationId: string, backgroundMode = false) => {
 			if (!user) return;
@@ -468,7 +475,7 @@ function MessagesContent() {
 		return () => clearInterval(interval);
 	}, [user, loadConversations]);
 
-	/* ── Send message ── */
+	/* â”€â”€ Send message â”€â”€ */
 	const handleSend = async () => {
 		if (!messageBody.trim() || !activeConvo || !user || !userProfile) return;
 		const body = messageBody.trim();
@@ -517,18 +524,18 @@ function MessagesContent() {
 			} else {
 				setMessages((prev) => prev.filter((m) => m._id !== optimisticMsg._id));
 				const err = await res.json();
-				showErrorToast(err.message || "Failed to send message");
+				showErrorToast(err.message || t.messages.failedToSend);
 			}
 		} catch (_err) {
 			setMessages((prev) => prev.filter((m) => m._id !== optimisticMsg._id));
-			showErrorToast("Failed to send message");
+			showErrorToast(t.messages.failedToSend);
 		} finally {
 			setSending(false);
 			inputRef.current?.focus();
 		}
 	};
 
-	/* ── Report misconduct ── */
+	/* â”€â”€ Report misconduct â”€â”€ */
 	const handleReport = async () => {
 		if (!reportReason.trim() || !activeConvo || !user) return;
 		setReportLoading(true);
@@ -550,7 +557,7 @@ function MessagesContent() {
 			);
 			if (res.ok) {
 				showSuccessToast(
-					"Report submitted. The conversation has been frozen and an admin has been alerted.",
+					t.messages.reportSubmitted,
 				);
 				setShowReportDialog(false);
 				setReportReason("");
@@ -559,16 +566,58 @@ function MessagesContent() {
 				setActiveConvo(null);
 			} else {
 				const err = await res.json();
-				showErrorToast(err.message || "Failed to submit report");
+				showErrorToast(err.message || t.messages.failedToSubmitReport);
 			}
 		} catch (_err) {
-			showErrorToast("Failed to submit report");
+			showErrorToast(t.messages.failedToSubmitReport);
 		} finally {
 			setReportLoading(false);
 		}
 	};
 
-	/* ── Helpers ── */
+	/* â”€â”€ Translate a message â”€â”€ */
+	const handleTranslate = async (msgId: string, text: string) => {
+		if (translating[msgId] || !user) return;
+
+		// Toggle off if already translated
+		if (translations[msgId]) {
+			setTranslations((prev) => {
+				const next = { ...prev };
+				delete next[msgId];
+				return next;
+			});
+			return;
+		}
+
+		setTranslating((prev) => ({ ...prev, [msgId]: true }));
+		try {
+			const token = await getToken();
+			// Auto-detect: if text has Amharic characters, translate to English; otherwise to Amharic
+			const hasAmharic = /[\u1200-\u137F]/.test(text);
+			const targetLang = hasAmharic ? "en" : "am";
+
+			const res = await fetch(`${api}/messages/translate`, {
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${token}`,
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ text, targetLang }),
+			});
+			if (res.ok) {
+				const data = await res.json();
+				setTranslations((prev) => ({ ...prev, [msgId]: data.translated }));
+			} else {
+				showErrorToast(t.messages.translationFailed);
+			}
+		} catch {
+			showErrorToast(t.messages.translationFailed);
+		} finally {
+			setTranslating((prev) => ({ ...prev, [msgId]: false }));
+		}
+	};
+
+	/* â”€â”€ Helpers â”€â”€ */
 	const getOtherParticipant = (convo: Conversation) => {
 		if (!userProfile) return null;
 		return (
@@ -591,10 +640,10 @@ function MessagesContent() {
 	};
 
 	const getLastMessagePreview = (convo: Conversation) => {
-		if (!convo.lastMessage) return "No messages yet";
+		if (!convo.lastMessage) return t.messages.noMessages;
 		const body = convo.lastMessage.body;
-		if (convo.lastMessage.type === "file") return "📎 Attachment";
-		return body.length > 40 ? `${body.slice(0, 40)}…` : body;
+		if (convo.lastMessage.type === "file") return "📎 " + t.messages.attachment;
+		return body.length > 40 ? `${body.slice(0, 40)}â€¦` : body;
 	};
 
 	const getLastMessageTime = (convo: Conversation) => {
@@ -607,11 +656,11 @@ function MessagesContent() {
 		}
 		const yesterday = new Date();
 		yesterday.setDate(yesterday.getDate() - 1);
-		if (d.toDateString() === yesterday.toDateString()) return "Yesterday";
+		if (d.toDateString() === yesterday.toDateString()) return t.messages.yesterday;
 		return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 	};
 
-	/* ── Build date-grouped messages ── */
+	/* â”€â”€ Build date-grouped messages â”€â”€ */
 	const groupedMessages: { date: string; msgs: Message[] }[] = [];
 	let currentDate = "";
 	for (const msg of messages) {
@@ -633,21 +682,21 @@ function MessagesContent() {
 				<div className="flex flex-col h-[calc(100vh-120px)]">
 					{/* Header */}
 					<div className="mb-4">
-						<h1 className="text-2xl font-bold tracking-tight">Messages</h1>
+						<h1 className="text-2xl font-bold tracking-tight">{t.nav.messages}</h1>
 						<p className="text-sm text-muted-foreground">
-							Communicate securely with your connections
+							{t.messages.communicate}
 						</p>
 					</div>
 
 					<div className="flex flex-1 gap-0 sm:gap-1 min-h-0 rounded-xl overflow-hidden border border-border bg-card/50">
-						{/* ── Sidebar: Conversation List ── */}
+						{/* â”€â”€ Sidebar: Conversation List â”€â”€ */}
 						<div
 							className={`w-full sm:w-80 md:w-96 shrink-0 flex flex-col bg-card border-r border-border ${
 								activeConvo ? "hidden sm:flex" : "flex"
 							}`}
 						>
 							<div className="px-4 py-3.5 border-b border-border bg-muted/20">
-								<p className="text-sm font-semibold tracking-tight">Chats</p>
+								<p className="text-sm font-semibold tracking-tight">{t.messages.chats}</p>
 							</div>
 							<div className="flex-1 overflow-y-auto">
 								{initialLoading ? (
@@ -660,11 +709,10 @@ function MessagesContent() {
 											<MessageSquare className="h-7 w-7 text-muted-foreground/40" />
 										</div>
 										<p className="text-sm font-medium text-muted-foreground">
-											No conversations yet
+											{t.messages.noConversations}
 										</p>
 										<p className="text-xs text-muted-foreground/60 mt-1 max-w-[200px]">
-											Start a conversation by messaging someone from a pitch
-											page
+											{t.messages.startConversation}
 										</p>
 									</div>
 								) : (
@@ -702,7 +750,7 @@ function MessagesContent() {
 															className={`text-sm truncate flex items-center gap-2 ${unread > 0 ? "font-bold" : "font-medium"}`}
 														>
 															<span className="truncate">
-																{other?.fullName || "Unknown"}
+																{other?.fullName || t.messages.unknown}
 															</span>
 															<RoleBadge role={other?.role} />
 														</p>
@@ -716,7 +764,7 @@ function MessagesContent() {
 													{convo.submissionId &&
 														typeof convo.submissionId === "object" && (
 															<p className="text-[10px] text-primary/70 font-medium truncate mt-0.5">
-																📌{" "}
+																ðŸ“Œ{" "}
 																{
 																	(
 																		convo.submissionId as {
@@ -738,7 +786,7 @@ function MessagesContent() {
 																variant="destructive"
 																className="text-[9px] shrink-0 px-1.5 py-0"
 															>
-																Frozen
+																{t.messages.frozen}
 															</Badge>
 														)}
 													</div>
@@ -750,7 +798,7 @@ function MessagesContent() {
 							</div>
 						</div>
 
-						{/* ── Main Chat Area ── */}
+						{/* â”€â”€ Main Chat Area â”€â”€ */}
 						<div
 							className={`flex-1 flex flex-col bg-[hsl(var(--background))] overflow-hidden ${
 								!activeConvo ? "hidden sm:flex" : "flex"
@@ -761,9 +809,9 @@ function MessagesContent() {
 									<div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted/30 mb-4">
 										<MessageSquare className="h-9 w-9 opacity-30" />
 									</div>
-									<p className="text-base font-medium">Select a conversation</p>
+									<p className="text-base font-medium">{t.messages.selectConversation}</p>
 									<p className="text-xs text-muted-foreground/60 mt-1">
-										Choose from your existing chats to start messaging
+										{t.messages.chooseFromChats}
 									</p>
 								</div>
 							) : (
@@ -795,7 +843,7 @@ function MessagesContent() {
 												<div className="flex items-center gap-2">
 													<p className="text-sm font-semibold leading-tight truncate">
 														{getOtherParticipant(activeConvo)?.fullName ||
-															"Unknown"}
+															t.messages.unknown}
 													</p>
 													<RoleBadge
 														role={getOtherParticipant(activeConvo)?.role}
@@ -808,7 +856,7 @@ function MessagesContent() {
 										</div>
 										{!activeConvo.isArchived && (
 											<div className="flex items-center gap-2">
-												{/* Schedule Meeting — investor only */}
+												{/* Schedule Meeting â€” investor only */}
 												{profile?.role === "investor" && (
 													<Button
 														variant="outline"
@@ -818,7 +866,7 @@ function MessagesContent() {
 													>
 														<CalendarDays className="h-3.5 w-3.5" />
 														<span className="hidden sm:inline">
-															Schedule Meeting
+															{t.messages.scheduleMeeting}
 														</span>
 													</Button>
 												)}
@@ -829,7 +877,7 @@ function MessagesContent() {
 													onClick={() => setShowReportDialog(true)}
 												>
 													<ShieldAlert className="h-4 w-4" />
-													<span className="hidden sm:inline">Report</span>
+													<span className="hidden sm:inline">{t.messages.report}</span>
 												</Button>
 											</div>
 										)}
@@ -850,14 +898,14 @@ function MessagesContent() {
 											<div className="flex justify-center py-12">
 												<Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
 											</div>
-										) : messages.length === 0 ? (
+								) : messages.length === 0 ? (
 											<div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
 												<div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-3">
 													<Send className="h-6 w-6 text-primary/60" />
 												</div>
-												<p className="text-sm font-medium">No messages yet</p>
+												<p className="text-sm font-medium">{t.messages.noMessages}</p>
 												<p className="text-xs text-muted-foreground/60 mt-1">
-													Say hello! 👋
+													{t.messages.sayHello}
 												</p>
 											</div>
 										) : (
@@ -866,7 +914,7 @@ function MessagesContent() {
 													{/* Date separator */}
 													<div className="flex items-center justify-center my-4">
 														<span className="px-3 py-1 rounded-full bg-muted/60 text-[11px] font-medium text-muted-foreground shadow-sm">
-															{formatDateSeparator(group.date)}
+															{formatDateSeparator(group.date, t)}
 														</span>
 													</div>
 
@@ -901,9 +949,22 @@ function MessagesContent() {
 																				}
 																			/>
 																		) : (
-																			<p className="text-[13.5px] leading-relaxed whitespace-pre-wrap break-words">
-																				{msg.body}
-																			</p>
+																			<div>
+																				<p className="text-[13.5px] leading-relaxed whitespace-pre-wrap break-words">
+																					{msg.body}
+																				</p>
+																				{translations[msg._id] && (
+																					<p
+																						className={`text-[12px] leading-relaxed whitespace-pre-wrap break-words mt-1.5 pt-1.5 border-t ${
+																							isMine
+																								? "border-primary-foreground/20 text-primary-foreground/80"
+																								: "border-border text-muted-foreground"
+																						} italic`}
+																					>
+																						ðŸŒ {translations[msg._id]}
+																					</p>
+																				)}
+																			</div>
 																		);
 																	})()}
 																	{msg.attachmentUrl && (
@@ -914,10 +975,10 @@ function MessagesContent() {
 																			className="text-xs underline flex items-center gap-1 mt-1.5 opacity-80"
 																		>
 																			<Paperclip className="h-3 w-3" />{" "}
-																			Attachment
+																			{t.messages.attachment}
 																		</a>
 																	)}
-																	{/* Time + Read Receipt */}
+																	{/* Time + Translate + Read Receipt */}
 																	<div
 																		className={`flex items-center justify-end gap-1 mt-0.5 ${
 																			isMine
@@ -928,6 +989,32 @@ function MessagesContent() {
 																		<span className="text-[10px] leading-none">
 																			{formatTime(msg.createdAt)}
 																		</span>
+																		{!parseMeetingCard(msg.body) && (
+																			<button
+																				type="button"
+																				onClick={(e) => {
+																					e.stopPropagation();
+																					handleTranslate(msg._id, msg.body);
+																				}}
+																				disabled={translating[msg._id]}
+																				className={`inline-flex items-center justify-center h-4 w-4 rounded-sm transition-all hover:scale-110 ${
+																					translations[msg._id]
+																						? "opacity-80"
+																						: "opacity-40 hover:opacity-100"
+																				}`}
+																				title={
+																					translations[msg._id]
+																						? t.messages.hideTranslation
+																						: t.messages.translate
+																				}
+																			>
+																				{translating[msg._id] ? (
+																					<Loader2 className="h-2.5 w-2.5 animate-spin" />
+																				) : (
+																					<Languages className="h-2.5 w-2.5" />
+																				)}
+																			</button>
+																		)}
 																		{isMine && (
 																			<span className="flex items-center">
 																				{read ? (
@@ -955,11 +1042,10 @@ function MessagesContent() {
 												<ShieldAlert className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
 												<div>
 													<p className="text-sm font-semibold text-destructive">
-														Conversation Frozen
+														{t.messages.conversationFrozen}
 													</p>
 													<p className="text-xs text-muted-foreground mt-1">
-														This conversation has been reported and is under
-														admin review.
+														{t.messages.frozenDescription}
 													</p>
 												</div>
 											</div>
@@ -969,7 +1055,7 @@ function MessagesContent() {
 											<div className="flex items-end gap-2">
 												<Input
 													ref={inputRef}
-													placeholder="Type a message..."
+													placeholder={t.messages.typeMessage}
 													value={messageBody}
 													onChange={(e) => setMessageBody(e.target.value)}
 													onKeyDown={(e) => {
@@ -1002,7 +1088,7 @@ function MessagesContent() {
 					</div>
 				</div>
 
-				{/* ── Schedule Meeting Modal ── */}
+				{/* â”€â”€ Schedule Meeting Modal â”€â”€ */}
 				{showScheduleModal && activeConvo && (
 					<ScheduleMeetingModal
 						submissionId={
@@ -1016,7 +1102,7 @@ function MessagesContent() {
 							activeConvo.submissionId !== null
 								? (activeConvo.submissionId as { _id: string; title: string })
 										.title
-								: "this pitch"
+								: t.pitch.thisPitch
 						}
 						entrepreneurUserId={
 							activeConvo.participants.find((p) => p._id !== profile?._id)
@@ -1044,41 +1130,40 @@ function MessagesContent() {
 								);
 								loadMessages(activeConvo._id);
 							} catch {
-								showErrorToast("Failed to share meeting in chat");
+								showErrorToast(t.messages.failedToShareMeeting);
 							}
 							setShowScheduleModal(false);
 						}}
 					/>
 				)}
 
-				{/* ── Report Misconduct Dialog ── */}
+				{/* â”€â”€ Report Misconduct Dialog â”€â”€ */}
 				<Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
 					<DialogContent className="sm:max-w-md">
 						<DialogHeader>
 							<DialogTitle className="flex items-center gap-2">
 								<ShieldAlert className="h-5 w-5 text-destructive" />
-								Report Misconduct
+								{t.messages.reportMisconduct}
 							</DialogTitle>
 							<DialogDescription>
-								Report suspicious or inappropriate behavior. The conversation
-								will be frozen and an admin will be alerted for urgent review.
+								{t.messages.reportMisconductDesc}
 							</DialogDescription>
 						</DialogHeader>
 						<div className="space-y-4 py-2">
 							<div className="space-y-2">
-								<Label htmlFor="report-reason">Reason *</Label>
+								<Label htmlFor="report-reason">{t.messages.reasonLabel}</Label>
 								<Input
 									id="report-reason"
-									placeholder="e.g., Harassment, demands outside platform, fraud"
+									placeholder={t.messages.reasonPlaceholder}
 									value={reportReason}
 									onChange={(e) => setReportReason(e.target.value)}
 								/>
 							</div>
 							<div className="space-y-2">
-								<Label htmlFor="report-details">Additional Details</Label>
+								<Label htmlFor="report-details">{t.messages.additionalDetails}</Label>
 								<Textarea
 									id="report-details"
-									placeholder="Provide any additional context or evidence..."
+									placeholder={t.messages.additionalDetailsPlaceholder}
 									value={reportDetails}
 									onChange={(e) => setReportDetails(e.target.value)}
 									rows={4}
@@ -1090,7 +1175,7 @@ function MessagesContent() {
 								variant="outline"
 								onClick={() => setShowReportDialog(false)}
 							>
-								Cancel
+								{t.common.cancel}
 							</Button>
 							<Button
 								variant="destructive"
@@ -1100,7 +1185,7 @@ function MessagesContent() {
 								{reportLoading ? (
 									<Loader2 className="h-4 w-4 animate-spin mr-2" />
 								) : null}
-								Submit Report
+								{t.messages.submitReport}
 							</Button>
 						</DialogFooter>
 					</DialogContent>
