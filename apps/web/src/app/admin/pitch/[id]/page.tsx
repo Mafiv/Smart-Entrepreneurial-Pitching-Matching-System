@@ -33,6 +33,7 @@ import { Separator } from "@/components/ui/separator";
 import { YoutubeEmbed } from "@/components/YoutubeEmbed";
 import { ADMIN_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -121,6 +122,7 @@ const getViewUrl = (url: string) => {
 
 export default function AdminPitchViewPage() {
 	const { user } = useAuth();
+	const { t } = useLanguage();
 	const router = useRouter();
 	const params = useParams();
 	const pitchId = params.id as string;
@@ -315,11 +317,12 @@ export default function AdminPitchViewPage() {
 							</h1>
 							<div className="flex items-center gap-2 text-sm text-muted-foreground mt-1.5 font-medium">
 								<span className="truncate text-foreground/80">
-									By {pitch.entrepreneurId?.fullName || "Unknown"}
+									{t.pitch.by}
+									{pitch.entrepreneurId?.fullName || t.pitch.unknownAuthor}
 								</span>
 								<span className="h-1 w-1 rounded-full bg-border" />
 								<span className="truncate">
-									{pitch.entrepreneurId?.email || "No Email"}
+									{pitch.entrepreneurId?.email || t.pitch.noEmail}
 								</span>
 							</div>
 						</div>
@@ -388,7 +391,7 @@ export default function AdminPitchViewPage() {
 								<div className="flex-1">
 									<div className="flex items-center gap-3 mb-1">
 										<h3 className="text-base font-bold text-foreground">
-											AI Intelligence Report
+											{t.pitch.aiIntelligenceReport}
 										</h3>
 										{trustScore.flag === "Flagged: Suspect Content" && (
 											<Badge
@@ -486,7 +489,7 @@ export default function AdminPitchViewPage() {
 										<Search className="h-4 w-4" />
 									</div>
 									<span className="admin-header-gradient font-bold">
-										Executive Summary
+										{t.pitch.summary}
 									</span>
 								</CardTitle>
 							</CardHeader>
@@ -497,7 +500,7 @@ export default function AdminPitchViewPage() {
 								<div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
 									<div className="pitch-metric-pill">
 										<span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
-											Sector
+											{t.pitch.sector}
 										</span>
 										<span className="font-semibold text-sm ml-auto">
 											{sectorLabel}
@@ -505,7 +508,7 @@ export default function AdminPitchViewPage() {
 									</div>
 									<div className="pitch-metric-pill">
 										<span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
-											Stage
+											{t.pitch.stage}
 										</span>
 										<span className="font-semibold text-sm ml-auto">
 											{stageLabel}
@@ -516,7 +519,7 @@ export default function AdminPitchViewPage() {
 									<div className="mt-6">
 										<div className="flex items-center justify-between mb-3">
 											<h4 className="font-medium text-sm text-foreground">
-												Pitch Video
+												{t.pitch.pitchVideo}
 											</h4>
 											<Badge
 												variant={
@@ -555,7 +558,7 @@ export default function AdminPitchViewPage() {
 													disabled={actionLoading}
 												>
 													<CheckCircle2 className="w-4 h-4 mr-1.5" />
-													Approve Video
+													{t.pitch.approveVideo}
 												</Button>
 												<Button
 													size="sm"
@@ -565,7 +568,7 @@ export default function AdminPitchViewPage() {
 													disabled={actionLoading}
 												>
 													<XCircle className="w-4 h-4 mr-1.5" />
-													Reject Video
+													{t.pitch.rejectVideo}
 												</Button>
 											</div>
 										)}
@@ -591,7 +594,7 @@ export default function AdminPitchViewPage() {
 										<XCircle className="h-4 w-4" />
 									</div>
 									<span className="admin-header-gradient font-bold">
-										The Problem
+										{t.pitch.problem}
 									</span>
 								</CardTitle>
 							</CardHeader>
@@ -601,7 +604,7 @@ export default function AdminPitchViewPage() {
 									style={{ "--pitch-accent": "#ef4444" } as React.CSSProperties}
 								>
 									<h4 className="text-sm font-bold mb-1.5 text-foreground">
-										Problem Statement
+										{t.pitch.problemStatement}
 									</h4>
 									<p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
 										{pitch.problem?.statement || "Not provided."}
@@ -610,7 +613,7 @@ export default function AdminPitchViewPage() {
 								<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 									<div className="pitch-metric-pill flex-col !items-start !gap-1">
 										<p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
-											Target Market
+											{t.pitch.targetMarket}
 										</p>
 										<p className="text-sm font-medium text-foreground">
 											{pitch.problem?.targetMarket || "Not provided."}
@@ -618,7 +621,7 @@ export default function AdminPitchViewPage() {
 									</div>
 									<div className="pitch-metric-pill flex-col !items-start !gap-1">
 										<p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
-											Market Size
+											{t.pitch.marketSize}
 										</p>
 										<p className="text-sm font-medium text-foreground">
 											{pitch.problem?.marketSize || "Not provided."}
@@ -638,7 +641,7 @@ export default function AdminPitchViewPage() {
 										<Lightbulb className="h-4 w-4" />
 									</div>
 									<span className="admin-header-gradient font-bold">
-										The Solution
+										{t.pitch.solution}
 									</span>
 								</CardTitle>
 							</CardHeader>
@@ -648,7 +651,7 @@ export default function AdminPitchViewPage() {
 									style={{ "--pitch-accent": "#f59e0b" } as React.CSSProperties}
 								>
 									<h4 className="text-sm font-bold mb-1.5 text-foreground">
-										Solution Description
+										{t.pitch.solutionDescription}
 									</h4>
 									<p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
 										{pitch.solution?.description || "Not provided."}
@@ -659,7 +662,7 @@ export default function AdminPitchViewPage() {
 									style={{ "--pitch-accent": "#f59e0b" } as React.CSSProperties}
 								>
 									<h4 className="text-sm font-bold mb-1.5 text-foreground">
-										Unique Value Proposition
+										{t.pitch.uniqueValueProposition}
 									</h4>
 									<p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
 										{pitch.solution?.uniqueValue || "Not provided."}
@@ -670,7 +673,7 @@ export default function AdminPitchViewPage() {
 									style={{ "--pitch-accent": "#f59e0b" } as React.CSSProperties}
 								>
 									<h4 className="text-sm font-bold mb-1.5 text-foreground">
-										Competitive Advantage
+										{t.pitch.competitiveAdvantage}
 									</h4>
 									<p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
 										{pitch.solution?.competitiveAdvantage || "Not provided."}
@@ -689,7 +692,7 @@ export default function AdminPitchViewPage() {
 										<BarChart3 className="h-4 w-4" />
 									</div>
 									<span className="admin-header-gradient font-bold">
-										Business Model
+										{t.pitch.businessModel}
 									</span>
 								</CardTitle>
 							</CardHeader>
@@ -699,7 +702,7 @@ export default function AdminPitchViewPage() {
 									style={{ "--pitch-accent": "#3b82f6" } as React.CSSProperties}
 								>
 									<h4 className="text-sm font-bold mb-1.5 text-foreground">
-										Revenue Streams
+										{t.pitch.revenueStreams}
 									</h4>
 									<p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
 										{pitch.businessModel?.revenueStreams || "Not provided."}
@@ -710,7 +713,7 @@ export default function AdminPitchViewPage() {
 									style={{ "--pitch-accent": "#3b82f6" } as React.CSSProperties}
 								>
 									<h4 className="text-sm font-bold mb-1.5 text-foreground">
-										Pricing Strategy
+										{t.pitch.pricingStrategy}
 									</h4>
 									<p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
 										{pitch.businessModel?.pricingStrategy || "Not provided."}
@@ -721,7 +724,7 @@ export default function AdminPitchViewPage() {
 									style={{ "--pitch-accent": "#3b82f6" } as React.CSSProperties}
 								>
 									<h4 className="text-sm font-bold mb-1.5 text-foreground">
-										Customer Acquisition
+										{t.pitch.customerAcquisition}
 									</h4>
 									<p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
 										{pitch.businessModel?.customerAcquisition ||
@@ -742,7 +745,7 @@ export default function AdminPitchViewPage() {
 							<CardHeader className="pb-4 pt-6">
 								<CardTitle className="flex items-center gap-2.5 text-lg admin-header-gradient">
 									<DollarSign className="h-5 w-5 text-primary" />
-									Funding Ask
+									{t.pitch.fundingAsk}
 								</CardTitle>
 							</CardHeader>
 							<CardContent>
@@ -750,13 +753,12 @@ export default function AdminPitchViewPage() {
 									${pitch.targetAmount?.toLocaleString() || "0"}
 								</p>
 								<p className="text-xs text-muted-foreground mt-1">
-									Capital required
+									{t.pitch.capitalRequired}
 								</p>
-
 								<div className="mt-6 space-y-1">
 									<div className="pitch-financial-row">
 										<span className="text-sm text-muted-foreground">
-											Current Revenue
+											{t.pitch.currentRevenue}
 										</span>
 										<span className="text-sm font-semibold">
 											{pitch.financials?.currentRevenue || "N/A"}
@@ -764,7 +766,7 @@ export default function AdminPitchViewPage() {
 									</div>
 									<div className="pitch-financial-row">
 										<span className="text-sm text-muted-foreground">
-											Projected Rev.
+											{t.pitch.projectedRevenue}
 										</span>
 										<span className="text-sm font-semibold">
 											{pitch.financials?.projectedRevenue || "N/A"}
@@ -772,7 +774,7 @@ export default function AdminPitchViewPage() {
 									</div>
 									<div className="pitch-financial-row">
 										<span className="text-sm text-muted-foreground">
-											Burn Rate
+											{t.pitch.burnRate}
 										</span>
 										<span className="text-sm font-semibold">
 											{pitch.financials?.burnRate || "N/A"}
@@ -780,7 +782,7 @@ export default function AdminPitchViewPage() {
 									</div>
 									<div className="pitch-financial-row">
 										<span className="text-sm text-muted-foreground">
-											Runway
+											{t.pitch.runway}
 										</span>
 										<span className="text-sm font-semibold">
 											{pitch.financials?.runway || "N/A"}
@@ -795,12 +797,9 @@ export default function AdminPitchViewPage() {
 							<CardHeader className="bg-gradient-to-br from-amber-500/10 to-transparent pb-4 pt-6 border-b border-amber-500/10">
 								<CardTitle className="text-base flex items-center gap-2.5 text-amber-600 font-bold">
 									<ClipboardList className="h-5 w-5" />
-									Administrator Actions
+									{t.pitch.administratorActions}
 								</CardTitle>
-								<CardDescription>
-									Final Quality Gate checks manually enforce marketplace
-									standards.
-								</CardDescription>
+								<CardDescription>{t.pitch.finalQualityGate}</CardDescription>
 							</CardHeader>
 							<CardContent className="pt-4 space-y-3">
 								<Button
@@ -813,7 +812,7 @@ export default function AdminPitchViewPage() {
 									) : (
 										<CheckCircle2 className="mr-2 h-4 w-4" />
 									)}
-									Approve & Publish Pitch
+									{t.pitch.approveAndPublishPitch}
 								</Button>
 								<div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
 									<Button
@@ -822,7 +821,7 @@ export default function AdminPitchViewPage() {
 										onClick={() => handleStatusUpdate("suspended")}
 										disabled={actionLoading || pitch.status === "suspended"}
 									>
-										Suspend
+										{t.pitch.suspend}
 									</Button>
 									<Button
 										variant="outline"
@@ -830,7 +829,7 @@ export default function AdminPitchViewPage() {
 										onClick={() => handleStatusUpdate("rejected")}
 										disabled={actionLoading || pitch.status === "rejected"}
 									>
-										Reject
+										{t.pitch.reject}
 									</Button>
 								</div>
 							</CardContent>
@@ -846,14 +845,14 @@ export default function AdminPitchViewPage() {
 										<FileUp className="h-4 w-4" />
 									</div>
 									<span className="admin-header-gradient font-bold">
-										Appended Documents
+										{t.pitch.appendedDocuments}
 									</span>
 								</CardTitle>
 							</CardHeader>
 							<CardContent>
 								{!pitch.documents || pitch.documents.length === 0 ? (
 									<p className="text-sm text-muted-foreground italic text-center py-4">
-										No documents uploaded
+										{t.pitch.noDocumentsUploaded}
 									</p>
 								) : (
 									<div className="space-y-3">

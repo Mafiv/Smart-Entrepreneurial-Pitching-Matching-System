@@ -19,8 +19,9 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import { showErrorToast, showSuccessToast } from "@/lib/toast-messages";
 
 interface AiSummaryData {
@@ -79,7 +80,13 @@ function readinessDot(level: "High" | "Medium" | "Low") {
 
 // ── Voice Player (English — Gemini TTS audio) ──────────────────────────────
 
-function VoicePlayer({ url }: { url: string }) {
+function VoicePlayer({
+	url,
+	t,
+}: {
+	url: string;
+	t: ReturnType<typeof useLanguage>["t"];
+}) {
 	const audioRef = useRef<HTMLAudioElement | null>(null);
 	const [playing, setPlaying] = useState(false);
 	const [progress, setProgress] = useState(0);
@@ -140,7 +147,7 @@ function VoicePlayer({ url }: { url: string }) {
 				<div className="flex items-center gap-2 mb-1">
 					<Volume2 className="h-3.5 w-3.5 text-primary" />
 					<span className="text-xs font-semibold text-primary">
-						AI Voice Summary (English)
+						{t.ai.voiceSummaryEN}
 					</span>
 				</div>
 				<div
@@ -168,10 +175,10 @@ function VoicePlayer({ url }: { url: string }) {
 
 function AmharicTTS({
 	text,
-	submissionId,
+	t,
 }: {
 	text: string;
-	submissionId: string;
+	t: ReturnType<typeof useLanguage>["t"];
 }) {
 	const { user } = useAuth();
 	const [speaking, setSpeaking] = useState(false);
@@ -209,12 +216,12 @@ function AmharicTTS({
 					textToSpeak = data.translated;
 					setAmharicText(data.translated);
 				} else {
-					showErrorToast("Failed to translate summary to Amharic");
+					showErrorToast(t.ai.summaryFailed);
 					setTranslating(false);
 					return;
 				}
 			} catch {
-				showErrorToast("Translation failed");
+				showErrorToast(t.ai.summaryFailed);
 				setTranslating(false);
 				return;
 			}
@@ -239,7 +246,7 @@ function AmharicTTS({
 
 		setSpeaking(true);
 		window.speechSynthesis.speak(utterance);
-	}, [speaking, amharicText, user, api, text]);
+	}, [speaking, amharicText, user, api, text, t.ai.summaryFailed]);
 
 	return (
 		<div className="flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/[0.03] px-4 py-3">
@@ -264,15 +271,15 @@ function AmharicTTS({
 				<div className="flex items-center gap-2">
 					<Volume2 className="h-3.5 w-3.5 text-amber-600" />
 					<span className="text-xs font-semibold text-amber-600">
-						🇪🇹 Listen in Amharic (አማርኛ)
+						{t.ai.voiceSummaryAM}
 					</span>
 				</div>
 				<p className="text-[10px] text-muted-foreground mt-0.5">
 					{translating
-						? "Translating to Amharic..."
+						? t.ai.translatingToAmharic
 						: speaking
-							? "Speaking..."
-							: "AI translates & reads the summary in Amharic"}
+							? t.ai.speaking
+							: t.ai.amharicDescription}
 				</p>
 			</div>
 		</div>
@@ -282,6 +289,7 @@ function AmharicTTS({
 // ── Generating skeleton with animated shimmer ───────────────────────────────
 
 function GeneratingSkeleton() {
+	const { t } = useLanguage();
 	return (
 		<Card className="overflow-hidden rounded-2xl border-primary/20 shadow-sm bg-card">
 			<CardHeader className="pb-4 pt-6">
@@ -290,7 +298,7 @@ function GeneratingSkeleton() {
 						<Sparkles className="h-4.5 w-4.5 text-primary animate-pulse" />
 					</div>
 					<span className="font-bold text-lg admin-header-gradient">
-						Gemini AI Pitch Summary
+						{t.ai.geminiSummary}
 					</span>
 				</div>
 			</CardHeader>
@@ -303,11 +311,10 @@ function GeneratingSkeleton() {
 					</div>
 					<div className="text-center">
 						<h3 className="text-sm font-bold text-foreground mb-1">
-							AI is analyzing your pitch...
+							{t.ai.aiAnalyzing}
 						</h3>
 						<p className="text-xs text-muted-foreground max-w-sm">
-							Gemini is generating an investor-grade summary with strengths,
-							risks, and market analysis. This usually takes 10–20 seconds.
+							{t.ai.generatingDescription}
 						</p>
 					</div>
 					{/* Animated progress dots */}
@@ -333,6 +340,7 @@ function FailedState({
 	onRetry?: () => void;
 	retrying: boolean;
 }) {
+	const { t } = useLanguage();
 	return (
 		<Card className="overflow-hidden rounded-2xl border-red-500/20 shadow-sm bg-gradient-to-br from-red-500/[0.03] to-background">
 			<CardContent className="flex flex-col items-center justify-center py-10 gap-4">
@@ -341,11 +349,10 @@ function FailedState({
 				</div>
 				<div className="text-center">
 					<h3 className="text-sm font-bold text-foreground mb-1">
-						Summary Generation Failed
+						{t.ai.summaryFailed}
 					</h3>
 					<p className="text-xs text-muted-foreground max-w-sm">
-						{error ||
-							"The AI was unable to generate a summary. Please try again."}
+						{error || t.ai.retryGeneration}
 					</p>
 				</div>
 				{onRetry && (
@@ -361,7 +368,7 @@ function FailedState({
 						) : (
 							<RefreshCw className="h-3.5 w-3.5" />
 						)}
-						{retrying ? "Retrying..." : "Retry Generation"}
+						{retrying ? t.common.loading : t.ai.retryGeneration}
 					</Button>
 				)}
 			</CardContent>
@@ -380,6 +387,7 @@ export default function AiPitchSummary({
 	onRegenerated,
 }: AiPitchSummaryProps) {
 	const { user } = useAuth();
+	const { t } = useLanguage();
 	const [regenerating, setRegenerating] = useState(false);
 	const [expanded, setExpanded] = useState(false);
 
@@ -459,28 +467,17 @@ export default function AiPitchSummary({
 			);
 			if (res.ok) {
 				const data = await res.json();
-				showSuccessToast(
-					"Summary regenerated",
-					"The AI pitch summary has been updated.",
-				);
+				showSuccessToast(t.ai.regenerate);
 				setAiSummary(data.summary);
 				setStatus("completed");
 				onRegenerated?.();
 			} else {
 				const data = await res.json();
-				showErrorToast(
-					data.message || "Failed to regenerate summary",
-					"Summary generation failed",
-					"Please try again later.",
-				);
+				showErrorToast(data.message || t.ai.summaryFailed);
 				setStatus("failed");
 			}
 		} catch {
-			showErrorToast(
-				"Network error",
-				"Connection error",
-				"Unable to reach the server. Please check your connection.",
-			);
+			showErrorToast(t.ai.summaryFailed);
 			setStatus("failed");
 		} finally {
 			setRegenerating(false);
@@ -495,7 +492,7 @@ export default function AiPitchSummary({
 	}
 
 	// Failed → show error with retry
-	if (status === "failed" && (!aiSummary || !aiSummary.executiveSummary)) {
+	if (status === "failed" && !aiSummary?.executiveSummary) {
 		return (
 			<FailedState
 				error={null}
@@ -506,7 +503,7 @@ export default function AiPitchSummary({
 	}
 
 	// No summary yet — show an empty state
-	if (!aiSummary || !aiSummary.executiveSummary) {
+	if (!aiSummary?.executiveSummary) {
 		return (
 			<Card className="overflow-hidden rounded-2xl border-primary/20 shadow-sm bg-card">
 				<CardContent className="flex flex-col items-center justify-center py-10 gap-4">
@@ -515,12 +512,10 @@ export default function AiPitchSummary({
 					</div>
 					<div className="text-center">
 						<h3 className="text-sm font-bold text-foreground mb-1">
-							AI Pitch Summary
+							{t.ai.geminiSummary}
 						</h3>
 						<p className="text-xs text-muted-foreground max-w-sm">
-							{showRegenerate
-								? "No AI summary has been generated for this pitch yet. Click below to generate one."
-								: "An AI-powered summary will appear here once generated by the platform."}
+							{showRegenerate ? t.ai.generateSummary : t.ai.poweredBy}
 						</p>
 					</div>
 					{showRegenerate && (
@@ -535,7 +530,7 @@ export default function AiPitchSummary({
 							) : (
 								<Sparkles className="h-3.5 w-3.5" />
 							)}
-							{regenerating ? "Generating..." : "Generate AI Summary"}
+							{regenerating ? t.common.loading : t.ai.generateSummary}
 						</Button>
 					)}
 				</CardContent>
@@ -563,7 +558,7 @@ export default function AiPitchSummary({
 						</div>
 						<div className="min-w-0">
 							<span className="admin-header-gradient font-bold text-base">
-								Gemini AI Pitch Summary
+								{t.ai.geminiSummary}
 							</span>
 							{!expanded && (
 								<p className="text-xs text-muted-foreground mt-0.5 truncate max-w-md">
@@ -583,7 +578,7 @@ export default function AiPitchSummary({
 								<div
 									className={`h-1.5 w-1.5 rounded-full mr-1.5 ${readinessDot(readinessLevel)}`}
 								/>
-								{readinessLevel} Readiness
+								{readinessLevel} {t.ai.investmentReadiness}
 							</Badge>
 						)}
 						{showRegenerate && expanded && (
@@ -602,7 +597,7 @@ export default function AiPitchSummary({
 								) : (
 									<RefreshCw className="h-3 w-3" />
 								)}
-								{regenerating ? "Generating..." : "Regenerate"}
+								{regenerating ? t.common.loading : t.ai.regenerate}
 							</Button>
 						)}
 						<div
@@ -629,11 +624,8 @@ export default function AiPitchSummary({
 
 					{/* Voice Players — English & Amharic (SRS §6) */}
 					<div className="space-y-2 mt-4">
-						{voiceSummaryUrl && <VoicePlayer url={voiceSummaryUrl} />}
-						<AmharicTTS
-							text={aiSummary.executiveSummary}
-							submissionId={submissionId}
-						/>
+						{voiceSummaryUrl && <VoicePlayer url={voiceSummaryUrl} t={t} />}
+						<AmharicTTS text={aiSummary.executiveSummary} t={t} />
 					</div>
 
 					{/* Investment Readiness Badge */}
@@ -646,7 +638,7 @@ export default function AiPitchSummary({
 							/>
 							<ShieldCheck className="h-4 w-4" />
 							<span className="text-sm font-bold">
-								Investment Readiness: {readinessLevel}
+								{t.ai.investmentReadiness}: {readinessLevel}
 							</span>
 						</div>
 					</div>
@@ -663,7 +655,7 @@ export default function AiPitchSummary({
 							<div className="flex items-center gap-2 mb-3">
 								<CheckCircle2 className="h-4 w-4 text-emerald-500" />
 								<h4 className="text-sm font-bold text-emerald-600">
-									Key Strengths
+									{t.ai.keyStrengths}
 								</h4>
 							</div>
 							<ul className="space-y-2">
@@ -683,7 +675,9 @@ export default function AiPitchSummary({
 						<div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.03] p-4">
 							<div className="flex items-center gap-2 mb-3">
 								<AlertTriangle className="h-4 w-4 text-amber-500" />
-								<h4 className="text-sm font-bold text-amber-600">Key Risks</h4>
+								<h4 className="text-sm font-bold text-amber-600">
+									{t.ai.keyRisks}
+								</h4>
 							</div>
 							<ul className="space-y-2">
 								{aiSummary.keyRisks.map((r) => (
@@ -704,7 +698,7 @@ export default function AiPitchSummary({
 						<div className="flex items-center gap-2 mb-2">
 							<Globe className="h-4 w-4 text-blue-500" />
 							<h4 className="text-sm font-bold text-foreground">
-								Market Opportunity
+								{t.ai.marketOpportunity}
 							</h4>
 						</div>
 						<p className="text-xs text-muted-foreground leading-relaxed">
@@ -717,7 +711,7 @@ export default function AiPitchSummary({
 						<div className="flex items-center gap-1.5">
 							<BarChart3 className="h-3 w-3 text-muted-foreground" />
 							<span className="text-[10px] text-muted-foreground font-medium">
-								Powered by Google Gemini ({aiSummary.model})
+								{t.ai.poweredBy} ({aiSummary.model})
 							</span>
 						</div>
 						{aiSummary.generatedAt && (
