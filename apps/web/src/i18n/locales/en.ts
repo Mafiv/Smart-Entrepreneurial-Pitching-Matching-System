@@ -107,6 +107,29 @@ const en = {
 		burnRate: "Burn Rate",
 		runway: "Runway",
 		reviewPitch: "Review Mode",
+		problemStatement: "Problem Statement",
+		targetMarket: "Target Market",
+		marketSize: "Market Size",
+		solutionDescription: "Solution Description",
+		uniqueValueProposition: "Unique Value Proposition",
+		competitiveAdvantage: "Competitive Advantage",
+		revenueStreams: "Revenue Streams",
+		pricingStrategy: "Pricing Strategy",
+		customerAcquisition: "Customer Acquisition",
+		by: "By ",
+		unknownAuthor: "Unknown",
+		noEmail: "No Email",
+		aiIntelligenceReport: "AI Intelligence Report",
+		administratorActions: "Administrator Actions",
+		approveAndPublishPitch: "Approve & Publish Pitch",
+		suspend: "Suspend",
+		reject: "Reject",
+		appendedDocuments: "Appended Documents",
+		noDocumentsUploaded: "No documents uploaded",
+		approveVideo: "Approve Video",
+		rejectVideo: "Reject Video",
+		finalQualityGate:
+			"Final Quality Gate checks manually enforce marketplace standards.",
 	},
 
 	// ── Investor Feed ─────────────────────────────────────────────────────────
@@ -577,11 +600,13 @@ const en = {
 		networkError: "Network error. Please try again later.",
 		failedToLoadFinance: "Failed to load finance data",
 		activeEscrow: "Active Escrow",
-		verifiedMilestonesReady: "Verified milestones ready for payout to entrepreneurs.",
+		verifiedMilestonesReady:
+			"Verified milestones ready for payout to entrepreneurs.",
 		noMilestonesAwaiting: "No milestones are currently awaiting disbursement.",
 		stuckPayments: "Stuck Payments",
 		confirmMilestonePayout: "Confirm Milestone Payout",
-		releaseFundsConfirm: "You are about to release funds from escrow to the entrepreneur.",
+		releaseFundsConfirm:
+			"You are about to release funds from escrow to the entrepreneur.",
 		paymentReference: "Payment Reference (e.g. Bank Ref No.)",
 	},
 	adminMessages: {
@@ -817,14 +842,18 @@ const en = {
 		googleSignInViaFirebase: "Your account uses Google Sign-In via Firebase.",
 		roleBasedAccessControl: "Role-based access control",
 		adminEntInv: "Admin, Entrepreneur, Investor",
-		regularAdminsCannotModify: "Regular admins cannot modify super admin accounts",
+		regularAdminsCannotModify:
+			"Regular admins cannot modify super admin accounts",
 		jwtTokenAuth: "JWT Token Authentication",
-		firebaseIdTokensVerified: "Firebase ID tokens verified on every API request",
-		bulkActionsWarning: "Bulk actions that affect multiple users. These cannot be",
+		firebaseIdTokensVerified:
+			"Firebase ID tokens verified on every API request",
+		bulkActionsWarning:
+			"Bulk actions that affect multiple users. These cannot be",
 		resetAllUserKyc: "Reset All User KYC",
 		markAllVerifiedAs: "Mark all verified entrepreneurs and investors as",
 		suspendUnverifiedAccounts: "Suspend Unverified Accounts",
-		suspendNonAdminAccounts: "Suspend all non-admin accounts that haven't completed",
+		suspendNonAdminAccounts:
+			"Suspend all non-admin accounts that haven't completed",
 	},
 	adminSubmissions: {
 		of: "of",
@@ -886,7 +915,8 @@ const en = {
 		amount: "Amount",
 		status: "Status",
 		myEarnings: "My Earnings",
-		monitorReceivedPayouts: "Monitor your received payouts and funds awaiting release.",
+		monitorReceivedPayouts:
+			"Monitor your received payouts and funds awaiting release.",
 	},
 	invitations: {
 		yesCancel: "Yes, Cancel",
@@ -1086,7 +1116,8 @@ const en = {
 		businessVerificationRequired: "Business Verification Required",
 		toProtectInvestors: "To protect investors and maintain platform",
 		requiredForYourStage: "Required for your stage",
-		pleaseSavePitchDraft: "Please save your pitch draft first (go back and fill",
+		pleaseSavePitchDraft:
+			"Please save your pitch draft first (go back and fill",
 		acceptedFileFormatsPitch: "PDF, JPG, PNG, PPTX, XLSX up to 25MB",
 		noDocsUploadedYet: "No documents uploaded yet. Start with your",
 	},
@@ -1155,11 +1186,15 @@ const en = {
 		suspicious: "Suspicious",
 		uploaded: "Uploaded",
 		noPitchVideoAdded: "No pitch video added",
-		noDocsAttached: "No documents attached. Consider adding supporting files to",
+		noDocsAttached:
+			"No documents attached. Consider adding supporting files to",
 		someDocsBeingProcessed: "Some documents are still being processed.",
-		someDocsFailedValidation: "Some documents failed validation — please go back and",
-		someDocsFlaggedSuspicious: "Some documents were flagged as suspicious and require admin",
-		pitchAnalyzedByAi: "Your pitch will be analyzed by our AI system for scoring.",
+		someDocsFailedValidation:
+			"Some documents failed validation — please go back and",
+		someDocsFlaggedSuspicious:
+			"Some documents were flagged as suspicious and require admin",
+		pitchAnalyzedByAi:
+			"Your pitch will be analyzed by our AI system for scoring.",
 	},
 	profile: {
 		checkStatus: "Check Status",
