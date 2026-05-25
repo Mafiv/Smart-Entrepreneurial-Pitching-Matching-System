@@ -352,7 +352,7 @@ export const FinanceService = {
 			throw new Error("Payout request is not pending");
 
 		pr.status = payload.action === "approve" ? "approved" : "rejected";
-		pr.processedBy = payload.adminId;
+		pr.processedBy = new mongoose.Types.ObjectId(payload.adminId);
 		pr.processedAt = new Date();
 		await pr.save();
 

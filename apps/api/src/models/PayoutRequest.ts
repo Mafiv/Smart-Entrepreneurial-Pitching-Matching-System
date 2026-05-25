@@ -13,7 +13,9 @@ export interface IPayoutRequest extends Document {
 	currency: string;
 	bankName: string;
 	accountName: string;
-	accountNumber: string;
+	accountNumber: string | null;
+	accountNumberEncrypted?: string | null;
+	accountNumberLast4?: string | null;
 	bankBranch?: string | null;
 	notes?: string | null;
 	status: PayoutRequestStatus;
