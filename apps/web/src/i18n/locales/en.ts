@@ -400,23 +400,29 @@ const en = {
 
 	landing: {
 		navFeatures: "Features",
-		navHowItWorks: "How It Works",
+		navHowItWorks: "How it works",
 		navPlatform: "Platform",
 		navFaq: "FAQ",
 		navGoToDashboard: "Go to Dashboard",
 		navGetStarted: "Get Started",
-		feature1Title: "Lightning Fast",
-		feature1Desc: "Experience seamless navigation and instant updates.",
-		feature2Title: "AI Scoring",
-		feature2Desc: "Our AI engine analyzes pitches to provide objective scores.",
-		feature3Title: "Secure Matching",
-		feature3Desc: "Connect securely with verified investors and entrepreneurs.",
-		feature4Title: "Analytics Dashboard",
-		feature4Desc: "Track your progress with real-time analytics and insights.",
-		feature5Title: "Global Reach",
-		feature5Desc: "Access opportunities from anywhere around the globe.",
-		feature6Title: "Direct Messaging",
-		feature6Desc: "Communicate directly with your matches via our chat system.",
+		feature1Title: "Secure Document Uploads",
+		feature1Desc:
+			"Easily upload and manage your supporting documents, financial models, and business plans in one safe place.",
+		feature2Title: "Smart Investor Matching",
+		feature2Desc:
+			"Our matching engine understands the context of your pitch and connects you with investors whose interests and focus align with your startup.",
+		feature3Title: "Verified Profiles",
+		feature3Desc:
+			"Every profile goes through verification so you can trust who you are connecting with on the platform.",
+		feature4Title: "Dashboard Overview",
+		feature4Desc:
+			"Monitor your pitch status, see how you match with investors, and manage your connections from a centralized hub.",
+		feature5Title: "Saved Pitches",
+		feature5Desc:
+			"Investors can easily save promising pitches to their personal watchlists to review them later.",
+		feature6Title: "Direct Conversations",
+		feature6Desc:
+			"Once a match is made, start a secure private conversation directly on the platform.",
 		platformEntrepreneurTitle: "For Entrepreneurs",
 		platformEntrepreneurSubtitle: "Everything you need to get funded",
 		platformEntrepreneurItems: [
@@ -476,10 +482,10 @@ const en = {
 		heroTitle1: "Where growing startups",
 		heroTitle2: "meet the right capital",
 		heroSubtitle:
-			"Smart matching, verified investors, and secure interactions. Join the premier network for African startups and global investors.",
-		heroCtaDashboard: "Go to Dashboard",
-		heroCtaPitch: "Submit Pitch",
-		heroCtaInvestor: "Browse Startups",
+			"Submit your pitch and connect with verified investors who are actively looking for startups like yours all in one platform.",
+		heroCtaDashboard: "Go to my Dashboard",
+		heroCtaPitch: "Start pitching for free",
+		heroCtaInvestor: "I'm an investor",
 		heroFootnote:
 			"No credit card required · Free tier available · Setup in 5 minutes",
 		featuresBadge: "Core Features",
