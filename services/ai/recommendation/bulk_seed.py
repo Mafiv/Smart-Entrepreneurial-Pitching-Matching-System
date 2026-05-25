@@ -10,8 +10,7 @@ Usage:
 Steps per row:
   1. Build a combined text string (mirrors buildSubmissionText in matching.service.ts)
   2. POST /vectorize  →  get 384-dim embedding
-  3. POST http://localhost:5000/api/submissions/seed  →  create full submission in Node
-
+earlier i asked you what 
 CSV column → Submission schema mapping
 ---------------------------------------
   title                         → Submission.title

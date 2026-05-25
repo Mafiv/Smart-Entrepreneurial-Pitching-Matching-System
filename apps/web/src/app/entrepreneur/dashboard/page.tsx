@@ -118,7 +118,9 @@ function EntrepreneurDashboardInner() {
 							<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient">
 								{t.nav.dashboard}
 							</h1>
-							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">{t.dashboard.managePitchesDesc}</p>
+							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
+								{t.dashboard.managePitchesDesc}
+							</p>
 						</div>
 						<Button
 							onClick={() => {
@@ -137,7 +139,7 @@ function EntrepreneurDashboardInner() {
 							{userProfile?.status !== "verified" && (
 								<Lock className="h-3.5 w-3.5 mr-1.5" />
 							)}
-							+ New Pitch
+							{t.dashboard.newPitch}
 						</Button>
 					</div>
 				</div>
@@ -177,7 +179,9 @@ function EntrepreneurDashboardInner() {
 									<p className="text-2xl font-bold tracking-tight">
 										{submitted.length}
 									</p>
-									<p className="text-xs text-muted-foreground mt-0.5">{t.dashboard.awaitingReview}</p>
+									<p className="text-xs text-muted-foreground mt-0.5">
+										{t.dashboard.awaitingReview}
+									</p>
 								</div>
 							</div>
 						</div>
@@ -195,7 +199,9 @@ function EntrepreneurDashboardInner() {
 									<p className="text-2xl font-bold tracking-tight">
 										{acceptedMatchCount}
 									</p>
-									<p className="text-xs text-muted-foreground mt-0.5">{t.dashboard.acceptedInvestorMatches}</p>
+									<p className="text-xs text-muted-foreground mt-0.5">
+										{t.dashboard.acceptedInvestorMatches}
+									</p>
 								</div>
 							</div>
 						</div>
@@ -218,8 +224,8 @@ function EntrepreneurDashboardInner() {
 							</h3>
 							<p className="text-muted-foreground text-center max-w-md mb-6 text-sm">
 								{userProfile?.status === "verified"
-									? "Create a compelling pitch and let our AI match you with the right investors."
-									: "Complete your verification to start creating pitches and connecting with investors."}
+									? t.dashboard.createCompellingPitchDesc
+									: t.dashboard.completeVerificationDesc}
 							</p>
 							<Button
 								onClick={() => {
@@ -231,7 +237,7 @@ function EntrepreneurDashboardInner() {
 								}}
 							>
 								{userProfile?.status === "verified"
-									? "Create New Pitch"
+									? t.dashboard.createNewPitch
 									: t.dashboard.completeVerification}
 							</Button>
 						</CardContent>

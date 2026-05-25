@@ -1,44 +1,61 @@
 """
 router.py
 =========
-Hybrid classification pipeline for SEPMS pitch trust scoring.
+Admin-facing pitch quality analysis pipeline for SEPMS.
+
+Context
+-------
+By the time a pitch reaches this endpoint, it has ALREADY passed the
+primary gibberish gate in the Express backend (submission.service.ts),
+which uses Gemini directly at submission time to block fake/gibberish
+pitches before they ever reach submitted status.
+
+This endpoint is called ONLY when an admin opens a pitch for review at
+/admin/pitch/[id]. Its purpose is to give the admin a detailed quality
+report — not to block anything.
 
 Architecture
 ------------
-Two complementary layers run in sequence for every pitch evaluation:
+Two complementary layers run in sequence:
 
-Layer 1 — Google Gemini API (authenticity & language check)
-    Purpose : Detect gibberish, non-English text, copy-paste garbage, and
-              off-topic content that TF-IDF cannot catch because those inputs
-              produce near-zero feature vectors.
+Layer 1 — Google Gemini API (language quality assessment for admin)
+    Purpose : Provide the admin with nuanced language quality context.
+              Since gibberish is already blocked upstream, this layer
+              primarily distinguishes between professional, acceptable,
+              and poor-quality real pitches, and generates a human-readable
+              explanation the admin can read before approving or rejecting.
     Input   : Raw pitch text
     Output  : { is_gibberish, language_quality, confidence, gemini_note }
+    Note    : is_gibberish will almost always be false here because
+              gibberish is blocked at submission time by the Node backend.
 
 Layer 2 — scikit-learn TF-IDF + Logistic Regression (quality scoring)
-    Purpose : Score the pitch against patterns learned from 500+ real funded
-              startups (Crunchbase dataset). Produces a calibrated probability
-              that the pitch resembles a high-quality, investor-ready submission.
-    Input   : Raw pitch text (only reached if Layer 1 passes)
+    Purpose : Score the pitch against patterns learned from 5000 real
+              startup pitches (startup_pitches_5000.csv). Produces a
+              calibrated probability that the pitch resembles a high-quality,
+              investor-ready submission based on approved vs rejected labels.
+    Input   : Raw pitch text
     Output  : trust_score_percentage (0–100), ai_flag
 
-Combined response to the admin:
+Combined response shown in the admin trust score banner:
     {
-        trust_score_percentage : float   ← from scikit-learn
-        ai_flag                : str     ← derived from trust_score + gemini result
+        trust_score_percentage : float   ← from scikit-learn (0–100)
+        ai_flag                : str     ← "Flagged: Suspect Content" or
+                                           "Pending Admin Review"
         authenticity           : {
-            is_gibberish       : bool
+            is_gibberish       : bool    ← from Gemini
             language_quality   : "professional" | "acceptable" | "poor" | "gibberish"
             confidence         : float (0–1)
-            gemini_note        : str    ← human-readable explanation for the admin
+            gemini_note        : str    ← one sentence for the admin reviewer
         }
     }
 
 If Gemini is unavailable (no API key, network error), the system falls back
 to the scikit-learn result alone — the endpoint never crashes.
 
-Environment variables required
--------------------------------
-    GEMINI_API_KEY=your-key-here   (get from https://aistudio.google.com/app/apikey)
+Environment variables required (services/ai/.env)
+--------------------------------------------------
+    GEMINI_API_KEY=your-key-here
 """
 
 from __future__ import annotations
