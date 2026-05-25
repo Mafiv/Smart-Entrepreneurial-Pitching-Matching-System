@@ -118,9 +118,7 @@ function EntrepreneurDashboardInner() {
 							<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient">
 								Dashboard
 							</h1>
-							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
-								Manage your pitches and track investor interest
-							</p>
+							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">{t.dashboard.managePitchesDesc}</p>
 						</div>
 						<Button
 							onClick={() => {
@@ -179,9 +177,7 @@ function EntrepreneurDashboardInner() {
 									<p className="text-2xl font-bold tracking-tight">
 										{submitted.length}
 									</p>
-									<p className="text-xs text-muted-foreground mt-0.5">
-										Awaiting review
-									</p>
+									<p className="text-xs text-muted-foreground mt-0.5">{t.dashboard.awaitingReview}</p>
 								</div>
 							</div>
 						</div>
@@ -199,9 +195,7 @@ function EntrepreneurDashboardInner() {
 									<p className="text-2xl font-bold tracking-tight">
 										{acceptedMatchCount}
 									</p>
-									<p className="text-xs text-muted-foreground mt-0.5">
-										Accepted investor matches
-									</p>
+									<p className="text-xs text-muted-foreground mt-0.5">{t.dashboard.acceptedInvestorMatches}</p>
 								</div>
 							</div>
 						</div>

@@ -236,9 +236,7 @@ export default function AdminSettingsPage() {
 									<Globe className="h-4 w-4 text-primary" />
 									Platform Overview
 								</CardTitle>
-								<CardDescription>
-									Current platform statistics and health.
-								</CardDescription>
+								<CardDescription>{t.adminSettings.currentPlatformStats}</CardDescription>
 							</CardHeader>
 							<CardContent>
 								{loadingStats ? (
@@ -286,9 +284,7 @@ export default function AdminSettingsPage() {
 										</div>
 									</div>
 								) : (
-									<p className="text-sm text-muted-foreground">
-										Unable to load stats
-									</p>
+									<p className="text-sm text-muted-foreground">{t.adminSettings.unableToLoadStats}</p>
 								)}
 							</CardContent>
 						</Card>
@@ -333,9 +329,7 @@ export default function AdminSettingsPage() {
 										</p>
 										<div className="flex items-center gap-1.5 mt-1">
 											<CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-											<span className="text-sm font-medium">
-												Required — Manual review
-											</span>
+											<span className="text-sm font-medium">{t.adminSettings.requiredManualReview}</span>
 										</div>
 									</div>
 									<div className="rounded-lg border p-3">
@@ -344,9 +338,7 @@ export default function AdminSettingsPage() {
 										</p>
 										<div className="flex items-center gap-1.5 mt-1">
 											<Shield className="h-3.5 w-3.5 text-primary" />
-											<span className="text-sm font-medium">
-												Firebase / Google
-											</span>
+											<span className="text-sm font-medium">{t.adminSettings.firebaseGoogle}</span>
 										</div>
 									</div>
 								</div>
@@ -360,9 +352,7 @@ export default function AdminSettingsPage() {
 									<ClipboardList className="h-4 w-4 text-primary" />
 									KYC Document Requirements
 								</CardTitle>
-								<CardDescription>
-									Documents required for user verification.
-								</CardDescription>
+								<CardDescription>{t.adminSettings.docsRequiredForVerification}</CardDescription>
 							</CardHeader>
 							<CardContent>
 								<div className="space-y-3">
@@ -370,9 +360,7 @@ export default function AdminSettingsPage() {
 										<div className="flex items-center justify-between">
 											<div>
 												<p className="text-sm font-medium">{t.admin.entrepreneurs}</p>
-												<p className="text-xs text-muted-foreground mt-0.5">
-													National ID + Business License + TIN Certificate
-												</p>
+												<p className="text-xs text-muted-foreground mt-0.5">{t.adminSettings.entrepreneurDocsList}</p>
 											</div>
 											<Badge variant="secondary" className="text-xs">
 												3 documents
@@ -383,9 +371,7 @@ export default function AdminSettingsPage() {
 										<div className="flex items-center justify-between">
 											<div>
 												<p className="text-sm font-medium">{t.admin.investors}</p>
-												<p className="text-xs text-muted-foreground mt-0.5">
-													National ID + Financial Accreditation Document
-												</p>
+												<p className="text-xs text-muted-foreground mt-0.5">{t.adminSettings.investorDocsList}</p>
 											</div>
 											<Badge variant="secondary" className="text-xs">
 												2 documents
@@ -395,7 +381,7 @@ export default function AdminSettingsPage() {
 									<div className="rounded-lg border p-3">
 										<div className="flex items-center justify-between">
 											<div>
-												<p className="text-sm font-medium">Accepted Formats</p>
+												<p className="text-sm font-medium">{t.adminSettings.acceptedFormats}</p>
 												<div className="flex flex-wrap gap-1.5 mt-1">
 													{["PDF", "JPG", "PNG", "WEBP"].map((fmt) => (
 														<Badge
@@ -408,9 +394,7 @@ export default function AdminSettingsPage() {
 													))}
 												</div>
 											</div>
-											<Badge variant="secondary" className="text-xs">
-												Max 10MB
-											</Badge>
+											<Badge variant="secondary" className="text-xs">{t.adminSettings.max10MB}</Badge>
 										</div>
 									</div>
 								</div>
@@ -426,9 +410,7 @@ export default function AdminSettingsPage() {
 									<Shield className="h-4 w-4 text-primary" />
 									Authentication Details
 								</CardTitle>
-								<CardDescription>
-									How your account and the platform are secured.
-								</CardDescription>
+								<CardDescription>{t.adminSettings.howAccountSecured}</CardDescription>
 							</CardHeader>
 							<CardContent className="space-y-4">
 								<div className="rounded-lg border bg-muted/30 p-4 space-y-3">
@@ -440,9 +422,7 @@ export default function AdminSettingsPage() {
 											<p className="text-sm font-medium">
 												Google Authentication
 											</p>
-											<p className="text-xs text-muted-foreground">
-												Your account uses Google Sign-In via Firebase.
-											</p>
+											<p className="text-xs text-muted-foreground">{t.adminSettings.googleSignInViaFirebase}</p>
 										</div>
 										<Badge
 											variant="default"
@@ -460,10 +440,8 @@ export default function AdminSettingsPage() {
 									<div className="space-y-2">
 										<div className="flex items-center justify-between rounded-lg border p-3">
 											<div>
-												<p className="text-sm">Role-based access control</p>
-												<p className="text-xs text-muted-foreground">
-													Admin, Entrepreneur, Investor
-												</p>
+												<p className="text-sm">{t.adminSettings.roleBasedAccessControl}</p>
+												<p className="text-xs text-muted-foreground">{t.adminSettings.adminEntInv}</p>
 											</div>
 											<Badge
 												variant="default"
@@ -474,10 +452,8 @@ export default function AdminSettingsPage() {
 										</div>
 										<div className="flex items-center justify-between rounded-lg border p-3">
 											<div>
-												<p className="text-sm">Super Admin protection</p>
-												<p className="text-xs text-muted-foreground">
-													Regular admins cannot modify super admin accounts
-												</p>
+												<p className="text-sm">{t.adminSettings.superAdminProtection}</p>
+												<p className="text-xs text-muted-foreground">{t.adminSettings.regularAdminsCannotModify}</p>
 											</div>
 											<Badge
 												variant="default"
@@ -502,10 +478,8 @@ export default function AdminSettingsPage() {
 										</div>
 										<div className="flex items-center justify-between rounded-lg border p-3">
 											<div>
-												<p className="text-sm">JWT Token Authentication</p>
-												<p className="text-xs text-muted-foreground">
-													Firebase ID tokens verified on every API request
-												</p>
+												<p className="text-sm">{t.adminSettings.jwtTokenAuth}</p>
+												<p className="text-xs text-muted-foreground">{t.adminSettings.firebaseIdTokensVerified}</p>
 											</div>
 											<Badge
 												variant="default"
@@ -549,7 +523,7 @@ export default function AdminSettingsPage() {
 								<CardContent className="space-y-3">
 									<div className="flex items-center justify-between rounded-lg border border-destructive/20 p-4">
 										<div>
-											<p className="text-sm font-medium">Reset All User KYC</p>
+											<p className="text-sm font-medium">{t.adminSettings.resetAllUserKyc}</p>
 											<p className="text-xs text-muted-foreground">
 												Mark all verified entrepreneurs and investors as
 												unverified. They'll need to re-submit documents.
@@ -567,9 +541,7 @@ export default function AdminSettingsPage() {
 									</div>
 									<div className="flex items-center justify-between rounded-lg border border-destructive/20 p-4">
 										<div>
-											<p className="text-sm font-medium">
-												Suspend Unverified Accounts
-											</p>
+											<p className="text-sm font-medium">{t.adminSettings.suspendUnverifiedAccounts}</p>
 											<p className="text-xs text-muted-foreground">
 												Suspend all non-admin accounts that haven't completed
 												KYC verification.

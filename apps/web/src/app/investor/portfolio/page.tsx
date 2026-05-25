@@ -145,9 +145,7 @@ export default function InvestorPortfolioPage() {
 						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 							<div>
 								<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient flex items-center gap-2">
-									<PieChart className="h-8 w-8 text-primary" />
-									Investment Portfolio
-								</h1>
+									<PieChart className="h-8 w-8 text-primary" />{t.portfolio.investmentPortfolio}</h1>
 								<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
 									Track your commitments, escrow holdings, and investment
 									history.
@@ -220,9 +218,7 @@ export default function InvestorPortfolioPage() {
 
 					{/* Projects Breakdown */}
 					<div className="mb-3">
-						<h2 className="text-lg font-semibold tracking-tight">
-							Per-Project Breakdown
-						</h2>
+						<h2 className="text-lg font-semibold tracking-tight">{t.portfolio.perProjectBreakdown}</h2>
 					</div>
 					<div className="rounded-lg border bg-card overflow-hidden mb-8">
 						<Table>
@@ -246,9 +242,7 @@ export default function InvestorPortfolioPage() {
 										<TableCell
 											colSpan={4}
 											className="text-center py-8 text-muted-foreground"
-										>
-											No investment data available for projects.
-										</TableCell>
+										>{t.portfolio.noInvestmentData}</TableCell>
 									</TableRow>
 								) : (
 									summary.perProject.map((project) => (
@@ -308,9 +302,7 @@ export default function InvestorPortfolioPage() {
 										<TableCell
 											colSpan={5}
 											className="text-center py-8 text-muted-foreground"
-										>
-											No transaction history found.
-										</TableCell>
+										>{t.portfolio.noTransactionHistory}</TableCell>
 									</TableRow>
 								) : (
 									summary.recentLedger.map((entry) => {

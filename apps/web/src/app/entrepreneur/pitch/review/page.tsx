@@ -437,9 +437,7 @@ function ReviewPitchPageInner() {
 							) : (
 								<div className="mt-6 rounded-lg border-2 border-dashed border-border/50 p-6 text-center">
 									<ClipboardList className="mx-auto h-8 w-8 text-muted-foreground/40 mb-2" />
-									<p className="text-sm text-muted-foreground">
-										No pitch video added
-									</p>
+									<p className="text-sm text-muted-foreground">{t.pitchReview.noPitchVideoAdded}</p>
 								</div>
 							)}
 						</CardContent>
@@ -586,7 +584,7 @@ function ReviewPitchPageInner() {
 									<CardTitle className="text-lg flex items-center gap-2">
 										<FileUp className="h-5 w-5" /> Supporting Documents
 									</CardTitle>
-									<CardDescription>AI-Verification Checklist</CardDescription>
+									<CardDescription>{t.pitchReview.aiVerificationChecklist}</CardDescription>
 								</div>
 								{completeness && (
 									<div className="flex flex-col items-end">
@@ -674,7 +672,7 @@ function ReviewPitchPageInner() {
 
 							{/* Uploaded Files Details */}
 							<div>
-								<h4 className="font-medium text-sm mb-3">Files</h4>
+								<h4 className="font-medium text-sm mb-3">{t.pitchReview.files}</h4>
 								{docStatuses && docStatuses.length > 0 ? (
 									<div className="space-y-3">
 										{docStatuses.map((doc) => (
@@ -769,7 +767,7 @@ function ReviewPitchPageInner() {
 									</li>
 								)}
 								{docStatuses.some((d) => d.status === "processing") && (
-									<li>Some documents are still being processed.</li>
+									<li>{t.pitchReview.someDocsBeingProcessed}</li>
 								)}
 								{docStatuses.some((d) => d.status === "failed") && (
 									<li>
@@ -799,9 +797,7 @@ function ReviewPitchPageInner() {
 						<div className="mx-auto max-w-4xl flex flex-col sm:flex-row items-center justify-between gap-4">
 							<div className="text-center sm:text-left">
 								<h3 className="font-semibold text-lg">Ready to submit?</h3>
-								<p className="text-sm text-muted-foreground">
-									Your pitch will be analyzed by our AI system for scoring.
-								</p>
+								<p className="text-sm text-muted-foreground">{t.pitchReview.pitchAnalyzedByAi}</p>
 							</div>
 							<div className="flex gap-3 w-full sm:w-auto">
 								<Button
