@@ -13,7 +13,7 @@ Usage
 
 What it does
 ------------
-1. Loads startup_pitches_5000.csv — columns map directly to the Submission schema.
+1. Loads rejected/startup_pitch_dataset.csv — columns map directly to the Submission schema.
 2. Creates a binary label y from the "status" column:
        y = 1  ("High Quality / Approved")   if status == "approved"
        y = 0  ("Low Quality / Rejected")    if status == "rejected"
@@ -68,8 +68,17 @@ from sklearn.pipeline import Pipeline
 # ── Paths ─────────────────────────────────────────────────────────────────────
 
 SCRIPT_DIR  = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_CSV = os.path.join(SCRIPT_DIR, "..", "startup_pitches_5000.csv")
+DEFAULT_CSV = os.path.join(SCRIPT_DIR, "..", "mastercsv/mastercsv.csv")
 MODEL_OUT   = os.path.join(SCRIPT_DIR, "trust_score_model.pkl")
+
+
+
+
+
+
+
+
+
 
 # ── Feature columns used to build the training text ──────────────────────────
 # These mirror buildSubmissionText() in matching.service.ts so the classifier
