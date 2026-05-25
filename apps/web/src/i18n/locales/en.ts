@@ -75,6 +75,12 @@ const en = {
 		activeConversations: "Active Conversations",
 		managePitchesDesc: "Manage your pitches and track investor interest",
 		acceptedInvestorMatches: "Accepted investor matches",
+		newPitch: "+ New Pitch",
+		createNewPitch: "Create New Pitch",
+		createCompellingPitchDesc:
+			"Create a compelling pitch and let our AI match you with the right investors.",
+		completeVerificationDesc:
+			"Complete your verification to start creating pitches and connecting with investors.",
 	},
 
 	// ── Pitch / Submission ────────────────────────────────────────────────────
@@ -577,11 +583,13 @@ const en = {
 		networkError: "Network error. Please try again later.",
 		failedToLoadFinance: "Failed to load finance data",
 		activeEscrow: "Active Escrow",
-		verifiedMilestonesReady: "Verified milestones ready for payout to entrepreneurs.",
+		verifiedMilestonesReady:
+			"Verified milestones ready for payout to entrepreneurs.",
 		noMilestonesAwaiting: "No milestones are currently awaiting disbursement.",
 		stuckPayments: "Stuck Payments",
 		confirmMilestonePayout: "Confirm Milestone Payout",
-		releaseFundsConfirm: "You are about to release funds from escrow to the entrepreneur.",
+		releaseFundsConfirm:
+			"You are about to release funds from escrow to the entrepreneur.",
 		paymentReference: "Payment Reference (e.g. Bank Ref No.)",
 	},
 	adminMessages: {
@@ -817,14 +825,18 @@ const en = {
 		googleSignInViaFirebase: "Your account uses Google Sign-In via Firebase.",
 		roleBasedAccessControl: "Role-based access control",
 		adminEntInv: "Admin, Entrepreneur, Investor",
-		regularAdminsCannotModify: "Regular admins cannot modify super admin accounts",
+		regularAdminsCannotModify:
+			"Regular admins cannot modify super admin accounts",
 		jwtTokenAuth: "JWT Token Authentication",
-		firebaseIdTokensVerified: "Firebase ID tokens verified on every API request",
-		bulkActionsWarning: "Bulk actions that affect multiple users. These cannot be",
+		firebaseIdTokensVerified:
+			"Firebase ID tokens verified on every API request",
+		bulkActionsWarning:
+			"Bulk actions that affect multiple users. These cannot be",
 		resetAllUserKyc: "Reset All User KYC",
 		markAllVerifiedAs: "Mark all verified entrepreneurs and investors as",
 		suspendUnverifiedAccounts: "Suspend Unverified Accounts",
-		suspendNonAdminAccounts: "Suspend all non-admin accounts that haven't completed",
+		suspendNonAdminAccounts:
+			"Suspend all non-admin accounts that haven't completed",
 	},
 	adminSubmissions: {
 		of: "of",
@@ -886,7 +898,8 @@ const en = {
 		amount: "Amount",
 		status: "Status",
 		myEarnings: "My Earnings",
-		monitorReceivedPayouts: "Monitor your received payouts and funds awaiting release.",
+		monitorReceivedPayouts:
+			"Monitor your received payouts and funds awaiting release.",
 	},
 	invitations: {
 		yesCancel: "Yes, Cancel",
@@ -1029,6 +1042,22 @@ const en = {
 		startWithBasics: "Let's start with the basics",
 		pitchOverview: "Pitch Overview",
 		englishOnlyWarning: "Please enter text in English only.",
+		pitchTitleLabel: "Pitch Title",
+		industrySectorLabel: "Industry Sector",
+		startupStageLabel: "Startup Stage",
+		targetFundingAmount: "Target Funding Amount",
+		executiveSummaryLabel: "Executive Summary",
+		pitchVideoUrlOptional: "Pitch Video URL (Optional)",
+		problemStatementLabel: "Problem Statement",
+		targetMarketLabel: "Target Market",
+		marketSizeLabel: "Market Size",
+		solutionDescriptionLabel: "Solution Description",
+		uvpLabel: "Unique Value Proposition",
+		competitiveAdvantageLabel: "Competitive Advantage",
+		revenueStreamsLabel: "Revenue Streams",
+		pricingStrategyLabel: "Pricing Strategy",
+		customerAcquisitionLabel: "Customer Acquisition",
+		englishInputWarning: "Please enter all pitch information in English.",
 		inProgress: "In Progress",
 		progressTracker: "Progress Tracker",
 		saveDraft: "Save Draft",
@@ -1071,22 +1100,15 @@ const en = {
 		uploadFiles: "Upload Files",
 		createNewPitch: "Create New Pitch",
 		tellInvestorsAboutStartup: "Tell investors about your startup vision.",
-		targetFundingAmount: "Target Funding Amount (ETB) *",
-		pitchVideoUrlOptional: "Pitch Video URL (Optional)",
 		howDoesProductSolve: "How does your product or service solve the problem?",
-		solutionDescriptionLabel: "Solution Description *",
-		uvpLabel: "Unique Value Proposition *",
-		competitiveAdvantageLabel: "Competitive Advantage *",
-		revenueStreamsLabel: "Revenue Streams *",
-		pricingStrategyLabel: "Pricing Strategy *",
-		customerAcquisitionLabel: "Customer Acquisition Strategy *",
 		shareFinancialMetrics: "Share your financial metrics and projections",
 		projectedRevenue12Months: "Projected Revenue (12 months) *",
 		uploadPitchDecks: "Upload pitch decks, financial models, legal documents,",
 		businessVerificationRequired: "Business Verification Required",
 		toProtectInvestors: "To protect investors and maintain platform",
 		requiredForYourStage: "Required for your stage",
-		pleaseSavePitchDraft: "Please save your pitch draft first (go back and fill",
+		pleaseSavePitchDraft:
+			"Please save your pitch draft first (go back and fill",
 		acceptedFileFormatsPitch: "PDF, JPG, PNG, PPTX, XLSX up to 25MB",
 		noDocsUploadedYet: "No documents uploaded yet. Start with your",
 	},
@@ -1155,11 +1177,15 @@ const en = {
 		suspicious: "Suspicious",
 		uploaded: "Uploaded",
 		noPitchVideoAdded: "No pitch video added",
-		noDocsAttached: "No documents attached. Consider adding supporting files to",
+		noDocsAttached:
+			"No documents attached. Consider adding supporting files to",
 		someDocsBeingProcessed: "Some documents are still being processed.",
-		someDocsFailedValidation: "Some documents failed validation — please go back and",
-		someDocsFlaggedSuspicious: "Some documents were flagged as suspicious and require admin",
-		pitchAnalyzedByAi: "Your pitch will be analyzed by our AI system for scoring.",
+		someDocsFailedValidation:
+			"Some documents failed validation — please go back and",
+		someDocsFlaggedSuspicious:
+			"Some documents were flagged as suspicious and require admin",
+		pitchAnalyzedByAi:
+			"Your pitch will be analyzed by our AI system for scoring.",
 	},
 	profile: {
 		checkStatus: "Check Status",
@@ -1216,6 +1242,42 @@ const en = {
 		role: "Role",
 		accountStatus: "Account Status",
 		description: "Description",
+		profileSettings: "Profile Settings",
+		managePersonalAndDocs:
+			"Manage your personal information and verification documents",
+		businessOverview: "Business Overview",
+		publicProfileAndStats: "Public profile and activity statistics",
+		businessSector: "Business Sector",
+		businessStage: "Business Stage",
+		foundedYear: "Founded Year",
+		companyDescriptionLabel: "Company Description",
+		notProvided: "Not provided",
+		notSpecified: "Not specified",
+		interestedInvestors: "Interested Investors",
+		totalViews: "Total Views",
+		overallProgress: "Overall Progress",
+		completed: "Completed",
+		underReviewLabel: "Under review",
+		verifiedLabel: "VERIFIED",
+		underReviewBadge: "UNDER REVIEW",
+		incompleteBadge: "INCOMPLETE",
+		uploadGovId:
+			"Upload a valid government-issued ID. Accepted: National ID (Fayda / Kebele ID) or Driving License.",
+		governmentIssuedIdLabel: "Government-Issued ID",
+		pdfOrImageMax10: "PDF or Image · Max 10MB",
+		uploadBusinessDocs:
+			"Upload your business registration certificate and TIN certificate from the Ethiopian Revenue Authority.",
+		businessRegCertificate: "Business Registration Certificate",
+		pdfOrImageCertificate: "PDF or Image · Certificate of Incorporation",
+		pdfOrImageTin: "PDF or Image · Tax Identification Number",
+		companyNameRequired: "Company Name",
+		whatDoesCompanyDoPlaceholder: "What does your company do?",
+		readyToUploadLabel: "Ready to upload",
+		docsBeingReviewedNotified:
+			"Your documents are being reviewed. You'll be notified once your account is approved.",
+		identityAndBusinessVerified:
+			"Your identity and business documents have been verified by an administrator.",
+		updateAccountDetailsBelow: "Update your account details below.",
 	},
 	investorOnboarding: {
 		completeSetup: "Complete Setup",
@@ -1357,6 +1419,22 @@ const en = {
 		underReview: "Under Review",
 		incomplete: "Incomplete",
 		progress: "Progress",
+		professionalOverview: "Professional Overview",
+		publicProfileAndPrefs: "Public profile and investment preferences",
+		investmentFirm: "Investment Firm",
+		yearsOfExperience: "Years of Experience",
+		noneSpecified: "None specified",
+		portfolioCount: "Portfolio Count",
+		previousInvestments: "Previous Investments",
+		uploadGovIdDesc:
+			"Upload a valid government-issued ID (National ID or Driving License).",
+		uploadAccreditationDesc:
+			"Upload your investment license or financial accreditation document.",
+		accreditationInvestmentLicense: "Accreditation / Investment License",
+		identityAndAccreditationVerified:
+			"Your identity and accreditation documents have been verified by an administrator.",
+		docsBeingReviewedInvestor:
+			"Your documents are being reviewed. You'll be notified once your account is approved.",
 	},
 	saved: {
 		browseFeed: "Browse Feed",
@@ -1367,6 +1445,32 @@ const en = {
 		bookmarkedDesc: "Pitches you've bookmarked for later review.",
 		errorUnsavingPitch: "Error unsaving pitch",
 		failedToUnsavePitch: "Failed to unsave pitch",
+	},
+	adminProfile: {
+		myProfile: "My Profile",
+		manageAdminAccount:
+			"Manage your administrator account and personal details.",
+		personalDetails: "Personal Details",
+		updatePersonalInfo: "Update your personal information.",
+		profilePicture: "Profile Picture",
+		fullName: "Full Name",
+		yourFullName: "Your full name",
+		emailAddress: "Email Address",
+		emailManagedByGoogle: "Email is managed by Google",
+		role: "Role",
+		superAdmin: "Super Admin",
+		admin: "Admin",
+		accountStatus: "Account Status",
+		saving: "Saving...",
+		saveChanges: "Save Changes",
+		session: "Session",
+		provider: "Provider",
+		googleAuth: "Google Authentication",
+		signOutOfAccount: "Sign Out of Account",
+		confirmAction: "Confirm Action",
+		signOutConfirm: "Are you sure you want to sign out of your account?",
+		cancel: "Cancel",
+		signOut: "Sign Out",
 	},
 } as const;
 

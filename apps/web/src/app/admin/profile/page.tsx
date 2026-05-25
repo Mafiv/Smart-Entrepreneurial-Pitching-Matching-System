@@ -28,10 +28,12 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { ADMIN_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import { showErrorToast, showSuccessToast } from "@/lib/toast-messages";
 
 export default function AdminProfilePage() {
 	const { user, userProfile, refreshUserProfile, signOut } = useAuth();
+	const { t } = useLanguage();
 
 	const API_URL = (
 		process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
@@ -79,15 +81,15 @@ export default function AdminProfilePage() {
 
 	return (
 		<ProtectedRoute allowedRoles={["admin"]}>
-			<DashboardLayout navItems={ADMIN_NAV} title="Profile">
+			<DashboardLayout navItems={ADMIN_NAV} title={t.common.profile}>
 				<div className="admin-greeting-card bg-card mb-8 p-6 sm:p-8 admin-content-fade">
 					<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 						<div>
 							<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient">
-								My Profile
+								{t.adminProfile.myProfile}
 							</h1>
 							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
-								Manage your administrator account and personal details.
+								{t.adminProfile.manageAdminAccount}
 							</p>
 						</div>
 					</div>
@@ -99,17 +101,17 @@ export default function AdminProfilePage() {
 						<CardHeader>
 							<CardTitle className="text-base flex items-center gap-2">
 								<Shield className="h-4 w-4 text-primary" />
-								Personal Details
+								{t.adminProfile.personalDetails}
 							</CardTitle>
 							<CardDescription>
-								Update your personal information.
+								{t.adminProfile.updatePersonalInfo}
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-6">
 							<div className="flex flex-col sm:flex-row items-start gap-6 pb-2">
 								<div className="shrink-0">
 									<Label className="text-sm text-muted-foreground block mb-3">
-										Profile Picture
+										{t.adminProfile.profilePicture}
 									</Label>
 									<ProfilePictureUpload size="h-20 w-20" />
 								</div>
@@ -121,18 +123,18 @@ export default function AdminProfilePage() {
 								<div className="flex-1 grid gap-4 sm:grid-cols-2 w-full">
 									<div className="space-y-2">
 										<Label htmlFor="admin-edit-name" className="text-sm">
-											Full Name
+											{t.adminProfile.fullName}
 										</Label>
 										<Input
 											id="admin-edit-name"
 											value={editName}
 											onChange={(e) => setEditName(e.target.value)}
-											placeholder="Your full name"
+											placeholder={t.adminProfile.yourFullName}
 										/>
 									</div>
 									<div className="space-y-2">
 										<Label className="text-sm text-muted-foreground">
-											Email Address
+											{t.adminProfile.emailAddress}
 										</Label>
 										<div className="flex items-center gap-1.5 pt-2">
 											<p className="text-sm font-medium">{email}</p>
@@ -141,25 +143,27 @@ export default function AdminProfilePage() {
 											)}
 										</div>
 										<p className="text-xs text-muted-foreground">
-											Email is managed by Google
+											{t.adminProfile.emailManagedByGoogle}
 										</p>
 									</div>
 									<div className="space-y-2">
 										<Label className="text-sm text-muted-foreground">
-											Role
+											{t.adminProfile.role}
 										</Label>
 										<div className="flex items-center gap-2 pt-2">
 											<Badge
 												variant="destructive"
 												className="text-xs capitalize"
 											>
-												{adminLevel === "super_admin" ? "Super Admin" : "Admin"}
+												{adminLevel === "super_admin"
+													? t.adminProfile.superAdmin
+													: t.adminProfile.admin}
 											</Badge>
 										</div>
 									</div>
 									<div className="space-y-2">
 										<Label className="text-sm text-muted-foreground">
-											Account Status
+											{t.adminProfile.accountStatus}
 										</Label>
 										<div className="pt-2">
 											<Badge
@@ -184,11 +188,12 @@ export default function AdminProfilePage() {
 							>
 								{savingProfile ? (
 									<>
-										<Loader2 className="h-4 w-4 animate-spin" /> Saving...
+										<Loader2 className="h-4 w-4 animate-spin" />{" "}
+										{t.adminProfile.saving}
 									</>
 								) : (
 									<>
-										<Save className="h-4 w-4" /> Save Changes
+										<Save className="h-4 w-4" /> {t.adminProfile.saveChanges}
 									</>
 								)}
 							</Button>
@@ -200,7 +205,7 @@ export default function AdminProfilePage() {
 						<CardHeader>
 							<CardTitle className="text-base flex items-center gap-2">
 								<Lock className="h-4 w-4 text-primary" />
-								Session
+								{t.adminProfile.session}
 							</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-3">
@@ -212,9 +217,11 @@ export default function AdminProfilePage() {
 									</p>
 								</div>
 								<div className="rounded-lg border p-3">
-									<p className="text-xs text-muted-foreground">Provider</p>
+									<p className="text-xs text-muted-foreground">
+										{t.adminProfile.provider}
+									</p>
 									<p className="text-xs font-medium mt-1">
-										Google Authentication
+										{t.adminProfile.googleAuth}
 									</p>
 								</div>
 							</div>
@@ -224,7 +231,7 @@ export default function AdminProfilePage() {
 								onClick={() => setConfirmSignout(true)}
 								className="gap-2 text-destructive hover:text-destructive"
 							>
-								Sign Out of Account
+								{t.adminProfile.signOutOfAccount}
 							</Button>
 						</CardContent>
 					</Card>
@@ -235,10 +242,10 @@ export default function AdminProfilePage() {
 					<DialogContent className="sm:max-w-md">
 						<DialogHeader>
 							<DialogTitle className="text-destructive">
-								Confirm Action
+								{t.adminProfile.confirmAction}
 							</DialogTitle>
 							<DialogDescription>
-								Are you sure you want to sign out of your account?
+								{t.adminProfile.signOutConfirm}
 							</DialogDescription>
 						</DialogHeader>
 						<DialogFooter className="gap-2 sm:gap-0">
@@ -246,10 +253,10 @@ export default function AdminProfilePage() {
 								variant="outline"
 								onClick={() => setConfirmSignout(false)}
 							>
-								Cancel
+								{t.common.cancel}
 							</Button>
 							<Button variant="destructive" onClick={() => signOut()}>
-								Sign Out
+								{t.common.signOut}
 							</Button>
 						</DialogFooter>
 					</DialogContent>

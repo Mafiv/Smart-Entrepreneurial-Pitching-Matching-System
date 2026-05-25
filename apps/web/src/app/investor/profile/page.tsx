@@ -40,13 +40,13 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { INVESTOR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
 	showSuccessToast,
 	showWarningToast,
 } from "@/lib/toast-messages";
-import { useLanguage } from "@/i18n/LanguageContext";
 
 // ─── File Upload Card ───
 function FileUploadCard({
@@ -89,7 +89,8 @@ function FileUploadCard({
 					<div className="flex-1 min-w-0">
 						<p className="text-sm font-medium truncate">{file.name}</p>
 						<p className="text-xs text-muted-foreground">
-							{(file.size / 1024 / 1024).toFixed(2)} MB — Ready to upload
+							{(file.size / 1024 / 1024).toFixed(2)} MB —{" "}
+							{t.profile.readyToUploadLabel}
 						</p>
 					</div>
 					<Button
@@ -110,7 +111,7 @@ function FileUploadCard({
 					<div className="flex-1 min-w-0">
 						<p className="text-sm font-medium">{label}</p>
 						<p className="text-xs text-green-600 dark:text-green-400">
-							Uploaded ✓
+							{t.profile.uploaded} ✓
 						</p>
 					</div>
 					<Label htmlFor={id} className="cursor-pointer">
@@ -323,15 +324,17 @@ function InvestorProfilePageInner() {
 		.join("")
 		.toUpperCase()
 		.slice(0, 2);
-	const _hasGovId = !!files.governmentId || !!profileData?.nationalIdUrl;
-	const _hasAccreditation =
+	const emailVerified = !!userProfile?.emailVerified;
+	const hasGovId = !!files.governmentId || !!profileData?.nationalIdUrl;
+	const hasAccreditation =
 		!!files.accreditation || !!profileData?.accreditationDocumentUrl;
+	const status = userProfile?.status;
 
 	const steps = [
-		{ label: "Email Verified", done: !!userProfile?.emailVerified },
-		{ label: "Government ID", done: !!profileData?.nationalIdUrl },
-		{ label: "Accreditation", done: !!profileData?.accreditationDocumentUrl },
-		{ label: "Admin Approved", done: userProfile?.status === "verified" },
+		{ label: t.profile.emailVerified, done: emailVerified },
+		{ label: t.profile.governmentId, done: hasGovId },
+		{ label: t.investorProfile.accreditation, done: hasAccreditation },
+		{ label: t.profile.adminApproved, done: status === "verified" },
 	];
 	const completedCount = steps.filter((s) => s.done).length;
 	const progress = (completedCount / steps.length) * 100;
@@ -355,10 +358,10 @@ function InvestorProfilePageInner() {
 				<div className="admin-greeting-card bg-card mb-8 p-6 sm:p-8 admin-content-fade">
 					<div>
 						<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient">
-							Profile Settings
+							{t.profile.profileSettings}
 						</h1>
 						<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
-							Manage your personal information and verification documents
+							{t.profile.managePersonalAndDocs}
 						</p>
 					</div>
 				</div>
@@ -377,7 +380,7 @@ function InvestorProfilePageInner() {
 								</TabsTrigger>
 								<TabsTrigger value="verification" className="gap-1.5 text-xs">
 									<ShieldCheck className="h-3.5 w-3.5" />
-									Verification
+									{t.profile.verification}
 									{userProfile?.status !== "verified" && (
 										<span className="ml-1 h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
 									)}
@@ -393,20 +396,20 @@ function InvestorProfilePageInner() {
 									<CardHeader className="pb-3">
 										<CardTitle className="text-base flex items-center gap-2">
 											<Briefcase className="h-4 w-4 text-primary" />
-											Professional Overview
+											{t.investorProfile.professionalOverview}
 										</CardTitle>
 										<CardDescription>
-											Public profile and investment preferences
+											{t.investorProfile.publicProfileAndPrefs}
 										</CardDescription>
 									</CardHeader>
 									<CardContent className="space-y-6">
 										<div className="grid gap-4 sm:grid-cols-2">
 											<div className="space-y-2">
 												<Label className="text-sm text-muted-foreground">
-													Investment Firm
+													{t.investorProfile.investmentFirm}
 												</Label>
 												<p className="font-medium">
-													{profileData?.investmentFirm || "Not specified"}
+													{profileData?.investmentFirm || t.profile.notProvided}
 												</p>
 											</div>
 											<div className="space-y-2">
@@ -414,17 +417,17 @@ function InvestorProfilePageInner() {
 													{t.investorOnboarding.position}
 												</Label>
 												<p className="font-medium">
-													{profileData?.position || "Not specified"}
+													{profileData?.position || t.profile.notProvided}
 												</p>
 											</div>
 											<div className="space-y-2">
 												<Label className="text-sm text-muted-foreground">
-													Years of Experience
+													{t.investorProfile.yearsOfExperience}
 												</Label>
 												<p className="font-medium">
 													{profileData?.yearsExperience
 														? `${profileData.yearsExperience} years`
-														: "Not specified"}
+														: t.profile.notProvided}
 												</p>
 											</div>
 											<div className="space-y-2">
@@ -462,7 +465,7 @@ function InvestorProfilePageInner() {
 														)
 													) : (
 														<p className="text-sm text-muted-foreground">
-															None specified
+															{t.investorProfile.noneSpecified}
 														</p>
 													)}
 												</div>
@@ -484,7 +487,7 @@ function InvestorProfilePageInner() {
 														))
 													) : (
 														<p className="text-sm text-muted-foreground">
-															None specified
+															{t.investorProfile.noneSpecified}
 														</p>
 													)}
 												</div>
@@ -497,7 +500,7 @@ function InvestorProfilePageInner() {
 									<Card className="bg-primary/5 border-primary/10">
 										<CardHeader className="pb-2">
 											<CardTitle className="text-sm text-muted-foreground">
-												Portfolio Count
+												{t.investorProfile.portfolioCount}
 											</CardTitle>
 										</CardHeader>
 										<CardContent>
@@ -509,7 +512,7 @@ function InvestorProfilePageInner() {
 									<Card className="bg-blue-500/5 border-blue-500/10">
 										<CardHeader className="pb-2">
 											<CardTitle className="text-sm text-muted-foreground">
-												Previous Investments
+												{t.investorProfile.previousInvestments}
 											</CardTitle>
 										</CardHeader>
 										<CardContent>
@@ -552,10 +555,11 @@ function InvestorProfilePageInner() {
 											<Card className="border-blue-500/20 bg-blue-500/5">
 												<CardContent className="p-4 text-center space-y-3">
 													<Clock className="h-8 w-8 text-blue-500 mx-auto" />
-													<p className="text-sm font-medium">{t.investorProfile.underReview}</p>
+													<p className="text-sm font-medium">
+														{t.investorProfile.underReview}
+													</p>
 													<p className="text-xs text-muted-foreground">
-														Your documents are being reviewed. You'll be
-														notified once your account is approved.
+														{t.investorProfile.docsBeingReviewedInvestor}
 													</p>
 													<Button
 														variant="outline"
@@ -579,8 +583,7 @@ function InvestorProfilePageInner() {
 														{t.investorProfile.verificationComplete}
 													</p>
 													<p className="text-xs text-muted-foreground">
-														Your identity and accreditation documents have been
-														verified by an administrator.
+														{t.investorProfile.identityAndAccreditationVerified}
 													</p>
 												</div>
 											</div>
@@ -600,15 +603,14 @@ function InvestorProfilePageInner() {
 													{t.investorProfile.identityVerification}
 												</CardTitle>
 												<CardDescription>
-													Upload a valid government-issued ID (National ID or
-													Driving License).
+													{t.investorProfile.uploadGovIdDesc}
 												</CardDescription>
 											</CardHeader>
 											<CardContent>
 												<FileUploadCard
 													id="gov-id"
-													label="Government-Issued ID"
-													description="PDF or Image · Max 10MB"
+													label={t.profile.governmentIssuedIdLabel}
+													description={t.profile.pdfOrImageMax10}
 													file={files.governmentId}
 													existingUrl={profileData?.nationalIdUrl}
 													onChange={(e) => handleFileChange(e, "governmentId")}
@@ -625,15 +627,16 @@ function InvestorProfilePageInner() {
 													{t.investorProfile.financialAccreditation}
 												</CardTitle>
 												<CardDescription>
-													Upload your investment license or financial
-													accreditation document.
+													{t.investorProfile.uploadAccreditationDesc}
 												</CardDescription>
 											</CardHeader>
 											<CardContent>
 												<FileUploadCard
 													id="accreditation"
-													label="Accreditation / Investment License"
-													description="PDF or Image · Max 10MB"
+													label={
+														t.investorProfile.accreditationInvestmentLicense
+													}
+													description={t.profile.pdfOrImageMax10}
 													file={files.accreditation}
 													existingUrl={profileData?.accreditationDocumentUrl}
 													onChange={(e) => handleFileChange(e, "accreditation")}
@@ -657,8 +660,8 @@ function InvestorProfilePageInner() {
 															<>
 																<UploadCloud className="h-4 w-4" />
 																{userProfile?.status === "unverified"
-																	? "Save & Submit for Review"
-																	: "Save Changes"}
+																	? t.profile.saveSubmitReview
+																	: t.profile.saveChanges}
 															</>
 														)}
 													</Button>
@@ -703,11 +706,11 @@ function InvestorProfilePageInner() {
 																	: "bg-muted text-muted-foreground border-muted-foreground/20"
 														}`}
 													>
-														{userProfile?.status === "verified"
-															? "VERIFIED"
-															: userProfile?.status === "pending"
-																? "UNDER REVIEW"
-																: "INCOMPLETE"}
+														{status === "verified"
+															? t.profile.verifiedLabel
+															: status === "pending"
+																? t.profile.underReviewBadge
+																: t.profile.incompleteBadge}
 													</Badge>
 												</div>
 											</CardHeader>
@@ -715,7 +718,7 @@ function InvestorProfilePageInner() {
 												<div className="space-y-2">
 													<div className="flex justify-between text-xs font-medium">
 														<span className="text-muted-foreground">
-															Overall Progress
+															{t.profile.overallProgress}
 														</span>
 														<span
 															className={
@@ -773,12 +776,12 @@ function InvestorProfilePageInner() {
 																		</span>
 																		{isPending && (
 																			<span className="text-[10px] text-blue-500 font-bold tracking-wide uppercase mt-0.5">
-																				Under review
+																				{t.profile.underReviewLabel}
 																			</span>
 																		)}
 																		{isDone && (
 																			<span className="text-[10px] text-green-500 font-bold tracking-wide uppercase mt-0.5">
-																				Completed
+																				{t.profile.completed}
 																			</span>
 																		)}
 																	</div>
@@ -805,7 +808,9 @@ function InvestorProfilePageInner() {
 											<Card className="border-blue-500/20 bg-blue-500/5">
 												<CardContent className="p-4 text-center space-y-3">
 													<Clock className="h-8 w-8 text-blue-500 mx-auto" />
-													<p className="text-sm font-medium">{t.investorProfile.underReview}</p>
+													<p className="text-sm font-medium">
+														{t.investorProfile.underReview}
+													</p>
 													<p className="text-xs text-muted-foreground">
 														Your documents are being reviewed. You'll be
 														notified once your account is approved.
@@ -832,7 +837,7 @@ function InvestorProfilePageInner() {
 											{t.investorProfile.personalInformation}
 										</CardTitle>
 										<CardDescription>
-											Update your account details below.
+											{t.profile.updateAccountDetailsBelow}
 										</CardDescription>
 									</CardHeader>
 									<CardContent className="space-y-6">
@@ -909,11 +914,13 @@ function InvestorProfilePageInner() {
 										>
 											{savingProfile ? (
 												<>
-													<Loader2 className="h-4 w-4 animate-spin" /> {t.investorProfile.saving}
+													<Loader2 className="h-4 w-4 animate-spin" />{" "}
+													{t.investorProfile.saving}
 												</>
 											) : (
 												<>
-													<Save className="h-4 w-4" /> {t.investorProfile.saveChanges}
+													<Save className="h-4 w-4" />{" "}
+													{t.investorProfile.saveChanges}
 												</>
 											)}
 										</Button>
