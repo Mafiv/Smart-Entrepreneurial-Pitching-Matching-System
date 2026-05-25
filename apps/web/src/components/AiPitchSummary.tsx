@@ -625,7 +625,7 @@ export default function AiPitchSummary({
 					{/* Voice Players — English & Amharic (SRS §6) */}
 					<div className="space-y-2 mt-4">
 						{voiceSummaryUrl && <VoicePlayer url={voiceSummaryUrl} t={t} />}
-						<AmharicTTS text={aiSummary.executiveSummary} t={t} />
+						{/* <AmharicTTS text={aiSummary.executiveSummary} t={t} /> */}
 					</div>
 
 					{/* Investment Readiness Badge */}
