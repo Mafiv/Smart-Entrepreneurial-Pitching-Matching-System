@@ -143,7 +143,7 @@ export default function EntrepreneurEarningsPage() {
 									</div>
 									<div className="min-w-0 flex-1">
 										<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-											Total Received
+											{t.invitations.totalReceived}
 										</p>
 										<p className="text-2xl font-bold tracking-tight truncate">
 											ETB {summary.totalReceived.toLocaleString()}
@@ -160,7 +160,7 @@ export default function EntrepreneurEarningsPage() {
 									</div>
 									<div className="min-w-0 flex-1">
 										<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-											Pending Release
+											{t.earnings.pendingRelease}
 										</p>
 										<p className="text-2xl font-bold tracking-tight truncate">
 											ETB {summary.pendingRelease.toLocaleString()}
@@ -176,7 +176,7 @@ export default function EntrepreneurEarningsPage() {
 						<>
 							<div className="mb-3">
 								<h2 className="text-lg font-semibold tracking-tight text-amber-600">
-									Awaiting Disbursement
+									{t.earnings.awaitingDisbursement}
 								</h2>
 							</div>
 							<div className="rounded-lg border border-amber-200/50 bg-amber-50/30 p-4 mb-8">
@@ -213,7 +213,7 @@ export default function EntrepreneurEarningsPage() {
 					{/* Payout History */}
 					<div className="mb-3">
 						<h2 className="text-lg font-semibold tracking-tight">
-							Payout History
+							{t.earnings.payoutHistory}
 						</h2>
 					</div>
 					<div className="rounded-lg border bg-card overflow-hidden">
@@ -224,10 +224,10 @@ export default function EntrepreneurEarningsPage() {
 									<TableHead className="font-semibold">{t.earnings.reference}</TableHead>
 									<TableHead className="font-semibold">{t.earnings.description}</TableHead>
 									<TableHead className="font-semibold text-right">
-										Amount
+										{t.portfolio.amount}
 									</TableHead>
 									<TableHead className="font-semibold text-right">
-										Status
+										{t.portfolio.status}
 									</TableHead>
 								</TableRow>
 							</TableHeader>

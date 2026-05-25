@@ -297,7 +297,7 @@ function ReviewPitchPageInner() {
 							variant="outline"
 							className="bg-background/50 backdrop-blur-sm"
 						>
-							Review Mode
+							{t.pitch.reviewPitch}
 						</Badge>
 					</div>
 				</header>
@@ -327,7 +327,7 @@ function ReviewPitchPageInner() {
 						<div className="space-y-4">
 							<h2 className="text-xl font-bold flex items-center gap-2">
 								<Handshake className="h-5 w-5 text-primary" />
-								Investment Requests
+								{t.pitchReview.investmentRequests}
 							</h2>
 							<div className="grid gap-4">
 								{matchRequests.map((request) => (
@@ -392,7 +392,7 @@ function ReviewPitchPageInner() {
 					<Card className="bg-card border border-border/50 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
 						<CardHeader className="bg-primary/5 border-b border-border/40 pb-4">
 							<CardTitle className="text-lg flex items-center gap-2">
-								<ClipboardList className="h-5 w-5" /> Executive Summary
+								<ClipboardList className="h-5 w-5" /> {t.pitchReview.executiveSummary}
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
@@ -403,7 +403,7 @@ function ReviewPitchPageInner() {
 								<div className="mt-6">
 									<div className="flex items-center justify-between mb-3">
 										<h4 className="font-medium text-sm text-foreground">
-											Pitch Video
+											{t.pitchReview.pitchVideo}
 										</h4>
 										<Badge
 											variant={
@@ -447,7 +447,7 @@ function ReviewPitchPageInner() {
 					<Card className="bg-card border border-border/50 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
 						<CardHeader className="bg-primary/5 border-b border-border/40 pb-4">
 							<CardTitle className="text-lg flex items-center gap-2">
-								<Search className="h-5 w-5" /> The Problem
+								<Search className="h-5 w-5" /> {t.pitchReview.theProblem}
 							</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-4">
@@ -476,7 +476,7 @@ function ReviewPitchPageInner() {
 					<Card className="bg-card border border-border/50 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
 						<CardHeader className="bg-primary/5 border-b border-border/40 pb-4">
 							<CardTitle className="text-lg flex items-center gap-2">
-								<Lightbulb className="h-5 w-5" /> Solution
+								<Lightbulb className="h-5 w-5" /> {t.pitchReview.solution}
 							</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-4">
@@ -505,7 +505,7 @@ function ReviewPitchPageInner() {
 					<Card className="bg-card border border-border/50 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
 						<CardHeader className="bg-primary/5 border-b border-border/40 pb-4">
 							<CardTitle className="text-lg flex items-center gap-2">
-								<BarChart3 className="h-5 w-5" /> Business Model
+								<BarChart3 className="h-5 w-5" /> {t.pitchReview.businessModel}
 							</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-4">
@@ -535,14 +535,14 @@ function ReviewPitchPageInner() {
 					<Card className="bg-card border border-border/50 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
 						<CardHeader className="bg-primary/5 border-b border-border/40 pb-4">
 							<CardTitle className="text-lg flex items-center gap-2">
-								<DollarSign className="h-5 w-5" /> Financials
+								<DollarSign className="h-5 w-5" /> {t.pitchReview.financials}
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
 							<div className="grid gap-4 sm:grid-cols-2">
 								<div className="rounded-lg bg-muted/50 p-4">
 									<p className="text-sm text-muted-foreground">
-										Current Revenue
+										{t.pitchReview.currentRevenue}
 									</p>
 									<p className="font-semibold">
 										{submission.financials?.currentRevenue || "Not provided"}
@@ -550,7 +550,7 @@ function ReviewPitchPageInner() {
 								</div>
 								<div className="rounded-lg bg-muted/50 p-4">
 									<p className="text-sm text-muted-foreground">
-										Projected Revenue
+										{t.pitchReview.projectedRevenue}
 									</p>
 									<p className="font-semibold">
 										{submission.financials?.projectedRevenue || "Not provided"}
@@ -558,7 +558,7 @@ function ReviewPitchPageInner() {
 								</div>
 								<div className="rounded-lg bg-muted/50 p-4">
 									<p className="text-sm text-muted-foreground">
-										Monthly Burn Rate
+										{t.pitchReview.monthlyBurnRate}
 									</p>
 									<p className="font-semibold">
 										{submission.financials?.burnRate || "Not provided"}
@@ -566,7 +566,7 @@ function ReviewPitchPageInner() {
 								</div>
 								<div className="rounded-lg bg-muted/50 p-4">
 									<p className="text-sm text-muted-foreground">
-										Remaining Runway
+										{t.pitchReview.remainingRunway}
 									</p>
 									<p className="font-semibold">
 										{submission.financials?.runway || "Not provided"}
@@ -582,14 +582,14 @@ function ReviewPitchPageInner() {
 							<div className="flex items-center justify-between">
 								<div>
 									<CardTitle className="text-lg flex items-center gap-2">
-										<FileUp className="h-5 w-5" /> Supporting Documents
+										<FileUp className="h-5 w-5" /> {t.pitchReview.supportingDocuments}
 									</CardTitle>
 									<CardDescription>{t.pitchReview.aiVerificationChecklist}</CardDescription>
 								</div>
 								{completeness && (
 									<div className="flex flex-col items-end">
 										<span className="text-sm font-medium">
-											Completeness Score
+											{t.pitchReview.completenessScore}
 										</span>
 										<Badge
 											variant={
@@ -612,7 +612,7 @@ function ReviewPitchPageInner() {
 							{completeness && completeness.checklist.length > 0 && (
 								<div className="space-y-2">
 									<h4 className="font-medium text-sm mb-3">
-										Required vs Uploaded
+										{t.pitchReview.requiredVsUploaded}
 									</h4>
 									<div className="grid gap-2 sm:grid-cols-2">
 										{completeness.checklist
@@ -649,12 +649,12 @@ function ReviewPitchPageInner() {
 														)}
 														{item.status === "missing" && item.required && (
 															<span className="text-xs text-destructive font-medium">
-																Missing
+																{t.pitchReview.missing}
 															</span>
 														)}
 														{item.status === "missing" && !item.required && (
 															<span className="text-xs text-muted-foreground">
-																Optional
+																{t.pitchReview.optional}
 															</span>
 														)}
 													</div>
@@ -702,7 +702,7 @@ function ReviewPitchPageInner() {
 															variant="default"
 															className="gap-1 bg-emerald-600"
 														>
-															<CheckCircle2 className="h-3 w-3" /> Verified
+															<CheckCircle2 className="h-3 w-3" /> {t.investorProfile.verified}
 														</Badge>
 													)}
 													{doc.status === "processing" && (
@@ -713,7 +713,7 @@ function ReviewPitchPageInner() {
 													)}
 													{doc.status === "failed" && (
 														<Badge variant="destructive" className="gap-1">
-															<XCircle className="h-3 w-3" /> Failed
+															<XCircle className="h-3 w-3" /> {t.pitchReview.failed}
 														</Badge>
 													)}
 													{doc.status === "flagged" && (
@@ -721,7 +721,7 @@ function ReviewPitchPageInner() {
 															variant="destructive"
 															className="gap-1 bg-amber-600 hover:bg-amber-700"
 														>
-															<XCircle className="h-3 w-3" /> Suspicious
+															<XCircle className="h-3 w-3" /> {t.pitchReview.suspicious}
 														</Badge>
 													)}
 													{doc.status === "uploaded" && (

@@ -45,6 +45,7 @@ import {
 	showSuccessToast,
 	showWarningToast,
 } from "@/lib/toast-messages";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 // ─── File Upload Card ───
 function FileUploadCard({
@@ -66,6 +67,7 @@ function FileUploadCard({
 	onRemove: () => void;
 	required?: boolean;
 }) {
+	const { t } = useLanguage();
 	const hasFile = !!file;
 	const hasExisting = !!existingUrl;
 	const isComplete = hasFile || hasExisting;
@@ -115,7 +117,7 @@ function FileUploadCard({
 							variant="outline"
 							className="text-xs cursor-pointer hover:bg-muted"
 						>
-							Replace
+							{t.investorProfile.replace}
 						</Badge>
 						<Input
 							id={id}
@@ -168,6 +170,7 @@ function VerificationProgress({
 	emailVerified: boolean;
 	rejectionReason?: string;
 }) {
+	const { t } = useLanguage();
 	const steps = [
 		{ label: "Email Verified", done: emailVerified },
 		{ label: "Government ID", done: hasGovId },
@@ -195,7 +198,7 @@ function VerificationProgress({
 				<div className="flex items-center justify-between">
 					<CardTitle className="text-base flex items-center gap-2">
 						<ShieldCheck className="h-5 w-5 text-primary" />
-						Verification Status
+						{t.profile.verificationStatus}
 					</CardTitle>
 					<Badge
 						variant={status === "verified" ? "default" : "outline"}
@@ -293,7 +296,7 @@ function VerificationProgress({
 						className="mt-3 border-destructive/30 bg-destructive/5"
 					>
 						<AlertCircle className="h-4 w-4" />
-						<AlertTitle className="text-xs font-semibold">Rejected</AlertTitle>
+						<AlertTitle className="text-xs font-semibold">{t.profile.rejected}</AlertTitle>
 						<AlertDescription className="text-xs">
 							{rejectionReason}
 						</AlertDescription>
@@ -307,6 +310,7 @@ function VerificationProgress({
 // ─── Main Profile Page ───
 function EntrepreneurProfilePageInner() {
 	const { user, userProfile, refreshUserProfile } = useAuth();
+	const { t } = useLanguage();
 	const [profileData, setProfileData] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
@@ -545,11 +549,11 @@ function EntrepreneurProfilePageInner() {
 						<TabsList className="w-full justify-start h-auto flex-wrap sm:h-10 mb-6">
 							<TabsTrigger value="overview" className="gap-1.5 text-xs">
 								<Building2 className="h-3.5 w-3.5" />
-								Overview
+								{t.pitchNew.overview}
 							</TabsTrigger>
 							<TabsTrigger value="personal" className="gap-1.5 text-xs">
 								<UserIcon className="h-3.5 w-3.5" />
-								Personal Info
+								{t.investorProfile.personalInfoTab}
 							</TabsTrigger>
 							<TabsTrigger value="verification" className="gap-1.5 text-xs">
 								<ShieldCheck className="h-3.5 w-3.5" />
@@ -579,7 +583,7 @@ function EntrepreneurProfilePageInner() {
 									<div className="grid gap-4 sm:grid-cols-2">
 										<div className="space-y-2">
 											<Label className="text-sm text-muted-foreground">
-												Company Name
+												{t.profile.companyName}
 											</Label>
 											<p className="font-medium">
 												{profileData?.companyName || "Not provided"}
@@ -625,7 +629,7 @@ function EntrepreneurProfilePageInner() {
 								<Card className="bg-primary/5 border-primary/10">
 									<CardHeader className="pb-2">
 										<CardTitle className="text-sm text-muted-foreground">
-											Total Pitches
+											{t.dashboard.totalPitches}
 										</CardTitle>
 									</CardHeader>
 									<CardContent>
@@ -637,7 +641,7 @@ function EntrepreneurProfilePageInner() {
 								<Card className="bg-blue-500/5 border-blue-500/10">
 									<CardHeader className="pb-2">
 										<CardTitle className="text-sm text-muted-foreground">
-											Active Pitches
+											{t.dashboard.activePitches}
 										</CardTitle>
 									</CardHeader>
 									<CardContent>
@@ -684,7 +688,7 @@ function EntrepreneurProfilePageInner() {
 											</div>
 											<div>
 												<p className="text-sm font-semibold text-green-700 dark:text-green-400">
-													Verification Complete
+													{t.investorProfile.verificationComplete}
 												</p>
 												<p className="text-xs text-muted-foreground">
 													Your identity and business documents have been
@@ -706,7 +710,7 @@ function EntrepreneurProfilePageInner() {
 										<CardHeader className="pb-3">
 											<CardTitle className="text-base flex items-center gap-2">
 												<IdCard className="h-4 w-4 text-primary" />
-												Identity Verification
+												{t.investorProfile.identityVerification}
 											</CardTitle>
 											<CardDescription>
 												Upload a valid government-issued ID. Accepted: National
@@ -732,7 +736,7 @@ function EntrepreneurProfilePageInner() {
 										<CardHeader className="pb-3">
 											<CardTitle className="text-base flex items-center gap-2">
 												<Building2 className="h-4 w-4 text-primary" />
-												Business Documents
+												{t.profile.businessDocuments}
 											</CardTitle>
 											<CardDescription>
 												Upload your business registration certificate and TIN
@@ -768,7 +772,7 @@ function EntrepreneurProfilePageInner() {
 										<CardHeader className="pb-3">
 											<CardTitle className="text-base flex items-center gap-2">
 												<Building2 className="h-4 w-4 text-primary" />
-												Company Details
+												{t.profile.companyDetails}
 											</CardTitle>
 										</CardHeader>
 										<CardContent className="space-y-4">
@@ -788,7 +792,7 @@ function EntrepreneurProfilePageInner() {
 											</div>
 											<div className="space-y-2">
 												<Label htmlFor="company-desc" className="text-sm">
-													Brief Description
+													{t.profile.briefDescription}
 												</Label>
 												<Input
 													id="company-desc"
@@ -812,7 +816,7 @@ function EntrepreneurProfilePageInner() {
 													{saving ? (
 														<>
 															<Loader2 className="h-4 w-4 animate-spin" />
-															Saving...
+															{t.investorProfile.saving}
 														</>
 													) : (
 														<>
@@ -849,7 +853,7 @@ function EntrepreneurProfilePageInner() {
 										<Card className="border-blue-500/20 bg-blue-500/5">
 											<CardContent className="p-4 text-center space-y-3">
 												<Clock className="h-8 w-8 text-blue-500 mx-auto" />
-												<p className="text-sm font-medium">Under Review</p>
+												<p className="text-sm font-medium">{t.investorProfile.underReview}</p>
 												<p className="text-xs text-muted-foreground">
 													Your documents are being reviewed. You'll be notified
 													once your account is approved.
@@ -860,7 +864,7 @@ function EntrepreneurProfilePageInner() {
 													className="w-full text-xs"
 													onClick={refreshUserProfile}
 												>
-													Check Status
+													{t.profile.checkStatus}
 												</Button>
 											</CardContent>
 										</Card>
@@ -874,7 +878,7 @@ function EntrepreneurProfilePageInner() {
 							<Card>
 								<CardHeader className="pb-3">
 									<CardTitle className="text-base">
-										Personal Information
+										{t.investorProfile.personalInformation}
 									</CardTitle>
 									<CardDescription>
 										Update your account details below.
@@ -884,7 +888,7 @@ function EntrepreneurProfilePageInner() {
 									<div className="flex flex-col sm:flex-row items-start gap-6 pb-2">
 										<div className="shrink-0">
 											<Label className="text-sm text-muted-foreground block mb-3">
-												Profile Picture
+												{t.investorProfile.profilePicture}
 											</Label>
 											<ProfilePictureUpload size="h-20 w-20" />
 										</div>
@@ -896,7 +900,7 @@ function EntrepreneurProfilePageInner() {
 										<div className="flex-1 grid gap-4 sm:grid-cols-2 w-full">
 											<div className="space-y-2">
 												<Label htmlFor="ent-edit-name" className="text-sm">
-													Full Name
+													{t.investorProfile.fullName}
 												</Label>
 												<Input
 													id="ent-edit-name"
@@ -907,7 +911,7 @@ function EntrepreneurProfilePageInner() {
 											</div>
 											<div className="space-y-2">
 												<Label className="text-sm text-muted-foreground">
-													Email Address
+													{t.investorProfile.emailAddress}
 												</Label>
 												<p className="text-sm font-medium flex items-center gap-1.5 pt-2">
 													{userProfile?.email}
@@ -916,12 +920,12 @@ function EntrepreneurProfilePageInner() {
 													)}
 												</p>
 												<p className="text-xs text-muted-foreground">
-													Email cannot be changed
+													{t.investorProfile.emailCannotChange}
 												</p>
 											</div>
 											<div className="space-y-2">
 												<Label className="text-sm text-muted-foreground">
-													Role
+													{t.investorProfile.role}
 												</Label>
 												<p className="text-sm font-medium capitalize pt-2">
 													{userProfile?.role}
@@ -929,7 +933,7 @@ function EntrepreneurProfilePageInner() {
 											</div>
 											<div className="space-y-2">
 												<Label className="text-sm text-muted-foreground">
-													Account Status
+													{t.investorProfile.accountStatus}
 												</Label>
 												<div className="pt-2">
 													<Badge
@@ -960,11 +964,11 @@ function EntrepreneurProfilePageInner() {
 									>
 										{savingProfile ? (
 											<>
-												<Loader2 className="h-4 w-4 animate-spin" /> Saving...
+												<Loader2 className="h-4 w-4 animate-spin" /> {t.investorProfile.saving}
 											</>
 										) : (
 											<>
-												<Save className="h-4 w-4" /> Save Changes
+												<Save className="h-4 w-4" /> {t.investorProfile.saveChanges}
 											</>
 										)}
 									</Button>
@@ -975,21 +979,21 @@ function EntrepreneurProfilePageInner() {
 								<Card>
 									<CardHeader className="pb-3">
 										<CardTitle className="text-base">
-											Business Information
+											{t.profile.businessInformation}
 										</CardTitle>
 									</CardHeader>
 									<CardContent>
 										<div className="grid gap-4 sm:grid-cols-2">
 											<div className="space-y-2">
 												<Label className="text-sm text-muted-foreground">
-													Company
+													{t.profile.company}
 												</Label>
 												<p className="text-sm font-medium">{companyName}</p>
 											</div>
 											{companyDescription && (
 												<div className="space-y-2">
 													<Label className="text-sm text-muted-foreground">
-														Description
+														{t.portfolio.description}
 													</Label>
 													<p className="text-sm text-muted-foreground">
 														{companyDescription}

@@ -171,7 +171,7 @@ export default function InvestorPortfolioPage() {
 									</div>
 									<div className="min-w-0 flex-1">
 										<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-											Total Committed
+											{t.portfolio.totalCommitted}
 										</p>
 										<p className="text-2xl font-bold tracking-tight truncate">
 											ETB {summary.totalCommitted.toLocaleString()}
@@ -188,7 +188,7 @@ export default function InvestorPortfolioPage() {
 									</div>
 									<div className="min-w-0 flex-1">
 										<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-											Total Released
+											{t.portfolio.totalReleased}
 										</p>
 										<p className="text-2xl font-bold tracking-tight truncate">
 											ETB {summary.totalReleased.toLocaleString()}
@@ -205,7 +205,7 @@ export default function InvestorPortfolioPage() {
 									</div>
 									<div className="min-w-0 flex-1">
 										<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-											Platform Fees
+											{t.portfolio.platformFees}
 										</p>
 										<p className="text-2xl font-bold tracking-tight truncate">
 											ETB {summary.platformFeesPaid.toLocaleString()}
@@ -226,13 +226,13 @@ export default function InvestorPortfolioPage() {
 								<TableRow className="bg-muted/30">
 									<TableHead className="font-semibold">{t.portfolio.projectTitle}</TableHead>
 									<TableHead className="font-semibold text-center">
-										Milestones
+										{t.portfolio.milestones}
 									</TableHead>
 									<TableHead className="font-semibold text-right">
-										Total Invested
+										{t.portfolio.totalInvested}
 									</TableHead>
 									<TableHead className="font-semibold text-right">
-										Status
+										{t.portfolio.status}
 									</TableHead>
 								</TableRow>
 							</TableHeader>
@@ -278,7 +278,7 @@ export default function InvestorPortfolioPage() {
 					{/* Recent Ledger Entries */}
 					<div className="mb-3">
 						<h2 className="text-lg font-semibold tracking-tight">
-							Recent Transactions
+							{t.portfolio.recentTransactions}
 						</h2>
 					</div>
 					<div className="rounded-lg border bg-card overflow-hidden">
@@ -289,10 +289,10 @@ export default function InvestorPortfolioPage() {
 									<TableHead className="font-semibold">{t.earnings.description}</TableHead>
 									<TableHead className="font-semibold">{t.portfolio.type}</TableHead>
 									<TableHead className="font-semibold text-right">
-										Amount
+										{t.portfolio.amount}
 									</TableHead>
 									<TableHead className="font-semibold text-right">
-										Status
+										{t.portfolio.status}
 									</TableHead>
 								</TableRow>
 							</TableHeader>

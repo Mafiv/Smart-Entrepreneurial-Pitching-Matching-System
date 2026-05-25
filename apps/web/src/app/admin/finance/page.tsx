@@ -209,7 +209,7 @@ export default function AdminFinancePage() {
 							<div>
 								<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient flex items-center gap-2">
 									<ShieldCheck className="h-8 w-8 text-primary" />
-									Finance Oversight
+									{t.adminFinance.financeOversight}
 								</h1>
 								<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
 									Manage platform escrow, verify payouts, and monitor the global
@@ -234,7 +234,7 @@ export default function AdminFinancePage() {
 									</div>
 									<div className="min-w-0 flex-1">
 										<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-											Held in Escrow
+											{t.adminFinance.heldInEscrow}
 										</p>
 										<p className="text-2xl font-bold tracking-tight truncate">
 											ETB {data.totalEscrowHeld.toLocaleString()}
@@ -251,7 +251,7 @@ export default function AdminFinancePage() {
 									</div>
 									<div className="min-w-0 flex-1">
 										<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-											Total Disbursed
+											{t.adminFinance.totalDisbursed}
 										</p>
 										<p className="text-2xl font-bold tracking-tight truncate">
 											ETB {data.totalDisbursed.toLocaleString()}
@@ -268,7 +268,7 @@ export default function AdminFinancePage() {
 									</div>
 									<div className="min-w-0 flex-1">
 										<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-											Platform Revenue
+											{t.adminFinance.platformRevenue}
 										</p>
 										<p className="text-2xl font-bold tracking-tight truncate">
 											ETB {data.totalFees.toLocaleString()}
@@ -283,7 +283,7 @@ export default function AdminFinancePage() {
 					<div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 						<div className="space-y-1">
 							<h2 className="text-lg font-semibold tracking-tight">
-								Awaiting Disbursement
+								{t.earnings.awaitingDisbursement}
 							</h2>
 							<p className="text-sm text-muted-foreground">{t.adminFinance.verifiedMilestonesReady}</p>
 						</div>
@@ -302,14 +302,14 @@ export default function AdminFinancePage() {
 							<TableHeader>
 								<TableRow className="bg-muted/30">
 									<TableHead className="font-semibold">
-										Milestone / Project
+										{t.adminFinance.milestoneProject}
 									</TableHead>
 									<TableHead className="font-semibold">{t.adminFinance.recipients}</TableHead>
 									<TableHead className="font-semibold text-right">
-										Amount
+										{t.portfolio.amount}
 									</TableHead>
 									<TableHead className="font-semibold text-right">
-										Action
+										{t.adminSubmissions.action}
 									</TableHead>
 								</TableRow>
 							</TableHeader>
@@ -388,7 +388,7 @@ export default function AdminFinancePage() {
 						<div className="lg:col-span-8">
 							<div className="mb-3">
 								<h2 className="text-lg font-semibold tracking-tight">
-									Global Ledger
+									{t.adminFinance.globalLedger}
 								</h2>
 							</div>
 							<div className="rounded-lg border bg-card overflow-hidden h-[calc(100%-2.5rem)]">
@@ -398,7 +398,7 @@ export default function AdminFinancePage() {
 											<TableHead className="font-semibold">{t.adminFinance.date}</TableHead>
 											<TableHead className="font-semibold">{t.adminFinance.event}</TableHead>
 											<TableHead className="font-semibold text-right">
-												Amount
+												{t.portfolio.amount}
 											</TableHead>
 										</TableRow>
 									</TableHeader>
@@ -424,7 +424,7 @@ export default function AdminFinancePage() {
 														</Badge>
 														{entry.status === "completed" ? (
 															<Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200/50 text-[9px] h-4 px-1">
-																Done
+																{t.common.save}
 															</Badge>
 														) : (
 															<Badge
@@ -511,13 +511,13 @@ export default function AdminFinancePage() {
 								<div className="grid grid-cols-2 gap-4 text-sm">
 									<div>
 										<Label className="text-xs uppercase text-muted-foreground">
-											Milestone
+											{t.milestones.milestone}
 										</Label>
 										<p className="font-semibold">{disburseTarget.title}</p>
 									</div>
 									<div className="text-right">
 										<Label className="text-xs uppercase text-muted-foreground">
-											Amount
+											{t.portfolio.amount}
 										</Label>
 										<p className="font-bold text-lg text-primary">
 											ETB {disburseTarget.amount.toLocaleString()}
@@ -525,7 +525,7 @@ export default function AdminFinancePage() {
 									</div>
 									<div className="col-span-2">
 										<Label className="text-xs uppercase text-muted-foreground">
-											Recipient
+											{t.adminFinance.recipient}
 										</Label>
 										<div className="flex items-center gap-2 mt-1">
 											<Avatar className="h-7 w-7 rounded-md">

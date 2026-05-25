@@ -219,11 +219,11 @@ export default function AdminSettingsPage() {
 					<TabsList>
 						<TabsTrigger value="platform" className="gap-1.5">
 							<Globe className="h-3.5 w-3.5" />
-							Platform
+							{t.adminSettings.platform}
 						</TabsTrigger>
 						<TabsTrigger value="security" className="gap-1.5">
 							<Lock className="h-3.5 w-3.5" />
-							Security
+							{t.adminSettings.security}
 						</TabsTrigger>
 					</TabsList>
 
@@ -234,7 +234,7 @@ export default function AdminSettingsPage() {
 							<CardHeader>
 								<CardTitle className="text-base flex items-center gap-2">
 									<Globe className="h-4 w-4 text-primary" />
-									Platform Overview
+									{t.adminSettings.platformOverview}
 								</CardTitle>
 								<CardDescription>{t.adminSettings.currentPlatformStats}</CardDescription>
 							</CardHeader>
@@ -243,7 +243,7 @@ export default function AdminSettingsPage() {
 									<div className="flex items-center gap-2 py-4">
 										<Loader2 className="h-4 w-4 animate-spin text-primary" />
 										<p className="text-sm text-muted-foreground">
-											Loading stats...
+											{t.adminSettings.loadingStats}
 										</p>
 									</div>
 								) : platformStats ? (
@@ -253,7 +253,7 @@ export default function AdminSettingsPage() {
 												{platformStats.totalUsers}
 											</p>
 											<p className="text-xs text-muted-foreground mt-1">
-												Total Users
+												{t.adminSettings.totalUsers}
 											</p>
 										</div>
 										<div className="rounded-lg border p-4 text-center">
@@ -261,7 +261,7 @@ export default function AdminSettingsPage() {
 												{platformStats.pendingKyc}
 											</p>
 											<p className="text-xs text-muted-foreground mt-1">
-												Pending KYC
+												{t.adminSettings.pendingKyc}
 											</p>
 										</div>
 										<div className="rounded-lg border p-4 text-center">
@@ -269,7 +269,7 @@ export default function AdminSettingsPage() {
 												{platformStats.admins}
 											</p>
 											<p className="text-xs text-muted-foreground mt-1">
-												Admins
+												{t.adminSettings.admins}
 											</p>
 										</div>
 										<div className="rounded-lg border p-4 text-center">
@@ -279,7 +279,7 @@ export default function AdminSettingsPage() {
 													platformStats.admins}
 											</p>
 											<p className="text-xs text-muted-foreground mt-1">
-												Active Users
+												{t.adminSettings.activeUsers}
 											</p>
 										</div>
 									</div>
@@ -294,14 +294,14 @@ export default function AdminSettingsPage() {
 							<CardHeader>
 								<CardTitle className="text-base flex items-center gap-2">
 									<Settings className="h-4 w-4 text-primary" />
-									Platform Information
+									{t.adminSettings.platformInfo}
 								</CardTitle>
 							</CardHeader>
 							<CardContent>
 								<div className="grid gap-4 sm:grid-cols-2">
 									<div className="rounded-lg border p-3">
 										<p className="text-xs text-muted-foreground">
-											Platform Name
+											{t.adminSettings.platformName}
 										</p>
 										<p className="text-sm font-medium mt-1">{t.auth.signInLeftTitle2}</p>
 									</div>
@@ -311,7 +311,7 @@ export default function AdminSettingsPage() {
 									</div>
 									<div className="rounded-lg border p-3">
 										<p className="text-xs text-muted-foreground">
-											API Endpoint
+											{t.adminSettings.apiEndpoint}
 										</p>
 										<p className="text-xs font-mono mt-1 truncate">{API_URL}</p>
 									</div>
@@ -325,7 +325,7 @@ export default function AdminSettingsPage() {
 									</div>
 									<div className="rounded-lg border p-3">
 										<p className="text-xs text-muted-foreground">
-											KYC Verification
+											{t.adminSettings.kycVerification}
 										</p>
 										<div className="flex items-center gap-1.5 mt-1">
 											<CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
@@ -334,7 +334,7 @@ export default function AdminSettingsPage() {
 									</div>
 									<div className="rounded-lg border p-3">
 										<p className="text-xs text-muted-foreground">
-											Authentication
+											{t.adminSettings.authentication}
 										</p>
 										<div className="flex items-center gap-1.5 mt-1">
 											<Shield className="h-3.5 w-3.5 text-primary" />
@@ -350,7 +350,7 @@ export default function AdminSettingsPage() {
 							<CardHeader>
 								<CardTitle className="text-base flex items-center gap-2">
 									<ClipboardList className="h-4 w-4 text-primary" />
-									KYC Document Requirements
+									{t.adminSettings.kycDocRequirements}
 								</CardTitle>
 								<CardDescription>{t.adminSettings.docsRequiredForVerification}</CardDescription>
 							</CardHeader>
@@ -408,7 +408,7 @@ export default function AdminSettingsPage() {
 							<CardHeader>
 								<CardTitle className="text-base flex items-center gap-2">
 									<Shield className="h-4 w-4 text-primary" />
-									Authentication Details
+									{t.adminSettings.authDetails}
 								</CardTitle>
 								<CardDescription>{t.adminSettings.howAccountSecured}</CardDescription>
 							</CardHeader>
@@ -420,7 +420,7 @@ export default function AdminSettingsPage() {
 										</div>
 										<div>
 											<p className="text-sm font-medium">
-												Google Authentication
+												{t.adminSettings.googleAuth}
 											</p>
 											<p className="text-xs text-muted-foreground">{t.adminSettings.googleSignInViaFirebase}</p>
 										</div>
@@ -428,7 +428,7 @@ export default function AdminSettingsPage() {
 											variant="default"
 											className="ml-auto text-xs bg-green-500/10 text-green-600 border-green-500/20"
 										>
-											Active
+											{t.portfolio.active}
 										</Badge>
 									</div>
 								</div>
@@ -447,7 +447,7 @@ export default function AdminSettingsPage() {
 												variant="default"
 												className="text-xs bg-green-500/10 text-green-600 border-green-500/20"
 											>
-												Enabled
+												{t.adminSettings.enabled}
 											</Badge>
 										</div>
 										<div className="flex items-center justify-between rounded-lg border p-3">
@@ -459,7 +459,7 @@ export default function AdminSettingsPage() {
 												variant="default"
 												className="text-xs bg-green-500/10 text-green-600 border-green-500/20"
 											>
-												Enabled
+												{t.adminSettings.enabled}
 											</Badge>
 										</div>
 										<div className="flex items-center justify-between rounded-lg border p-3">
@@ -473,7 +473,7 @@ export default function AdminSettingsPage() {
 												variant="default"
 												className="text-xs bg-green-500/10 text-green-600 border-green-500/20"
 											>
-												Enabled
+												{t.adminSettings.enabled}
 											</Badge>
 										</div>
 										<div className="flex items-center justify-between rounded-lg border p-3">
@@ -485,7 +485,7 @@ export default function AdminSettingsPage() {
 												variant="default"
 												className="text-xs bg-green-500/10 text-green-600 border-green-500/20"
 											>
-												Enabled
+												{t.adminSettings.enabled}
 											</Badge>
 										</div>
 										<div className="flex items-center justify-between rounded-lg border p-3">
@@ -499,7 +499,7 @@ export default function AdminSettingsPage() {
 												variant="default"
 												className="text-xs bg-green-500/10 text-green-600 border-green-500/20"
 											>
-												Enabled
+												{t.adminSettings.enabled}
 											</Badge>
 										</div>
 									</div>
@@ -513,7 +513,7 @@ export default function AdminSettingsPage() {
 								<CardHeader>
 									<CardTitle className="text-base flex items-center gap-2 text-destructive">
 										<Shield className="h-4 w-4" />
-										Danger Zone
+										{t.adminSettings.dangerZone}
 									</CardTitle>
 									<CardDescription>
 										Bulk actions that affect multiple users. These cannot be
@@ -536,7 +536,7 @@ export default function AdminSettingsPage() {
 											onClick={() => setConfirmAction("reset-kyc")}
 										>
 											<Trash2 className="h-3.5 w-3.5 mr-1.5" />
-											Reset All
+											{t.adminSettings.resetAll}
 										</Button>
 									</div>
 									<div className="flex items-center justify-between rounded-lg border border-destructive/20 p-4">
@@ -554,7 +554,7 @@ export default function AdminSettingsPage() {
 											onClick={() => setConfirmAction("suspend-unverified")}
 										>
 											<UserX className="h-3.5 w-3.5 mr-1.5" />
-											Suspend
+											{t.admin.suspend}
 										</Button>
 									</div>
 								</CardContent>
@@ -571,7 +571,7 @@ export default function AdminSettingsPage() {
 					<DialogContent className="sm:max-w-md">
 						<DialogHeader>
 							<DialogTitle className="text-destructive">
-								Confirm Action
+								{t.adminSettings.confirmAction}
 							</DialogTitle>
 							<DialogDescription>
 								{confirmAction === "reset-kyc"
@@ -591,7 +591,7 @@ export default function AdminSettingsPage() {
 							>
 								{actionLoading ? (
 									<>
-										<Loader2 className="h-4 w-4 animate-spin" /> Processing...
+										<Loader2 className="h-4 w-4 animate-spin" /> {t.pitchReview.processing}
 									</>
 								) : (
 									t.common.confirm

@@ -554,7 +554,7 @@ function NewPitchPageInner() {
 			case "processed":
 				return (
 					<Badge variant="default" className="gap-1 bg-emerald-600">
-						<CheckCircle2 className="h-3 w-3" /> Verified
+						<CheckCircle2 className="h-3 w-3" /> {t.investorProfile.verified}
 					</Badge>
 				);
 			case "processing":
@@ -566,7 +566,7 @@ function NewPitchPageInner() {
 			case "failed":
 				return (
 					<Badge variant="destructive" className="gap-1">
-						<XCircle className="h-3 w-3" /> Failed
+						<XCircle className="h-3 w-3" /> {t.pitchReview.failed}
 					</Badge>
 				);
 			case "flagged":
@@ -575,7 +575,7 @@ function NewPitchPageInner() {
 						variant="destructive"
 						className="gap-1 bg-amber-600 hover:bg-amber-700"
 					>
-						<XCircle className="h-3 w-3" /> Suspicious
+						<XCircle className="h-3 w-3" /> {t.pitchReview.suspicious}
 					</Badge>
 				);
 			default:
@@ -635,7 +635,7 @@ function NewPitchPageInner() {
 						<aside className="w-full md:w-72 lg:w-80 border-b md:border-b-0 md:border-r border-border/50 shrink-0">
 							<div className="p-6 md:p-8 sticky top-6">
 								<h3 className="text-xs font-bold text-foreground/50 mb-8 uppercase tracking-widest">
-									Progress Tracker
+									{t.pitchNew.progressTracker}
 								</h3>
 								<div className="flex flex-col gap-8 relative">
 									{/* The vertical connecting line */}
@@ -678,7 +678,7 @@ function NewPitchPageInner() {
 													</p>
 													{isActive && (
 														<p className="text-xs text-muted-foreground font-medium animate-in fade-in slide-in-from-left-1 mt-0.5">
-															In Progress
+															{t.pitchNew.inProgress}
 														</p>
 													)}
 												</div>
@@ -827,7 +827,7 @@ function NewPitchPageInner() {
 									<Card className="bg-card animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden border border-border/50 shadow-sm rounded-2xl">
 										<CardHeader className="bg-background border-b border-border/40 pb-6 pt-8 px-6 sm:px-10">
 											<CardTitle className="text-xl sm:text-2xl font-bold flex items-center gap-3 text-foreground pb-1">
-												<Search className="h-6 w-6 text-primary" /> The Problem
+												<Search className="h-6 w-6 text-primary" /> {t.pitchReview.theProblem}
 											</CardTitle>
 											<CardDescription>{t.pitchNew.describeProblem}</CardDescription>
 										</CardHeader>
@@ -951,7 +951,7 @@ function NewPitchPageInner() {
 												Model
 											</CardTitle>
 											<CardDescription>
-												How does your business make money?
+												{t.pitchNew.howMakesMoney}
 											</CardDescription>
 										</CardHeader>
 										<CardContent className="px-6 sm:px-10 py-8 max-w-3xl space-y-8">
@@ -1093,7 +1093,7 @@ function NewPitchPageInner() {
 													<p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
 														To protect investors and maintain platform
 														integrity, every pitch requires a
-														<strong> TIN Certificate</strong> and{" "}
+														<strong> {t.profile.tinCertificate}</strong> and{" "}
 														<strong>{t.adminUsers.businessLicense}</strong> issued to your
 														registered company. These documents must match the
 														business details on your pitch and will be carefully
@@ -1266,7 +1266,7 @@ function NewPitchPageInner() {
 													{uploadedDocs.length === 0 && (
 														<div className="rounded-lg border-2 border-dashed border-border p-8 text-center">
 															<FileUp className="mx-auto h-10 w-10 text-muted-foreground/50 mb-3" />
-															<p className="text-sm text-muted-foreground">{t.pitchNew.noDocsUploadedYet}<strong> TIN Certificate</strong> and{" "}
+															<p className="text-sm text-muted-foreground">{t.pitchNew.noDocsUploadedYet}<strong> {t.profile.tinCertificate}</strong> and{" "}
 																<strong>{t.adminUsers.businessLicense}</strong> — these are
 																mandatory for all pitches.
 															</p>

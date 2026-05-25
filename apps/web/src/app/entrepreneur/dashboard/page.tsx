@@ -116,7 +116,7 @@ function EntrepreneurDashboardInner() {
 					<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 						<div>
 							<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient">
-								Dashboard
+								{t.nav.dashboard}
 							</h1>
 							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">{t.dashboard.managePitchesDesc}</p>
 						</div>
@@ -152,7 +152,7 @@ function EntrepreneurDashboardInner() {
 								</div>
 								<div className="min-w-0 flex-1">
 									<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-										Total Pitches
+										{t.dashboard.totalPitches}
 									</p>
 									<p className="text-2xl font-bold tracking-tight">
 										{submissions.length}
@@ -172,7 +172,7 @@ function EntrepreneurDashboardInner() {
 								</div>
 								<div className="min-w-0 flex-1">
 									<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-										Submitted
+										{t.adminSubmissions.submitted}
 									</p>
 									<p className="text-2xl font-bold tracking-tight">
 										{submitted.length}
@@ -190,7 +190,7 @@ function EntrepreneurDashboardInner() {
 								</div>
 								<div className="min-w-0 flex-1">
 									<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-										Matches
+										{t.dashboard.matches}
 									</p>
 									<p className="text-2xl font-bold tracking-tight">
 										{acceptedMatchCount}
@@ -214,7 +214,7 @@ function EntrepreneurDashboardInner() {
 						<CardContent className="flex flex-col items-center justify-center py-16">
 							<Rocket className="h-10 w-10 text-muted-foreground mb-4" />
 							<h3 className="text-lg font-semibold mb-2">
-								Submit Your First Pitch
+								{t.dashboard.submitFirstPitch}
 							</h3>
 							<p className="text-muted-foreground text-center max-w-md mb-6 text-sm">
 								{userProfile?.status === "verified"

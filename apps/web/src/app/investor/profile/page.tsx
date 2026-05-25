@@ -46,6 +46,7 @@ import {
 	showSuccessToast,
 	showWarningToast,
 } from "@/lib/toast-messages";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 // ─── File Upload Card ───
 function FileUploadCard({
@@ -67,6 +68,7 @@ function FileUploadCard({
 	onRemove: () => void;
 	required?: boolean;
 }) {
+	const { t } = useLanguage();
 	const hasFile = !!file;
 	const hasExisting = !!existingUrl;
 	const isComplete = hasFile || hasExisting;
@@ -116,7 +118,7 @@ function FileUploadCard({
 							variant="outline"
 							className="text-xs cursor-pointer hover:bg-muted"
 						>
-							Replace
+							{t.investorProfile.replace}
 						</Badge>
 						<Input
 							id={id}
@@ -157,6 +159,7 @@ function FileUploadCard({
 
 function InvestorProfilePageInner() {
 	const { user, userProfile, refreshUserProfile } = useAuth();
+	const { t } = useLanguage();
 	const [profileData, setProfileData] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
@@ -366,11 +369,11 @@ function InvestorProfilePageInner() {
 							<TabsList className="w-full justify-start h-auto flex-wrap sm:h-10 mb-6">
 								<TabsTrigger value="overview" className="gap-1.5 text-xs">
 									<Briefcase className="h-3.5 w-3.5" />
-									Overview
+									{t.pitchNew.overview}
 								</TabsTrigger>
 								<TabsTrigger value="personal" className="gap-1.5 text-xs">
 									<UserIcon className="h-3.5 w-3.5" />
-									Personal Info
+									{t.investorProfile.personalInfoTab}
 								</TabsTrigger>
 								<TabsTrigger value="verification" className="gap-1.5 text-xs">
 									<ShieldCheck className="h-3.5 w-3.5" />
@@ -408,7 +411,7 @@ function InvestorProfilePageInner() {
 											</div>
 											<div className="space-y-2">
 												<Label className="text-sm text-muted-foreground">
-													Position
+													{t.investorOnboarding.position}
 												</Label>
 												<p className="font-medium">
 													{profileData?.position || "Not specified"}
@@ -426,7 +429,7 @@ function InvestorProfilePageInner() {
 											</div>
 											<div className="space-y-2">
 												<Label className="text-sm text-muted-foreground">
-													Investment Range
+													{t.invitations.investmentRange}
 												</Label>
 												<p className="font-medium">
 													$
@@ -442,7 +445,7 @@ function InvestorProfilePageInner() {
 										<div className="space-y-4">
 											<div className="space-y-2">
 												<Label className="text-sm text-muted-foreground">
-													Preferred Sectors
+													{t.investorOnboarding.preferredSectors}
 												</Label>
 												<div className="flex flex-wrap gap-2">
 													{profileData?.preferredSectors?.length > 0 ? (
@@ -466,7 +469,7 @@ function InvestorProfilePageInner() {
 											</div>
 											<div className="space-y-2">
 												<Label className="text-sm text-muted-foreground">
-													Preferred Stages
+													{t.investorOnboarding.preferredStages}
 												</Label>
 												<div className="flex flex-wrap gap-2">
 													{profileData?.preferredStages?.length > 0 ? (
@@ -518,7 +521,7 @@ function InvestorProfilePageInner() {
 									<Card className="bg-amber-500/5 border-amber-500/10">
 										<CardHeader className="pb-2">
 											<CardTitle className="text-sm text-muted-foreground">
-												Meetings
+												{t.nav.meetings}
 											</CardTitle>
 										</CardHeader>
 										<CardContent>
@@ -530,7 +533,7 @@ function InvestorProfilePageInner() {
 									<Card className="bg-green-500/5 border-green-500/10">
 										<CardHeader className="pb-2">
 											<CardTitle className="text-sm text-muted-foreground">
-												Total Invested
+												{t.portfolio.totalInvested}
 											</CardTitle>
 										</CardHeader>
 										<CardContent>
@@ -549,7 +552,7 @@ function InvestorProfilePageInner() {
 											<Card className="border-blue-500/20 bg-blue-500/5">
 												<CardContent className="p-4 text-center space-y-3">
 													<Clock className="h-8 w-8 text-blue-500 mx-auto" />
-													<p className="text-sm font-medium">Under Review</p>
+													<p className="text-sm font-medium">{t.investorProfile.underReview}</p>
 													<p className="text-xs text-muted-foreground">
 														Your documents are being reviewed. You'll be
 														notified once your account is approved.
@@ -560,7 +563,7 @@ function InvestorProfilePageInner() {
 														className="w-full text-xs"
 														onClick={refreshUserProfile}
 													>
-														Check Status
+														{t.profile.checkStatus}
 													</Button>
 												</CardContent>
 											</Card>
@@ -573,7 +576,7 @@ function InvestorProfilePageInner() {
 												</div>
 												<div>
 													<p className="text-sm font-semibold text-green-700 dark:text-green-400">
-														Verification Complete
+														{t.investorProfile.verificationComplete}
 													</p>
 													<p className="text-xs text-muted-foreground">
 														Your identity and accreditation documents have been
@@ -594,7 +597,7 @@ function InvestorProfilePageInner() {
 											<CardHeader className="pb-3">
 												<CardTitle className="text-base flex items-center gap-2">
 													<IdCard className="h-4 w-4 text-primary" />
-													Identity Verification
+													{t.investorProfile.identityVerification}
 												</CardTitle>
 												<CardDescription>
 													Upload a valid government-issued ID (National ID or
@@ -619,7 +622,7 @@ function InvestorProfilePageInner() {
 											<CardHeader className="pb-3">
 												<CardTitle className="text-base flex items-center gap-2">
 													<FileText className="h-4 w-4 text-primary" />
-													Financial Accreditation
+													{t.investorProfile.financialAccreditation}
 												</CardTitle>
 												<CardDescription>
 													Upload your investment license or financial
@@ -648,7 +651,7 @@ function InvestorProfilePageInner() {
 														{saving ? (
 															<>
 																<Loader2 className="h-4 w-4 animate-spin" />
-																Saving...
+																{t.investorProfile.saving}
 															</>
 														) : (
 															<>
@@ -684,7 +687,7 @@ function InvestorProfilePageInner() {
 												<div className="flex items-center justify-between">
 													<CardTitle className="text-base flex items-center gap-2">
 														<ShieldCheck className="h-5 w-5 text-primary" />
-														Verification Status
+														{t.profile.verificationStatus}
 													</CardTitle>
 													<Badge
 														variant={
@@ -802,7 +805,7 @@ function InvestorProfilePageInner() {
 											<Card className="border-blue-500/20 bg-blue-500/5">
 												<CardContent className="p-4 text-center space-y-3">
 													<Clock className="h-8 w-8 text-blue-500 mx-auto" />
-													<p className="text-sm font-medium">Under Review</p>
+													<p className="text-sm font-medium">{t.investorProfile.underReview}</p>
 													<p className="text-xs text-muted-foreground">
 														Your documents are being reviewed. You'll be
 														notified once your account is approved.
@@ -813,7 +816,7 @@ function InvestorProfilePageInner() {
 														className="w-full text-xs"
 														onClick={refreshUserProfile}
 													>
-														Check Status
+														{t.profile.checkStatus}
 													</Button>
 												</CardContent>
 											</Card>
@@ -826,7 +829,7 @@ function InvestorProfilePageInner() {
 								<Card>
 									<CardHeader className="pb-3">
 										<CardTitle className="text-base">
-											Personal Information
+											{t.investorProfile.personalInformation}
 										</CardTitle>
 										<CardDescription>
 											Update your account details below.
@@ -836,7 +839,7 @@ function InvestorProfilePageInner() {
 										<div className="flex flex-col sm:flex-row items-start gap-6 pb-2">
 											<div className="shrink-0">
 												<Label className="text-sm text-muted-foreground block mb-3">
-													Profile Picture
+													{t.investorProfile.profilePicture}
 												</Label>
 												<ProfilePictureUpload size="h-20 w-20" />
 											</div>
@@ -848,7 +851,7 @@ function InvestorProfilePageInner() {
 											<div className="flex-1 grid gap-4 sm:grid-cols-2 w-full">
 												<div className="space-y-2">
 													<Label htmlFor="inv-edit-name" className="text-sm">
-														Full Name
+														{t.investorProfile.fullName}
 													</Label>
 													<Input
 														id="inv-edit-name"
@@ -859,7 +862,7 @@ function InvestorProfilePageInner() {
 												</div>
 												<div className="space-y-2">
 													<Label className="text-sm text-muted-foreground">
-														Email Address
+														{t.investorProfile.emailAddress}
 													</Label>
 													<p className="text-sm font-medium flex items-center gap-1.5 pt-2">
 														{userProfile?.email}
@@ -868,12 +871,12 @@ function InvestorProfilePageInner() {
 														)}
 													</p>
 													<p className="text-xs text-muted-foreground">
-														Email cannot be changed
+														{t.investorProfile.emailCannotChange}
 													</p>
 												</div>
 												<div className="space-y-2">
 													<Label className="text-sm text-muted-foreground">
-														Role
+														{t.investorProfile.role}
 													</Label>
 													<p className="text-sm font-medium capitalize pt-2">
 														{userProfile?.role}
@@ -881,7 +884,7 @@ function InvestorProfilePageInner() {
 												</div>
 												<div className="space-y-2">
 													<Label className="text-sm text-muted-foreground">
-														Account Status
+														{t.investorProfile.accountStatus}
 													</Label>
 													<div className="pt-2">
 														<Badge
@@ -906,11 +909,11 @@ function InvestorProfilePageInner() {
 										>
 											{savingProfile ? (
 												<>
-													<Loader2 className="h-4 w-4 animate-spin" /> Saving...
+													<Loader2 className="h-4 w-4 animate-spin" /> {t.investorProfile.saving}
 												</>
 											) : (
 												<>
-													<Save className="h-4 w-4" /> Save Changes
+													<Save className="h-4 w-4" /> {t.investorProfile.saveChanges}
 												</>
 											)}
 										</Button>
