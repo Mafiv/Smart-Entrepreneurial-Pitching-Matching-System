@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/table";
 import { ADMIN_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -118,6 +119,7 @@ function initials(name?: string) {
 
 export default function AdminFinancePage() {
 	const { user } = useAuth();
+	const { t } = useLanguage();
 	const [data, setData] = useState<AdminFinanceData | null>(null);
 	const [loading, setLoading] = useState(true);
 
@@ -140,10 +142,10 @@ export default function AdminFinancePage() {
 			if (result.status === "success") {
 				setData(result.summary);
 			} else {
-				showErrorToast("Failed to load finance data");
+				showErrorToast(t.adminFinance.failedToLoadFinance);
 			}
 		} catch {
-			showErrorToast("Network error");
+			showErrorToast(t.invitations.networkError);
 		} finally {
 			setLoading(false);
 		}
@@ -171,15 +173,15 @@ export default function AdminFinancePage() {
 			});
 			const result = await res.json();
 			if (result.status === "success") {
-				showSuccessToast("Funds disbursed successfully");
+				showSuccessToast(t.adminFinance.fundsDisbursedSuccess);
 				setDisburseTarget(null);
 				setPaymentRef("");
 				fetchData(); // Refresh overview
 			} else {
-				showErrorToast(result.message || "Disbursement failed");
+				showErrorToast(result.message || t.adminFinance.disbursementFailed);
 			}
 		} catch {
-			showErrorToast("Network error");
+			showErrorToast(t.invitations.networkError);
 		} finally {
 			setActing(false);
 		}
@@ -218,9 +220,7 @@ export default function AdminFinancePage() {
 								variant="outline"
 								className="text-xs font-medium gap-1.5 py-1 px-3 w-fit"
 							>
-								<DollarSign className="h-3.5 w-3.5" />
-								Active Escrow
-							</Badge>
+								<DollarSign className="h-3.5 w-3.5" />{t.adminFinance.activeEscrow}</Badge>
 						</div>
 					</div>
 
@@ -285,9 +285,7 @@ export default function AdminFinancePage() {
 							<h2 className="text-lg font-semibold tracking-tight">
 								Awaiting Disbursement
 							</h2>
-							<p className="text-sm text-muted-foreground">
-								Verified milestones ready for payout to entrepreneurs.
-							</p>
+							<p className="text-sm text-muted-foreground">{t.adminFinance.verifiedMilestonesReady}</p>
 						</div>
 						<Badge
 							variant={
@@ -306,7 +304,7 @@ export default function AdminFinancePage() {
 									<TableHead className="font-semibold">
 										Milestone / Project
 									</TableHead>
-									<TableHead className="font-semibold">Recipients</TableHead>
+									<TableHead className="font-semibold">{t.adminFinance.recipients}</TableHead>
 									<TableHead className="font-semibold text-right">
 										Amount
 									</TableHead>
@@ -321,9 +319,7 @@ export default function AdminFinancePage() {
 										<TableCell
 											colSpan={4}
 											className="text-center py-8 text-muted-foreground italic"
-										>
-											No milestones are currently awaiting disbursement.
-										</TableCell>
+										>{t.adminFinance.noMilestonesAwaiting}</TableCell>
 									</TableRow>
 								) : (
 									data.awaitingDisbursement.map((m) => (
@@ -399,8 +395,8 @@ export default function AdminFinancePage() {
 								<Table>
 									<TableHeader>
 										<TableRow className="bg-muted/30">
-											<TableHead className="font-semibold">Date</TableHead>
-											<TableHead className="font-semibold">Event</TableHead>
+											<TableHead className="font-semibold">{t.adminFinance.date}</TableHead>
+											<TableHead className="font-semibold">{t.adminFinance.event}</TableHead>
 											<TableHead className="font-semibold text-right">
 												Amount
 											</TableHead>
@@ -457,15 +453,11 @@ export default function AdminFinancePage() {
 						{/* Sidebar Widgets (Stuck Payments) */}
 						<div className="lg:col-span-4">
 							<div className="mb-3">
-								<h2 className="text-lg font-semibold tracking-tight">
-									Stuck Payments
-								</h2>
+								<h2 className="text-lg font-semibold tracking-tight">{t.adminFinance.stuckPayments}</h2>
 							</div>
 							<div className="rounded-lg border border-dashed bg-muted/20 p-4">
 								{data.pendingChapa.length === 0 ? (
-									<p className="text-xs text-muted-foreground py-4 text-center">
-										No stuck payments detected.
-									</p>
+									<p className="text-xs text-muted-foreground py-4 text-center">{t.adminFinance.noStuckPayments}</p>
 								) : (
 									<div className="space-y-3">
 										{data.pendingChapa.map((p) => (
@@ -507,7 +499,7 @@ export default function AdminFinancePage() {
 				>
 					<DialogContent>
 						<DialogHeader>
-							<DialogTitle>Confirm Milestone Payout</DialogTitle>
+							<DialogTitle>{t.adminFinance.confirmMilestonePayout}</DialogTitle>
 							<DialogDescription>
 								You are about to release funds from escrow to the entrepreneur.
 								Ensure you have verified any proof of work.
@@ -551,9 +543,7 @@ export default function AdminFinancePage() {
 						)}
 
 						<div className="space-y-2">
-							<Label htmlFor="payment-ref">
-								Payment Reference (e.g. Bank Ref No.)
-							</Label>
+							<Label htmlFor="payment-ref">{t.adminFinance.paymentReference}</Label>
 							<Input
 								id="payment-ref"
 								placeholder="Optional transaction reference..."

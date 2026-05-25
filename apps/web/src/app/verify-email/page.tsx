@@ -4,10 +4,12 @@ import type { RecaptchaVerifier } from "firebase/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showSuccessToast,
@@ -24,6 +26,7 @@ export default function VerifyEmailPage() {
 		refreshUserProfile,
 		signOut,
 	} = useAuth();
+	const { t } = useLanguage();
 	const router = useRouter();
 
 	const [resendLoading, setResendLoading] = useState(false);
@@ -251,7 +254,10 @@ export default function VerifyEmailPage() {
 	if (!user) return null;
 
 	return (
-		<div className="flex min-h-screen w-full bg-background flex-col lg:flex-row-reverse">
+		<div className="relative flex min-h-screen w-full bg-background flex-col lg:flex-row-reverse">
+			<div className="absolute top-4 right-4 lg:top-8 lg:right-8 z-50">
+				<LanguageSwitcher />
+			</div>
 			{/* Right Split - Branding */}
 			<div className="relative hidden w-1/2 flex-col justify-center border-l border-border/50 p-12 lg:flex xl:p-24 overflow-hidden">
 				<div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px] dark:block hidden" />
@@ -267,11 +273,10 @@ export default function VerifyEmailPage() {
 
 					<div className="space-y-4">
 						<h1 className="text-4xl font-bold tracking-tight sm:text-5xl xl:text-6xl leading-[1.1]">
-							Almost there! <br /> Verify your email.
+							{t.auth.almostThere}
 						</h1>
 						<p className="text-lg text-muted-foreground max-w-md leading-relaxed">
-							We need to confirm your email address to ensure account security
-							and keep your experience seamless.
+							{t.auth.almostThereDesc}
 						</p>
 					</div>
 				</div>
@@ -286,10 +291,10 @@ export default function VerifyEmailPage() {
 							S
 						</div>
 						<h2 className="text-3xl font-bold tracking-tight">
-							Verify your account
+							{t.auth.verifyEmailTitle}
 						</h2>
 						<p className="text-muted-foreground">
-							Enter the OTP we sent to your email, or verify by SMS.
+							{t.auth.verifyEmailSubtitle}
 						</p>
 					</div>
 
@@ -315,18 +320,18 @@ export default function VerifyEmailPage() {
 								</svg>
 							</div>
 							<div>
-								<p className="font-medium text-sm">Verification code sent to</p>
+								<p className="font-medium text-sm">{t.auth.codeSentTo}</p>
 								<p className="text-primary font-semibold">{user.email}</p>
 							</div>
 						</div>
 
 						<div className="space-y-2">
-							<Label htmlFor="email-otp">Email OTP</Label>
+							<Label htmlFor="email-otp">{t.auth.emailOtp}</Label>
 							<Input
 								id="email-otp"
 								value={emailCode}
 								onChange={(event) => setEmailCode(event.target.value)}
-								placeholder="Enter 6-digit code"
+								placeholder={t.auth.otpPlaceholder}
 								inputMode="numeric"
 								maxLength={6}
 							/>
@@ -340,17 +345,17 @@ export default function VerifyEmailPage() {
 								className="w-full h-11 font-medium"
 							>
 								{emailSendLoading
-									? "Sending..."
+									? t.auth.sendingOtp
 									: cooldown > 0
-										? `Resend in ${cooldown}s`
-										: "Resend Email OTP"}
+										? `${t.auth.resendIn} ${cooldown}s`
+										: t.auth.resendEmailOtp}
 							</Button>
 							<Button
 								onClick={handleVerifyEmailOtp}
 								disabled={emailVerifyLoading}
 								className="w-full h-11 font-medium"
 							>
-								{emailVerifyLoading ? "Verifying..." : "Verify Email"}
+								{emailVerifyLoading ? t.auth.verifying : t.auth.verifyEmail}
 							</Button>
 						</div>
 					</div>
@@ -359,36 +364,38 @@ export default function VerifyEmailPage() {
 					<div className="rounded-xl border border-border/50 bg-muted/20 p-6 space-y-4">
 						<div className="flex items-center justify-between">
 							<div>
-								<h3 className="text-base font-semibold">Verify by SMS</h3>
+								<h3 className="text-base font-semibold">
+									{t.auth.verifyBySms}
+								</h3>
 								<p className="text-xs text-muted-foreground">
-									Use your phone number with country code.
+									{t.auth.verifyBySmsDesc}
 								</p>
 							</div>
 							{userProfile?.phoneVerified && (
 								<span className="text-xs font-medium text-emerald-600">
-									Verified
+									{t.auth.verified}
 								</span>
 							)}
 						</div>
 
 						<div className="space-y-2">
-							<Label htmlFor="sms-phone">Phone number</Label>
+							<Label htmlFor="sms-phone">{t.auth.phoneNumber}</Label>
 							<Input
 								id="sms-phone"
 								value={smsPhoneNumber}
 								onChange={(event) => setSmsPhoneNumber(event.target.value)}
-								placeholder="+251 9xx xxx xxx"
+								placeholder={t.auth.phonePlaceholder}
 								inputMode="tel"
 							/>
 						</div>
 
 						<div className="space-y-2">
-							<Label htmlFor="sms-code">SMS OTP</Label>
+							<Label htmlFor="sms-code">{t.auth.smsOtp}</Label>
 							<Input
 								id="sms-code"
 								value={smsCode}
 								onChange={(event) => setSmsCode(event.target.value)}
-								placeholder="Enter SMS code"
+								placeholder={t.auth.smsPlaceholder}
 								inputMode="numeric"
 								maxLength={6}
 							/>
@@ -401,14 +408,14 @@ export default function VerifyEmailPage() {
 								variant="outline"
 								className="w-full h-11 font-medium"
 							>
-								{smsSendLoading ? "Sending..." : "Send SMS OTP"}
+								{smsSendLoading ? t.auth.sendingOtp : t.auth.sendSmsOtp}
 							</Button>
 							<Button
 								onClick={handleVerifySmsOtp}
 								disabled={smsVerifyLoading}
 								className="w-full h-11 font-medium"
 							>
-								{smsVerifyLoading ? "Verifying..." : "Verify Phone"}
+								{smsVerifyLoading ? t.auth.verifying : t.auth.verifyPhone}
 							</Button>
 						</div>
 						<div id="recaptcha-container" />
@@ -417,13 +424,13 @@ export default function VerifyEmailPage() {
 					{/* Footer */}
 					<div className="flex flex-col items-center gap-2 pt-4">
 						<p className="text-sm text-muted-foreground">
-							Wrong email?{" "}
+							{t.auth.wrongEmail}{" "}
 							<Button
 								variant="link"
 								onClick={handleSignOut}
 								className="p-0 h-auto font-semibold text-primary"
 							>
-								Sign out and try again
+								{t.auth.signOutTryAgain}
 							</Button>
 						</p>
 					</div>

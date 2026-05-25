@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/table";
 import { INVESTOR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -94,6 +95,7 @@ function typeConfig(type: string): {
 
 export default function InvestorPortfolioPage() {
 	const { user } = useAuth();
+	const { t } = useLanguage();
 	const [summary, setSummary] = useState<InvestorSummary | null>(null);
 	const [loading, setLoading] = useState(true);
 
@@ -112,7 +114,7 @@ export default function InvestorPortfolioPage() {
 				showErrorToast("Failed to load portfolio summary");
 			}
 		} catch {
-			showErrorToast("Network error");
+			showErrorToast(t.invitations.networkError);
 		} finally {
 			setLoading(false);
 		}
@@ -143,9 +145,7 @@ export default function InvestorPortfolioPage() {
 						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 							<div>
 								<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient flex items-center gap-2">
-									<PieChart className="h-8 w-8 text-primary" />
-									Investment Portfolio
-								</h1>
+									<PieChart className="h-8 w-8 text-primary" />{t.portfolio.investmentPortfolio}</h1>
 								<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
 									Track your commitments, escrow holdings, and investment
 									history.
@@ -218,15 +218,13 @@ export default function InvestorPortfolioPage() {
 
 					{/* Projects Breakdown */}
 					<div className="mb-3">
-						<h2 className="text-lg font-semibold tracking-tight">
-							Per-Project Breakdown
-						</h2>
+						<h2 className="text-lg font-semibold tracking-tight">{t.portfolio.perProjectBreakdown}</h2>
 					</div>
 					<div className="rounded-lg border bg-card overflow-hidden mb-8">
 						<Table>
 							<TableHeader>
 								<TableRow className="bg-muted/30">
-									<TableHead className="font-semibold">Project Title</TableHead>
+									<TableHead className="font-semibold">{t.portfolio.projectTitle}</TableHead>
 									<TableHead className="font-semibold text-center">
 										Milestones
 									</TableHead>
@@ -244,9 +242,7 @@ export default function InvestorPortfolioPage() {
 										<TableCell
 											colSpan={4}
 											className="text-center py-8 text-muted-foreground"
-										>
-											No investment data available for projects.
-										</TableCell>
+										>{t.portfolio.noInvestmentData}</TableCell>
 									</TableRow>
 								) : (
 									summary.perProject.map((project) => (
@@ -289,9 +285,9 @@ export default function InvestorPortfolioPage() {
 						<Table>
 							<TableHeader>
 								<TableRow className="bg-muted/30">
-									<TableHead className="font-semibold">Date</TableHead>
-									<TableHead className="font-semibold">Description</TableHead>
-									<TableHead className="font-semibold">Type</TableHead>
+									<TableHead className="font-semibold">{t.adminFinance.date}</TableHead>
+									<TableHead className="font-semibold">{t.earnings.description}</TableHead>
+									<TableHead className="font-semibold">{t.portfolio.type}</TableHead>
 									<TableHead className="font-semibold text-right">
 										Amount
 									</TableHead>
@@ -306,9 +302,7 @@ export default function InvestorPortfolioPage() {
 										<TableCell
 											colSpan={5}
 											className="text-center py-8 text-muted-foreground"
-										>
-											No transaction history found.
-										</TableCell>
+										>{t.portfolio.noTransactionHistory}</TableCell>
 									</TableRow>
 								) : (
 									summary.recentLedger.map((entry) => {

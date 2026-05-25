@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ENTREPRENEUR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -47,6 +48,7 @@ function statusVariant(
 
 function EntrepreneurDashboardInner() {
 	const { user, userProfile } = useAuth();
+	const { t } = useLanguage();
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const justSubmitted = searchParams.get("submitted");
@@ -116,9 +118,7 @@ function EntrepreneurDashboardInner() {
 							<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient">
 								Dashboard
 							</h1>
-							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
-								Manage your pitches and track investor interest
-							</p>
+							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">{t.dashboard.managePitchesDesc}</p>
 						</div>
 						<Button
 							onClick={() => {
@@ -177,9 +177,7 @@ function EntrepreneurDashboardInner() {
 									<p className="text-2xl font-bold tracking-tight">
 										{submitted.length}
 									</p>
-									<p className="text-xs text-muted-foreground mt-0.5">
-										Awaiting review
-									</p>
+									<p className="text-xs text-muted-foreground mt-0.5">{t.dashboard.awaitingReview}</p>
 								</div>
 							</div>
 						</div>
@@ -197,9 +195,7 @@ function EntrepreneurDashboardInner() {
 									<p className="text-2xl font-bold tracking-tight">
 										{acceptedMatchCount}
 									</p>
-									<p className="text-xs text-muted-foreground mt-0.5">
-										Accepted investor matches
-									</p>
+									<p className="text-xs text-muted-foreground mt-0.5">{t.dashboard.acceptedInvestorMatches}</p>
 								</div>
 							</div>
 						</div>
@@ -236,13 +232,13 @@ function EntrepreneurDashboardInner() {
 							>
 								{userProfile?.status === "verified"
 									? "Create New Pitch"
-									: "Complete Verification"}
+									: t.dashboard.completeVerification}
 							</Button>
 						</CardContent>
 					</Card>
 				) : (
 					<div className="space-y-3">
-						<h2 className="text-lg font-semibold">Your Pitches</h2>
+						<h2 className="text-lg font-semibold">{t.dashboard.yourPitches}</h2>
 						{submissions.map((sub) => (
 							<Card
 								key={sub._id}

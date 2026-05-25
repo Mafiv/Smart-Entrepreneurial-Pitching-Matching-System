@@ -24,6 +24,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { INVESTOR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -76,6 +77,7 @@ function statusColor(
 
 export default function InvestorFeed() {
 	const { user } = useAuth();
+	const { t } = useLanguage();
 	const router = useRouter();
 	const [submissions, setSubmissions] = useState<Submission[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -165,7 +167,7 @@ export default function InvestorFeed() {
 					else next.delete(pitchId);
 					return next;
 				});
-				showErrorToast(data.message || "Failed to toggle save");
+				showErrorToast(data.message || t.feed.failedToToggleSave);
 			}
 		} catch {
 			setSavedPitchIds((prev) => {
@@ -174,7 +176,7 @@ export default function InvestorFeed() {
 				else next.delete(pitchId);
 				return next;
 			});
-			showErrorToast("An error occurred while saving the pitch");
+			showErrorToast(t.feed.errorSavingPitch);
 		}
 	};
 
@@ -199,10 +201,10 @@ export default function InvestorFeed() {
 					<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 						<div>
 							<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient">
-								Discovery Feed
+								{t.feed.discoveryFeed}
 							</h1>
 							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
-								Browse AI-scored pitches tailored to your investment preferences
+								{t.feed.browseDescription}
 							</p>
 						</div>
 						<Badge
@@ -210,7 +212,7 @@ export default function InvestorFeed() {
 							className="text-xs font-medium gap-1.5 py-1 px-3 w-fit"
 						>
 							<Compass className="h-3.5 w-3.5" />
-							{total} Available
+							{total} {t.feed.available}
 						</Badge>
 					</div>
 				</div>
@@ -225,7 +227,7 @@ export default function InvestorFeed() {
 								</div>
 								<div className="min-w-0 flex-1">
 									<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-										Available Pitches
+										{t.dashboard.availablePitches}
 									</p>
 									<p className="text-2xl font-bold tracking-tight">{total}</p>
 								</div>
@@ -249,7 +251,7 @@ export default function InvestorFeed() {
 								</div>
 								<div className="min-w-0 flex-1">
 									<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-										Saved
+										{t.dashboard.savedPitches}
 									</p>
 									<p className="text-2xl font-bold tracking-tight">
 										{savedPitchIds.size}
@@ -266,7 +268,7 @@ export default function InvestorFeed() {
 								</div>
 								<div className="min-w-0 flex-1">
 									<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-										Active Conversations
+										{t.dashboard.activeConversations}
 									</p>
 									<p className="text-2xl font-bold tracking-tight">0</p>
 								</div>
@@ -279,7 +281,7 @@ export default function InvestorFeed() {
 				<div className="flex flex-col gap-3 sm:flex-row sm:items-center mb-6">
 					<Select value={sector} onValueChange={setSector}>
 						<SelectTrigger className="w-full sm:w-48">
-							<SelectValue placeholder="Filter by sector" />
+							<SelectValue placeholder={t.feed.filterBySector} />
 						</SelectTrigger>
 						<SelectContent>
 							{SECTORS.map((s) => (
@@ -292,13 +294,15 @@ export default function InvestorFeed() {
 
 					<Select value={sort} onValueChange={setSort}>
 						<SelectTrigger className="w-full sm:w-44">
-							<SelectValue placeholder="Sort by" />
+							<SelectValue placeholder={t.feed.sortBy} />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value="newest">Newest first</SelectItem>
-							<SelectItem value="score">Highest score</SelectItem>
-							<SelectItem value="amount_high">Highest amount</SelectItem>
-							<SelectItem value="amount_low">Lowest amount</SelectItem>
+							<SelectItem value="newest">{t.feed.newestFirst}</SelectItem>
+							<SelectItem value="score">{t.feed.highestScore}</SelectItem>
+							<SelectItem value="amount_high">
+								{t.feed.highestAmount}
+							</SelectItem>
+							<SelectItem value="amount_low">{t.feed.lowestAmount}</SelectItem>
 						</SelectContent>
 					</Select>
 				</div>
@@ -314,11 +318,13 @@ export default function InvestorFeed() {
 					<Card className="border-dashed">
 						<CardContent className="flex flex-col items-center justify-center py-16">
 							<Briefcase className="h-10 w-10 text-muted-foreground mb-4" />
-							<h3 className="text-lg font-semibold mb-2">No pitches found</h3>
+							<h3 className="text-lg font-semibold mb-2">
+								{t.pitch.noPitches}
+							</h3>
 							<p className="text-muted-foreground text-center max-w-md text-sm">
 								{sector !== "all"
-									? `No submitted pitches in the ${sectorLabel(sector)} sector yet.`
-									: "No pitches have been submitted yet. Check back soon!"}
+									? `${t.feed.noPitchesInSector} ${sectorLabel(sector)}`
+									: t.feed.noPitchesYet}
 							</p>
 						</CardContent>
 					</Card>
@@ -341,7 +347,7 @@ export default function InvestorFeed() {
 										<div className="flex items-center gap-1">
 											{pitch.aiScore && (
 												<span className="text-xs font-semibold text-muted-foreground mr-1">
-													Score: {pitch.aiScore}/100
+													{t.feed.score}: {pitch.aiScore}/100
 												</span>
 											)}
 											<Button
@@ -413,7 +419,7 @@ export default function InvestorFeed() {
 										<Heart
 											className={`h-4 w-4 ${savedPitchIds.has(selectedPitch._id) ? "fill-primary text-primary" : "text-muted-foreground"}`}
 										/>
-										{savedPitchIds.has(selectedPitch._id) ? "Saved" : "Save"}
+										{savedPitchIds.has(selectedPitch._id) ? t.feed.saved : t.feed.save}
 									</Button>
 								)}
 							</div>
@@ -423,13 +429,13 @@ export default function InvestorFeed() {
 								</p>
 							)}
 							<div className="flex justify-between text-sm">
-								<span className="text-muted-foreground">Target Amount</span>
+								<span className="text-muted-foreground">{t.pitch.targetAmount}</span>
 								<span className="font-semibold">
 									${selectedPitch?.targetAmount?.toLocaleString()}
 								</span>
 							</div>
 							<div className="flex justify-between text-sm">
-								<span className="text-muted-foreground">Submitted</span>
+								<span className="text-muted-foreground">{t.feed.submitted}</span>
 								<span>
 									{selectedPitch?.submittedAt &&
 										new Date(selectedPitch.submittedAt).toLocaleDateString()}
@@ -444,7 +450,7 @@ export default function InvestorFeed() {
 									if (pitchId) openPitch(pitchId);
 								}}
 							>
-								View Full Pitch
+								{t.pitch.viewFullPitch}
 							</Button>
 						</div>
 					</DialogContent>

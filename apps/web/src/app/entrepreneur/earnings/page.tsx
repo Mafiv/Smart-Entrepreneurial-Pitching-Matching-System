@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/table";
 import { ENTREPRENEUR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -69,6 +70,7 @@ const API = (
 
 export default function EntrepreneurEarningsPage() {
 	const { user } = useAuth();
+	const { t } = useLanguage();
 	const [summary, setSummary] = useState<EntrepreneurSummary | null>(null);
 	const [loading, setLoading] = useState(true);
 
@@ -87,7 +89,7 @@ export default function EntrepreneurEarningsPage() {
 				showErrorToast("Failed to load earnings summary");
 			}
 		} catch {
-			showErrorToast("Network error");
+			showErrorToast(t.invitations.networkError);
 		} finally {
 			setLoading(false);
 		}
@@ -118,12 +120,8 @@ export default function EntrepreneurEarningsPage() {
 						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 							<div>
 								<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient flex items-center gap-2">
-									<Wallet className="h-8 w-8 text-primary" />
-									My Earnings
-								</h1>
-								<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
-									Monitor your received payouts and funds awaiting release.
-								</p>
+									<Wallet className="h-8 w-8 text-primary" />{t.earnings.myEarnings}</h1>
+								<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">{t.earnings.monitorReceivedPayouts}</p>
 							</div>
 							<Badge
 								variant="outline"
@@ -203,9 +201,7 @@ export default function EntrepreneurEarningsPage() {
 												<Badge
 													variant="outline"
 													className="text-[10px] uppercase font-semibold text-amber-500 border-amber-200 mt-1"
-												>
-													Verified & Escrow Held
-												</Badge>
+												>{t.earnings.verifiedEscrowHeld}</Badge>
 											</div>
 										</div>
 									))}
@@ -224,9 +220,9 @@ export default function EntrepreneurEarningsPage() {
 						<Table>
 							<TableHeader>
 								<TableRow className="bg-muted/30">
-									<TableHead className="font-semibold">Date</TableHead>
-									<TableHead className="font-semibold">Reference</TableHead>
-									<TableHead className="font-semibold">Description</TableHead>
+									<TableHead className="font-semibold">{t.adminFinance.date}</TableHead>
+									<TableHead className="font-semibold">{t.earnings.reference}</TableHead>
+									<TableHead className="font-semibold">{t.earnings.description}</TableHead>
 									<TableHead className="font-semibold text-right">
 										Amount
 									</TableHead>
@@ -241,9 +237,7 @@ export default function EntrepreneurEarningsPage() {
 										<TableCell
 											colSpan={5}
 											className="text-center py-12 text-muted-foreground"
-										>
-											No payout history found yet.
-										</TableCell>
+										>{t.earnings.noPayoutHistory}</TableCell>
 									</TableRow>
 								) : (
 									summary.recentPayouts.map((payout) => (

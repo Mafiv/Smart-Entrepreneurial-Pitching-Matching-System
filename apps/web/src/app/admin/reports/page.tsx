@@ -35,6 +35,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { ADMIN_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -62,6 +63,7 @@ interface Report {
 
 export default function AdminReportsPage() {
 	const { user } = useAuth();
+	const { t } = useLanguage();
 	const [reports, setReports] = useState<Report[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [statusFilter, setStatusFilter] = useState("all");
@@ -87,7 +89,7 @@ export default function AdminReportsPage() {
 				setReports(data.reports || []);
 			}
 		} catch (err) {
-			console.error("Failed to fetch reports:", err);
+			console.error(t.adminReports.failedToFetchReports, err);
 		} finally {
 			setLoading(false);
 		}
@@ -123,10 +125,10 @@ export default function AdminReportsPage() {
 				fetchReports();
 			} else {
 				const err = await res.json();
-				showErrorToast(err.message || "Failed to resolve report");
+				showErrorToast(err.message || t.adminReports.failedToResolveReport);
 			}
 		} catch (_err) {
-			showErrorToast("Failed to resolve report");
+			showErrorToast(t.adminReports.failedToResolveReport);
 		} finally {
 			setResolving(false);
 		}
@@ -142,10 +144,10 @@ export default function AdminReportsPage() {
 					<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 						<div>
 							<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient flex items-center gap-3">
-								Misconduct Reports
+								{t.adminReports.misconductReports}
 							</h1>
 							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
-								Review and resolve user misconduct reports
+								{t.adminReports.misconductReportsDesc}
 							</p>
 						</div>
 						{openCount > 0 && (
@@ -154,7 +156,7 @@ export default function AdminReportsPage() {
 								className="text-xs font-medium gap-1.5 py-1 px-3 w-fit"
 							>
 								<AlertTriangle className="h-3.5 w-3.5" />
-								{openCount} Open
+								{openCount} {t.adminReports.open}
 							</Badge>
 						)}
 					</div>
@@ -170,7 +172,7 @@ export default function AdminReportsPage() {
 								</div>
 								<div className="min-w-0 flex-1">
 									<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-										Open Reports
+										{t.adminReports.openReports}
 									</p>
 									<div className="flex items-baseline gap-2">
 										<p className="text-2xl font-bold tracking-tight">
@@ -178,7 +180,7 @@ export default function AdminReportsPage() {
 										</p>
 										{openCount > 0 && (
 											<span className="text-[10px] font-semibold text-rose-500 bg-rose-500/10 px-1.5 py-0.5 rounded-full">
-												Action needed
+												{t.adminReports.actionNeeded}
 											</span>
 										)}
 									</div>
@@ -194,7 +196,7 @@ export default function AdminReportsPage() {
 								</div>
 								<div className="min-w-0 flex-1">
 									<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-										Resolved
+										{t.adminReports.resolved}
 									</p>
 									<p className="text-2xl font-bold tracking-tight">
 										{resolvedCount}
@@ -211,7 +213,7 @@ export default function AdminReportsPage() {
 								</div>
 								<div className="min-w-0 flex-1">
 									<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-										Total
+										{t.adminReports.total}
 									</p>
 									<p className="text-2xl font-bold tracking-tight">
 										{reports.length}
@@ -226,12 +228,12 @@ export default function AdminReportsPage() {
 				<div className="flex items-center gap-3 mb-6">
 					<Select value={statusFilter} onValueChange={setStatusFilter}>
 						<SelectTrigger className="w-44">
-							<SelectValue placeholder="Filter" />
+							<SelectValue placeholder={t.adminReports.filter} />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value="all">All Reports</SelectItem>
-							<SelectItem value="open">Open</SelectItem>
-							<SelectItem value="resolved">Resolved</SelectItem>
+							<SelectItem value="all">{t.adminReports.allReports}</SelectItem>
+							<SelectItem value="open">{t.adminReports.open}</SelectItem>
+							<SelectItem value="resolved">{t.adminReports.resolved}</SelectItem>
 						</SelectContent>
 					</Select>
 				</div>
@@ -247,11 +249,11 @@ export default function AdminReportsPage() {
 					<Card className="border-dashed">
 						<CardContent className="flex flex-col items-center justify-center py-16">
 							<ShieldAlert className="h-10 w-10 text-muted-foreground mb-4" />
-							<h3 className="text-lg font-semibold mb-2">No reports found</h3>
+							<h3 className="text-lg font-semibold mb-2">{t.adminReports.noReportsFound}</h3>
 							<p className="text-muted-foreground text-center max-w-md text-sm">
 								{statusFilter !== "all"
-									? "Try adjusting your filter."
-									: "No misconduct reports have been submitted yet."}
+									? t.adminReports.tryAdjustingFilter
+									: t.adminReports.noReportsSubmittedYet}
 							</p>
 						</CardContent>
 					</Card>
@@ -302,10 +304,10 @@ export default function AdminReportsPage() {
 												</Avatar>
 												<div>
 													<p className="text-xs text-muted-foreground">
-														Reported by
+														{t.adminReports.reportedBy}
 													</p>
 													<p className="text-sm font-semibold">
-														{report.reporterId?.fullName || "Unknown"}
+														{report.reporterId?.fullName || t.adminReports.unknown}
 														<span className="text-xs text-muted-foreground font-normal ml-1.5">
 															({report.reporterId?.email}) —{" "}
 															{report.reporterId?.role}
@@ -325,12 +327,12 @@ export default function AdminReportsPage() {
 												</Avatar>
 												<div>
 													<p className="text-xs text-muted-foreground">
-														Accused user
+														{t.adminReports.accusedUser}
 													</p>
 													<p className="text-sm font-semibold">
 														{report.reportedUserIds
 															?.map((u) => u.fullName)
-															.join(", ") || "Unknown"}
+															.join(", ") || t.adminReports.unknown}
 														<span className="text-xs text-muted-foreground font-normal ml-1.5">
 															(
 															{report.reportedUserIds
@@ -345,13 +347,13 @@ export default function AdminReportsPage() {
 											{/* Reason */}
 											<div className="bg-muted/50 rounded-lg p-3 mt-2">
 												<p className="text-xs font-medium text-muted-foreground mb-1">
-													Reason
+													{t.adminReports.reason}
 												</p>
 												<p className="text-sm font-medium">{report.reason}</p>
 												{report.details && (
 													<>
 														<p className="text-xs font-medium text-muted-foreground mt-2 mb-1">
-															Additional Details
+															{t.adminReports.additionalDetails}
 														</p>
 														<p className="text-sm text-muted-foreground whitespace-pre-wrap">
 															{report.details}
@@ -371,7 +373,7 @@ export default function AdminReportsPage() {
 													onClick={() => setSelectedReport(report)}
 												>
 													<Eye className="h-3.5 w-3.5" />
-													Review
+													{t.adminReports.review}
 												</Button>
 											</div>
 										)}
@@ -391,26 +393,24 @@ export default function AdminReportsPage() {
 						<DialogHeader>
 							<DialogTitle className="flex items-center gap-2">
 								<ShieldAlert className="h-5 w-5 text-destructive" />
-								Resolve Misconduct Report
+								{t.adminReports.resolveMisconductReport}
 							</DialogTitle>
 							<DialogDescription>
-								Choose how to handle this report. You can unfreeze the
-								conversation (clearing the user) or keep it frozen (confirming
-								the misconduct).
+								{t.adminReports.resolveMisconductReportDesc}
 							</DialogDescription>
 						</DialogHeader>
 
 						{selectedReport && (
 							<div className="space-y-3 py-2">
 								<div className="bg-muted/50 rounded-lg p-3">
-									<p className="text-xs text-muted-foreground mb-1">Reporter</p>
+									<p className="text-xs text-muted-foreground mb-1">{t.adminReports.reporter}</p>
 									<p className="text-sm font-semibold">
 										{selectedReport.reporterId?.fullName} (
 										{selectedReport.reporterId?.email})
 									</p>
 								</div>
 								<div className="bg-muted/50 rounded-lg p-3">
-									<p className="text-xs text-muted-foreground mb-1">Accused</p>
+									<p className="text-xs text-muted-foreground mb-1">{t.adminReports.accused}</p>
 									<p className="text-sm font-semibold">
 										{selectedReport.reportedUserIds
 											?.map((u) => `${u.fullName} (${u.email})`)
@@ -418,7 +418,7 @@ export default function AdminReportsPage() {
 									</p>
 								</div>
 								<div className="bg-muted/50 rounded-lg p-3">
-									<p className="text-xs text-muted-foreground mb-1">Reason</p>
+									<p className="text-xs text-muted-foreground mb-1">{t.adminReports.reason}</p>
 									<p className="text-sm">{selectedReport.reason}</p>
 									{selectedReport.details && (
 										<p className="text-sm text-muted-foreground mt-1">
@@ -435,7 +435,7 @@ export default function AdminReportsPage() {
 								onClick={() => setSelectedReport(null)}
 								disabled={resolving}
 							>
-								Cancel
+								{t.common.cancel}
 							</Button>
 							<Button
 								variant="destructive"
@@ -451,7 +451,7 @@ export default function AdminReportsPage() {
 								) : (
 									<XCircle className="h-4 w-4" />
 								)}
-								Keep Frozen
+								{t.adminReports.keepFrozen}
 							</Button>
 							<Button
 								disabled={resolving}
@@ -466,7 +466,7 @@ export default function AdminReportsPage() {
 								) : (
 									<Unlock className="h-4 w-4" />
 								)}
-								Unfreeze Conversation
+								{t.adminReports.unfreezeConversation}
 							</Button>
 						</DialogFooter>
 					</DialogContent>

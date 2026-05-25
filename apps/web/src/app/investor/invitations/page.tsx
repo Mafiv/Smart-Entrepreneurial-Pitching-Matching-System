@@ -33,6 +33,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { INVESTOR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -81,7 +82,7 @@ const API = (
 	process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api"
 ).replace(/\/+$/, "");
 
-function statusConfig(s: InvitationStatus): {
+function statusConfig(s: InvitationStatus, t: any): {
 	label: string;
 	variant: "default" | "secondary" | "destructive" | "outline";
 	icon: React.ReactNode;
@@ -90,35 +91,35 @@ function statusConfig(s: InvitationStatus): {
 	switch (s) {
 		case "accepted":
 			return {
-				label: "Accepted",
+				label: t.invitations.accepted,
 				variant: "default",
 				icon: <CheckCircle2 className="h-3 w-3" />,
 				color: "text-emerald-600",
 			};
 		case "declined":
 			return {
-				label: "Declined",
+				label: t.invitations.declined,
 				variant: "destructive",
 				icon: <XCircle className="h-3 w-3" />,
 				color: "text-destructive",
 			};
 		case "cancelled":
 			return {
-				label: "Cancelled",
+				label: t.invitations.cancelledStatus,
 				variant: "outline",
 				icon: <Ban className="h-3 w-3" />,
 				color: "text-muted-foreground",
 			};
 		case "expired":
 			return {
-				label: "Expired",
+				label: t.invitations.expired,
 				variant: "outline",
 				icon: <Clock className="h-3 w-3" />,
 				color: "text-amber-600",
 			};
 		default:
 			return {
-				label: "Pending",
+				label: t.invitations.pending,
 				variant: "secondary",
 				icon: <Clock className="h-3 w-3" />,
 				color: "text-blue-600",
@@ -137,6 +138,7 @@ function daysUntil(dateStr: string): number {
 
 export default function InvestorInvitationsPage() {
 	const { user } = useAuth();
+	const { t } = useLanguage();
 
 	const [invitations, setInvitations] = useState<Invitation[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -161,10 +163,10 @@ export default function InvestorInvitationsPage() {
 			if (data.status === "success") {
 				setInvitations(data.invitations);
 			} else {
-				showErrorToast("Failed to load invitations");
+				showErrorToast(t.invitations.failedToLoad);
 			}
 		} catch {
-			showErrorToast("Network error loading invitations");
+			showErrorToast(t.invitations.networkErrorLoading);
 		} finally {
 			setLoading(false);
 		}
@@ -187,17 +189,17 @@ export default function InvestorInvitationsPage() {
 			});
 			const data = await res.json();
 			if (data.status === "success") {
-				showSuccessToast("Invitation cancelled");
+				showSuccessToast(t.invitations.cancelled);
 				setInvitations((prev) =>
 					prev.map((inv) =>
 						inv._id === invitationId ? { ...inv, status: "cancelled" } : inv,
 					),
 				);
 			} else {
-				showErrorToast(data.message ?? "Failed to cancel invitation");
+				showErrorToast(data.message ?? t.invitations.failedToCancel);
 			}
 		} catch {
-			showErrorToast("Network error");
+			showErrorToast(t.invitations.networkError);
 		} finally {
 			setCancelling(null);
 			setConfirmCancelId(null);
@@ -224,11 +226,10 @@ export default function InvestorInvitationsPage() {
 						<div>
 							<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient flex items-center gap-2">
 								<SendHorizonal className="h-6 w-6 text-primary" />
-								Sent Invitations
+								{t.nav.invitations}
 							</h1>
 							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
-								Track and manage the investment invitations you have sent to
-								entrepreneurs.
+								{t.invitations.subtitle}
 							</p>
 						</div>
 						{stats.pending > 0 && (
@@ -237,7 +238,7 @@ export default function InvestorInvitationsPage() {
 								className="text-xs font-medium gap-1.5 py-1 px-3 w-fit"
 							>
 								<Clock className="h-3 w-3" />
-								{stats.pending} Pending
+								{stats.pending} {t.invitations.pending}
 							</Badge>
 						)}
 					</div>
@@ -247,25 +248,25 @@ export default function InvestorInvitationsPage() {
 				<div className="admin-stat-grid grid gap-4 sm:grid-cols-4 mb-8">
 					{[
 						{
-							label: "Total Sent",
+							label: t.invitations.totalSent,
 							value: stats.total,
 							colorClass: "admin-icon-blue",
 							icon: <Mail className="h-4 w-4 text-white" />,
 						},
 						{
-							label: "Pending",
+							label: t.invitations.pending,
 							value: stats.pending,
 							colorClass: "admin-icon-amber",
 							icon: <Clock className="h-4 w-4 text-white" />,
 						},
 						{
-							label: "Accepted",
+							label: t.invitations.accepted,
 							value: stats.accepted,
 							colorClass: "admin-icon-emerald",
 							icon: <CheckCircle2 className="h-4 w-4 text-white" />,
 						},
 						{
-							label: "Declined",
+							label: t.invitations.declined,
 							value: stats.declined,
 							colorClass: "admin-icon-red",
 							icon: <XCircle className="h-4 w-4 text-white" />,
@@ -297,15 +298,15 @@ export default function InvestorInvitationsPage() {
 				<div className="flex items-center gap-3 mb-6">
 					<Select value={statusFilter} onValueChange={setStatusFilter}>
 						<SelectTrigger className="w-48">
-							<SelectValue placeholder="Filter by status" />
+							<SelectValue placeholder={t.invitations.filterByStatus} />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value="all">All Statuses</SelectItem>
-							<SelectItem value="pending">Pending</SelectItem>
-							<SelectItem value="accepted">Accepted</SelectItem>
-							<SelectItem value="declined">Declined</SelectItem>
-							<SelectItem value="cancelled">Cancelled</SelectItem>
-							<SelectItem value="expired">Expired</SelectItem>
+							<SelectItem value="all">{t.invitations.allStatuses}</SelectItem>
+							<SelectItem value="pending">{t.invitations.pending}</SelectItem>
+							<SelectItem value="accepted">{t.invitations.accepted}</SelectItem>
+							<SelectItem value="declined">{t.invitations.declined}</SelectItem>
+							<SelectItem value="cancelled">{t.invitations.cancelledStatus}</SelectItem>
+							<SelectItem value="expired">{t.invitations.expired}</SelectItem>
 						</SelectContent>
 					</Select>
 				</div>
@@ -325,20 +326,20 @@ export default function InvestorInvitationsPage() {
 							</div>
 							<h3 className="text-lg font-semibold mb-2">
 								{statusFilter === "all"
-									? "No invitations sent yet"
-									: `No ${statusFilter} invitations`}
+									? t.invitations.noInvitationsYet
+									: t.invitations.noFilteredInvitations}
 							</h3>
 							<p className="text-sm text-muted-foreground text-center max-w-sm">
 								{statusFilter === "all"
-									? "After a match is accepted you can send an investment invitation to the entrepreneur."
-									: "Try changing the status filter to see other invitations."}
+									? t.invitations.noInvitationsDesc
+									: t.invitations.tryChangingFilter}
 							</p>
 						</CardContent>
 					</Card>
 				) : (
 					<div className="space-y-4">
 						{invitations.map((inv) => {
-							const cfg = statusConfig(inv.status);
+							const cfg = statusConfig(inv.status, t);
 							const isPending = inv.status === "pending";
 							const expiryDays = daysUntil(inv.expiresAt);
 
@@ -363,11 +364,11 @@ export default function InvestorInvitationsPage() {
 													)}
 												</div>
 												<p className="text-sm font-semibold text-foreground">
-													To:{" "}
+													{t.invitations.to}{" "}
 													<span className="font-normal text-muted-foreground">
 														{inv.receiverId?.fullName ??
 															inv.receiverId?.email ??
-															"Entrepreneur"}
+															t.invitations.entrepreneur}
 													</span>
 												</p>
 												{inv.message && (
@@ -378,7 +379,7 @@ export default function InvestorInvitationsPage() {
 												{inv.responseMessage && (
 													<div className="mt-2 rounded-lg bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
 														<span className="font-semibold text-foreground mr-1">
-															Response:
+															{t.invitations.response}
 														</span>
 														{inv.responseMessage}
 													</div>
@@ -392,14 +393,14 @@ export default function InvestorInvitationsPage() {
 										<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
 											<div className="text-xs text-muted-foreground space-y-0.5">
 												<p>
-													Sent:{" "}
+													{t.invitations.sent}{" "}
 													<span className="font-medium text-foreground">
 														{new Date(inv.sentAt).toLocaleDateString()}
 													</span>
 												</p>
 												{isPending && (
 													<p>
-														Expires in:{" "}
+														{t.invitations.expiresIn}{" "}
 														<span
 															className={
 																expiryDays <= 2
@@ -407,13 +408,13 @@ export default function InvestorInvitationsPage() {
 																	: "font-medium text-foreground"
 															}
 														>
-															{expiryDays} day{expiryDays !== 1 ? "s" : ""}
+															{expiryDays} {expiryDays !== 1 ? t.invitations.days : t.invitations.day}
 														</span>
 													</p>
 												)}
 												{inv.respondedAt && (
 													<p>
-														Responded:{" "}
+														{t.invitations.responded}{" "}
 														<span className="font-medium text-foreground">
 															{new Date(inv.respondedAt).toLocaleDateString()}
 														</span>
@@ -434,7 +435,7 @@ export default function InvestorInvitationsPage() {
 													) : (
 														<Ban className="h-3.5 w-3.5 mr-1" />
 													)}
-													Cancel
+													{t.invitations.cancel}
 												</Button>
 											)}
 										</div>
@@ -452,10 +453,9 @@ export default function InvestorInvitationsPage() {
 				>
 					<DialogContent className="max-w-md">
 						<DialogHeader>
-							<DialogTitle>Cancel Invitation</DialogTitle>
+							<DialogTitle>{t.invitations.cancelInvitation}</DialogTitle>
 							<DialogDescription>
-								Are you sure you want to cancel this invitation? The
-								entrepreneur will no longer be able to respond to it.
+								{t.invitations.cancelConfirmDesc}
 							</DialogDescription>
 						</DialogHeader>
 						<DialogFooter className="mt-4 gap-2 sm:justify-end">
@@ -463,7 +463,7 @@ export default function InvestorInvitationsPage() {
 								variant="outline"
 								onClick={() => setConfirmCancelId(null)}
 							>
-								Keep It
+								{t.invitations.keepIt}
 							</Button>
 							<Button
 								variant="destructive"
@@ -475,7 +475,7 @@ export default function InvestorInvitationsPage() {
 								{cancelling ? (
 									<Loader2 className="h-4 w-4 animate-spin mr-2" />
 								) : null}
-								Yes, Cancel
+								{t.invitations.yesCancel}
 							</Button>
 						</DialogFooter>
 					</DialogContent>
