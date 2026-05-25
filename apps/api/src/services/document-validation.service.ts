@@ -75,11 +75,24 @@ const DOC_CATEGORY_DEFS = [
 	},
 ] as const;
 
+// Every pitch — regardless of stage — must include proof of a registered business.
+// tin_certificate and business_license are mandatory KYC documents for all stages.
 const REQUIRED_BY_STAGE: Record<SubmissionStage, string[]> = {
-	idea: ["pitch_deck"],
-	mvp: ["pitch_deck"],
-	"early-revenue": ["pitch_deck"],
-	scaling: ["pitch_deck"],
+	idea: ["pitch_deck", "tin_certificate", "business_license"],
+	mvp: ["pitch_deck", "tin_certificate", "business_license"],
+	"early-revenue": [
+		"pitch_deck",
+		"tin_certificate",
+		"business_license",
+		"financial_model",
+	],
+	scaling: [
+		"pitch_deck",
+		"tin_certificate",
+		"business_license",
+		"financial_model",
+		"moa_aoa",
+	],
 };
 
 const buildChecklist = (stage: SubmissionStage) => {

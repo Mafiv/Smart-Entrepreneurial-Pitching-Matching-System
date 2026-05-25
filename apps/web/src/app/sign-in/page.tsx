@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import { showErrorToast } from "@/lib/toast-messages";
 
 export default function SignInPage() {
@@ -16,6 +18,7 @@ export default function SignInPage() {
 	const [loading, setLoading] = useState(false);
 
 	const { signIn, signInWithGoogle } = useAuth();
+	const { t } = useLanguage();
 	const router = useRouter();
 
 	const API = (
@@ -88,7 +91,10 @@ export default function SignInPage() {
 	const APP_NAME = "SEPMS";
 
 	return (
-		<div className="flex min-h-screen w-full bg-background flex-col lg:flex-row">
+		<div className="relative flex min-h-screen w-full bg-background flex-col lg:flex-row">
+			<div className="absolute top-4 right-4 lg:top-8 lg:right-8 z-50">
+				<LanguageSwitcher />
+			</div>
 			{/* Left Split - Branding */}
 			<div className="relative hidden w-1/2 flex-col justify-center border-r border-border/50 p-12 lg:flex xl:p-24 overflow-hidden">
 				<div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px] dark:block hidden" />
@@ -102,11 +108,10 @@ export default function SignInPage() {
 
 					<div className="space-y-4">
 						<h1 className="text-4xl font-bold tracking-tight sm:text-5xl xl:text-6xl leading-[1.1]">
-							Welcome back to <br /> smart pitching.
+							{t.auth.signInLeftTitle1} <br /> {t.auth.signInLeftTitle2}
 						</h1>
 						<p className="text-lg text-muted-foreground max-w-md leading-relaxed">
-							Sign in to continue accessing AI-curated deal flows, instant pitch
-							analysis, and seamless semantic matching.
+							{t.auth.signInLeftDesc}
 						</p>
 					</div>
 				</div>
@@ -119,10 +124,10 @@ export default function SignInPage() {
 						<div className="mx-auto mb-6 flex h-12 w-12 lg:hidden">
 							<Logo className="h-12 w-12" />
 						</div>
-						<h2 className="text-3xl font-bold tracking-tight">Sign in</h2>
-						<p className="text-muted-foreground">
-							Enter your email and password below
-						</p>
+						<h2 className="text-3xl font-bold tracking-tight">
+							{t.auth.signInTitle}
+						</h2>
+						<p className="text-muted-foreground">{t.auth.signInSubtitle}</p>
 					</div>
 
 					<div className="space-y-4">
@@ -149,14 +154,7 @@ export default function SignInPage() {
 									d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
 									fill="#34A853"
 								/>
-								<div className="flex items-center justify-between">
-									<Link
-										href="/forgot-password"
-										className="text-sm text-primary font-semibold"
-									>
-										Forgot password?
-									</Link>
-								</div>
+
 								<path
 									d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
 									fill="#FBBC05"
@@ -166,7 +164,7 @@ export default function SignInPage() {
 									fill="#EA4335"
 								/>
 							</svg>
-							Continue with Google
+							{t.auth.continueWithGoogle}
 						</Button>
 
 						<div className="relative">
@@ -175,7 +173,7 @@ export default function SignInPage() {
 							</div>
 							<div className="relative flex justify-center text-xs uppercase">
 								<span className="bg-background px-2 text-muted-foreground">
-									Or continue with email
+									{t.auth.orContinueWithEmail}
 								</span>
 							</div>
 						</div>
@@ -185,12 +183,12 @@ export default function SignInPage() {
 							className="space-y-5 flex flex-col pt-2"
 						>
 							<div className="space-y-2">
-								<Label htmlFor="email">Email</Label>
+								<Label htmlFor="email">{t.auth.email}</Label>
 								<Input
 									id="email"
 									type="email"
 									className="h-11 border-border/50 bg-background"
-									placeholder="you@example.com"
+									placeholder={t.auth.emailPlaceholder}
 									value={email}
 									onChange={(e) => setEmail(e.target.value)}
 									required
@@ -200,13 +198,19 @@ export default function SignInPage() {
 
 							<div className="space-y-2">
 								<div className="flex items-center justify-between">
-									<Label htmlFor="password">Password</Label>
+									<Label htmlFor="password">{t.auth.password}</Label>
+									<Link
+										href="/forgot-password"
+										className="text-sm text-primary font-semibold hover:underline"
+									>
+										{t.auth.forgotPassword}
+									</Link>
 								</div>
 								<Input
 									id="password"
 									type="password"
 									className="h-11 border-border/50 bg-background"
-									placeholder="••••••••"
+									placeholder={t.auth.passwordPlaceholder}
 									value={password}
 									onChange={(e) => setPassword(e.target.value)}
 									required
@@ -219,18 +223,18 @@ export default function SignInPage() {
 								className="w-full h-11 font-medium mt-2"
 								disabled={loading}
 							>
-								{loading ? "Signing in..." : "Sign In"}
+								{loading ? t.auth.signingIn : t.auth.signInButton}
 							</Button>
 						</form>
 					</div>
 
 					<p className="text-center text-sm text-muted-foreground pt-4">
-						Don&apos;t have an account?{" "}
+						{t.auth.noAccount}{" "}
 						<Link
 							href="/sign-up"
 							className="font-semibold text-primary hover:underline"
 						>
-							Sign up
+							{t.auth.signUpLink}
 						</Link>
 					</p>
 				</div>

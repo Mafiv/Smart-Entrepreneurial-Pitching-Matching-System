@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showSuccessToast,
@@ -17,6 +19,7 @@ import {
 export default function ForgotPasswordPage() {
 	const router = useRouter();
 	const { requestPasswordResetOtp } = useAuth();
+	const { t } = useLanguage();
 	const [email, setEmail] = useState("");
 	const [loading, setLoading] = useState(false);
 
@@ -50,7 +53,10 @@ export default function ForgotPasswordPage() {
 	};
 
 	return (
-		<div className="flex min-h-screen w-full bg-background flex-col lg:flex-row">
+		<div className="relative flex min-h-screen w-full bg-background flex-col lg:flex-row">
+			<div className="absolute top-4 right-4 lg:top-8 lg:right-8 z-50">
+				<LanguageSwitcher />
+			</div>
 			<div className="relative hidden w-1/2 flex-col justify-center border-r border-border/50 p-12 lg:flex xl:p-24 overflow-hidden">
 				<div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px] dark:block hidden" />
 				<div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:64px_64px] dark:hidden block" />
@@ -62,10 +68,10 @@ export default function ForgotPasswordPage() {
 					</Link>
 					<div className="space-y-4">
 						<h1 className="text-4xl font-bold tracking-tight sm:text-5xl xl:text-6xl leading-[1.1]">
-							Reset your password
+							{t.auth.resetPasswordTitle}
 						</h1>
 						<p className="text-lg text-muted-foreground max-w-md leading-relaxed">
-							We will send a one-time code to your email address.
+							{t.auth.resetPasswordSubtitle}
 						</p>
 					</div>
 				</div>
@@ -78,34 +84,34 @@ export default function ForgotPasswordPage() {
 							<Logo className="h-12 w-12" />
 						</div>
 						<h2 className="text-3xl font-bold tracking-tight">
-							Forgot password
+							{t.auth.forgotPasswordTitle}
 						</h2>
 						<p className="text-muted-foreground">
-							Enter your email to receive an OTP
+							{t.auth.forgotPasswordSubtitle}
 						</p>
 					</div>
 
 					<form className="space-y-4" onSubmit={handleSubmit}>
 						<div className="space-y-2">
-							<Label htmlFor="email">Email</Label>
+							<Label htmlFor="email">{t.auth.email}</Label>
 							<Input
 								id="email"
 								type="email"
 								required
 								value={email}
 								onChange={(event) => setEmail(event.target.value)}
-								placeholder="you@example.com"
+								placeholder={t.auth.emailPlaceholder}
 							/>
 						</div>
 						<Button type="submit" className="w-full h-11" disabled={loading}>
-							{loading ? "Sending..." : "Send OTP"}
+							{loading ? t.auth.sendingOtp : t.auth.sendOtp}
 						</Button>
 					</form>
 
 					<p className="text-sm text-muted-foreground text-center lg:text-left">
-						Remembered your password?{" "}
+						{t.auth.rememberPassword}{" "}
 						<Link href="/sign-in" className="text-primary font-semibold">
-							Sign in
+							{t.auth.signInLink}
 						</Link>
 					</p>
 				</div>

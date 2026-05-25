@@ -8,6 +8,7 @@ import {
 	buildMockProviderReference,
 	MockPaymentProvider,
 } from "./mock-payment.provider";
+import { NotificationService } from "./notification.service";
 import { TransactionService } from "./transaction.service";
 
 class PaymentServiceError extends Error {
@@ -435,6 +436,26 @@ export class PaymentService {
 		console.log(
 			`Payment successfully processed for milestone ${milestone._id}`,
 		);
+
+		// Notify the entrepreneur that the milestone has been paid
+		try {
+			await NotificationService.createNotification({
+				userId: milestone.entrepreneurId.toString(),
+				type: "milestone_updated",
+				title: "Milestone paid",
+				body: `${milestone.title} has been paid. Funds are held in escrow awaiting disbursement by admin.`,
+				metadata: {
+					milestoneId: milestone._id,
+					tx_ref,
+					amount: milestone.amount,
+					currency: milestone.currency,
+					submissionId: milestone.submissionId,
+					matchResultId: milestone.matchResultId,
+				},
+			});
+		} catch (notifyErr) {
+			console.error("Failed to create payment notification:", notifyErr);
+		}
 
 		return { success: true, milestone };
 	}

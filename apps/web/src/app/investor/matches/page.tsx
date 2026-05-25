@@ -26,6 +26,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { INVESTOR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -101,6 +102,7 @@ function BreakdownBar({ label, value }: { label: string; value: number }) {
 
 export default function InvestorMatchesPage() {
 	const { user } = useAuth();
+	const { t } = useLanguage();
 	const router = useRouter();
 
 	const [matches, setMatches] = useState<Match[]>([]);
@@ -126,10 +128,10 @@ export default function InvestorMatchesPage() {
 			if (data.status === "success") {
 				setMatches(data.matches);
 			} else {
-				showErrorToast("Failed to load matches");
+				showErrorToast(t.match.failedToLoad);
 			}
 		} catch {
-			showErrorToast("Network error loading matches");
+			showErrorToast(t.match.networkErrorLoading);
 		} finally {
 			setLoading(false);
 		}
@@ -161,8 +163,8 @@ export default function InvestorMatchesPage() {
 			if (data.status === "success") {
 				showSuccessToast(
 					status === "accepted"
-						? "Match accepted — redirecting to chat"
-						: "Match declined",
+						? t.match.matchAccepted
+						: t.match.matchDeclined,
 				);
 				// On accept: go straight to the conversation
 				if (status === "accepted" && data.conversationId) {
@@ -172,10 +174,10 @@ export default function InvestorMatchesPage() {
 					fetchMatches();
 				}
 			} else {
-				showErrorToast(data.message ?? "Failed to respond");
+				showErrorToast(data.message ?? t.match.failedToRespond);
 			}
 		} catch {
-			showErrorToast("Network error");
+			showErrorToast(t.match.networkErrorRespond);
 		} finally {
 			setResponding(null);
 		}
@@ -202,11 +204,10 @@ export default function InvestorMatchesPage() {
 						<div>
 							<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient flex items-center gap-2">
 								<Sparkles className="h-6 w-6 text-primary" />
-								AI Match Queue
+								{t.match.aiMatchQueue}
 							</h1>
 							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
-								Pitches the AI matched to your investment profile. Accept to
-								connect, decline to refine future recommendations.
+								{t.match.matchQueueDesc}
 							</p>
 						</div>
 						{pendingCount > 0 && (
@@ -214,7 +215,7 @@ export default function InvestorMatchesPage() {
 								variant="destructive"
 								className="text-xs font-medium gap-1.5 py-1 px-3 w-fit"
 							>
-								{pendingCount} Pending
+								{pendingCount} {t.match.pending}
 							</Badge>
 						)}
 					</div>
@@ -230,7 +231,7 @@ export default function InvestorMatchesPage() {
 								</div>
 								<div className="min-w-0 flex-1">
 									<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-										Pending
+										{t.dashboard.pendingReview}
 									</p>
 									<p className="text-2xl font-bold tracking-tight">
 										{pendingCount}
@@ -247,7 +248,7 @@ export default function InvestorMatchesPage() {
 								</div>
 								<div className="min-w-0 flex-1">
 									<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-										Accepted
+										{t.match.accepted}
 									</p>
 									<p className="text-2xl font-bold tracking-tight">
 										{matches.filter((m) => m.status === "accepted").length}
@@ -264,7 +265,7 @@ export default function InvestorMatchesPage() {
 								</div>
 								<div className="min-w-0 flex-1">
 									<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-										Total Matches
+										{t.nav.myMatches}
 									</p>
 									<p className="text-2xl font-bold tracking-tight">
 										{matches.length}
@@ -279,14 +280,14 @@ export default function InvestorMatchesPage() {
 				<div className="flex items-center gap-3 mb-6">
 					<Select value={statusFilter} onValueChange={setStatusFilter}>
 						<SelectTrigger className="w-44">
-							<SelectValue placeholder="Filter by status" />
+							<SelectValue placeholder={t.match.filterByStatus} />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value="all">All</SelectItem>
-							<SelectItem value="pending">Pending</SelectItem>
-							<SelectItem value="accepted">Accepted</SelectItem>
-							<SelectItem value="declined">Declined</SelectItem>
-							<SelectItem value="expired">Expired</SelectItem>
+							<SelectItem value="all">{t.match.all}</SelectItem>
+							<SelectItem value="pending">{t.match.pending}</SelectItem>
+							<SelectItem value="accepted">{t.match.accepted}</SelectItem>
+							<SelectItem value="declined">{t.match.declinedStatus}</SelectItem>
+							<SelectItem value="expired">{t.match.expired}</SelectItem>
 						</SelectContent>
 					</Select>
 				</div>
@@ -302,10 +303,9 @@ export default function InvestorMatchesPage() {
 					<Card className="border-dashed">
 						<CardContent className="flex flex-col items-center justify-center py-16">
 							<Briefcase className="h-10 w-10 text-muted-foreground mb-4" />
-							<h3 className="text-lg font-semibold mb-2">No matches yet</h3>
+							<h3 className="text-lg font-semibold mb-2">{t.match.noMatchesYet}</h3>
 							<p className="text-sm text-muted-foreground text-center max-w-sm">
-								Matches appear here once an entrepreneur submits a pitch that
-								aligns with your investment profile.
+								{t.match.noMatchesDesc}
 							</p>
 						</CardContent>
 					</Card>
@@ -349,7 +349,7 @@ export default function InvestorMatchesPage() {
 														router.push(`/investor/pitch/${sub?._id}`)
 													}
 												>
-													{sub?.title ?? "Untitled Pitch"}
+													{sub?.title ?? t.pitch.untitledPitch}
 												</button>
 												{sub?.summary && (
 													<p className="text-sm text-muted-foreground mt-1 line-clamp-2">
@@ -366,7 +366,7 @@ export default function InvestorMatchesPage() {
 													</span>
 												</div>
 												<span className="text-xs text-muted-foreground mt-1">
-													match
+													{t.match.matchWord}
 												</span>
 											</div>
 										</div>
@@ -391,24 +391,26 @@ export default function InvestorMatchesPage() {
 													) : (
 														<ChevronDown className="h-3 w-3" />
 													)}
-													Score breakdown
+													{isExpanded
+														? t.match.hideBreakdown
+														: t.match.showBreakdown}
 												</button>
 												{isExpanded && (
 													<div className="mt-3 grid gap-2 sm:grid-cols-2">
 														<BreakdownBar
-															label="Sector fit"
+															label={t.match.sectorFit}
 															value={match.scoreBreakdown.sector}
 														/>
 														<BreakdownBar
-															label="Stage fit"
+															label={t.match.stageFit}
 															value={match.scoreBreakdown.stage}
 														/>
 														<BreakdownBar
-															label="Budget fit"
+															label={t.match.budgetFit}
 															value={match.scoreBreakdown.budget}
 														/>
 														<BreakdownBar
-															label="Semantic (AI)"
+															label={t.match.semanticAI}
 															value={match.scoreBreakdown.embedding}
 														/>
 													</div>
@@ -426,10 +428,10 @@ export default function InvestorMatchesPage() {
 														${sub.targetAmount.toLocaleString()}
 													</span>
 												)}
-												Matched {new Date(match.matchedAt).toLocaleDateString()}
+												{t.match.matchedOn} {new Date(match.matchedAt).toLocaleDateString()}
 												{match.expiresAt && (
 													<span className="ml-2 text-amber-600">
-														· Expires{" "}
+														· {t.match.expiresOn}{" "}
 														{new Date(match.expiresAt).toLocaleDateString()}
 													</span>
 												)}
@@ -443,7 +445,7 @@ export default function InvestorMatchesPage() {
 														router.push(`/investor/pitch/${sub?._id}`)
 													}
 												>
-													View Pitch
+													{t.pitch.viewFullPitch}
 												</Button>
 
 												{isPending && (
@@ -459,7 +461,7 @@ export default function InvestorMatchesPage() {
 															) : (
 																<XCircle className="h-3.5 w-3.5 mr-1" />
 															)}
-															Decline
+															{t.match.decline}
 														</Button>
 														<Button
 															size="sm"
@@ -471,7 +473,7 @@ export default function InvestorMatchesPage() {
 															) : (
 																<BadgeCheck className="h-3.5 w-3.5 mr-1" />
 															)}
-															Accept
+															{t.match.acceptMatch}
 														</Button>
 													</>
 												)}

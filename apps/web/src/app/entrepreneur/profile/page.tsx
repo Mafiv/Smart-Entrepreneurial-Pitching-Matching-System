@@ -39,6 +39,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ENTREPRENEUR_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
 	showErrorToast,
 	showInfoToast,
@@ -66,6 +67,7 @@ function FileUploadCard({
 	onRemove: () => void;
 	required?: boolean;
 }) {
+	const { t } = useLanguage();
 	const hasFile = !!file;
 	const hasExisting = !!existingUrl;
 	const isComplete = hasFile || hasExisting;
@@ -86,7 +88,8 @@ function FileUploadCard({
 					<div className="flex-1 min-w-0">
 						<p className="text-sm font-medium truncate">{file.name}</p>
 						<p className="text-xs text-muted-foreground">
-							{(file.size / 1024 / 1024).toFixed(2)} MB — Ready to upload
+							{(file.size / 1024 / 1024).toFixed(2)} MB —{" "}
+							{t.profile.readyToUploadLabel}
 						</p>
 					</div>
 					<Button
@@ -107,7 +110,7 @@ function FileUploadCard({
 					<div className="flex-1 min-w-0">
 						<p className="text-sm font-medium">{label}</p>
 						<p className="text-xs text-green-600 dark:text-green-400">
-							Uploaded ✓
+							{t.profile.uploaded} ✓
 						</p>
 					</div>
 					<Label htmlFor={id} className="cursor-pointer">
@@ -115,7 +118,7 @@ function FileUploadCard({
 							variant="outline"
 							className="text-xs cursor-pointer hover:bg-muted"
 						>
-							Replace
+							{t.investorProfile.replace}
 						</Badge>
 						<Input
 							id={id}
@@ -168,73 +171,126 @@ function VerificationProgress({
 	emailVerified: boolean;
 	rejectionReason?: string;
 }) {
+	const { t } = useLanguage();
 	const steps = [
-		{ label: "Email Verified", done: emailVerified },
-		{ label: "Government ID", done: hasGovId },
-		{ label: "Business Documents", done: hasBusinessDocs },
-		{ label: "Admin Approved", done: status === "verified" },
+		{ label: t.profile.emailVerified, done: emailVerified },
+		{ label: t.profile.governmentId, done: hasGovId },
+		{ label: t.profile.businessDocuments, done: hasBusinessDocs },
+		{ label: t.profile.adminApproved, done: status === "verified" },
 	];
 	const completedCount = steps.filter((s) => s.done).length;
 	const progress = (completedCount / steps.length) * 100;
 
+	const bgGradient =
+		status === "verified"
+			? "bg-gradient-to-br from-green-500/5 via-transparent to-transparent border-green-500/20"
+			: status === "pending"
+				? "bg-gradient-to-br from-blue-500/5 via-transparent to-transparent border-blue-500/20"
+				: "bg-gradient-to-br from-primary/5 via-transparent to-transparent border-primary/10";
+
 	return (
-		<Card className="border-primary/10">
-			<CardHeader className="pb-3">
+		<Card className={`relative overflow-hidden ${bgGradient}`}>
+			{status === "pending" && (
+				<div className="absolute -top-4 -right-4 p-4 opacity-5 pointer-events-none">
+					<Clock className="h-32 w-32 animate-pulse text-blue-500" />
+				</div>
+			)}
+			<CardHeader className="pb-3 relative z-10">
 				<div className="flex items-center justify-between">
 					<CardTitle className="text-base flex items-center gap-2">
-						<ShieldCheck className="h-4 w-4 text-primary" />
-						Verification Status
+						<ShieldCheck className="h-5 w-5 text-primary" />
+						{t.profile.verificationStatus}
 					</CardTitle>
 					<Badge
-						variant={
+						variant={status === "verified" ? "default" : "outline"}
+						className={`uppercase text-[10px] font-bold tracking-wider px-2 py-0.5 ${
 							status === "verified"
-								? "default"
+								? "bg-green-500 hover:bg-green-600 text-white border-transparent shadow-sm"
 								: status === "pending"
-									? "secondary"
-									: "outline"
-						}
-						className={`capitalize text-xs ${
-							status === "verified"
-								? "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20"
-								: status === "pending"
-									? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
-									: ""
+									? "bg-blue-500/10 text-blue-600 border-blue-500/30"
+									: "bg-muted text-muted-foreground border-muted-foreground/20"
 						}`}
 					>
 						{status === "verified"
-							? "✓ Verified"
+							? t.profile.verifiedLabel
 							: status === "pending"
-								? "⏳ Under Review"
-								: "Incomplete"}
+								? t.profile.underReviewBadge
+								: t.profile.incompleteBadge}
 					</Badge>
 				</div>
 			</CardHeader>
-			<CardContent className="space-y-4">
+			<CardContent className="space-y-6 relative z-10">
 				<div className="space-y-2">
-					<div className="flex justify-between text-xs text-muted-foreground">
-						<span>Progress</span>
-						<span>{Math.round(progress)}%</span>
+					<div className="flex justify-between text-xs font-medium">
+						<span className="text-muted-foreground">
+							{t.profile.overallProgress}
+						</span>
+						<span
+							className={
+								status === "verified" ? "text-green-600" : "text-primary"
+							}
+						>
+							{Math.round(progress)}%
+						</span>
 					</div>
-					<Progress value={progress} className="h-2" />
+					<Progress
+						value={progress}
+						className={`h-2.5 rounded-full ${status === "verified" ? "[&>div]:bg-green-500" : ""}`}
+					/>
 				</div>
 
-				<div className="space-y-2.5">
-					{steps.map((step) => (
-						<div key={step.label} className="flex items-center gap-2.5">
-							{step.done ? (
-								<CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
-							) : status === "pending" && step.label === "Admin Approved" ? (
-								<Clock className="h-4 w-4 text-blue-500 shrink-0 animate-pulse" />
-							) : (
-								<div className="h-4 w-4 rounded-full border-2 border-muted-foreground/20 shrink-0" />
-							)}
-							<span
-								className={`text-sm ${step.done ? "text-foreground" : "text-muted-foreground"}`}
-							>
-								{step.label}
-							</span>
-						</div>
-					))}
+				<div className="relative pl-2">
+					<div className="absolute left-[19px] top-3 bottom-3 w-px bg-border/60" />
+
+					<div className="space-y-4">
+						{steps.map((step) => {
+							const isPending =
+								status === "pending" && step.label === "Admin Approved";
+							const isDone = step.done;
+
+							return (
+								<div
+									key={step.label}
+									className="relative z-10 flex items-start gap-3"
+								>
+									<div
+										className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-background ${
+											isDone
+												? "text-green-500"
+												: isPending
+													? "text-blue-500 shadow-[0_0_0_3px_rgba(59,130,246,0.15)] ring-1 ring-blue-500/30"
+													: "text-muted-foreground ring-1 ring-muted-foreground/20"
+										}`}
+									>
+										{isDone ? (
+											<CheckCircle2 className="h-7 w-7 bg-background rounded-full" />
+										) : isPending ? (
+											<Clock className="h-4 w-4 animate-pulse" />
+										) : (
+											<div className="h-2 w-2 rounded-full bg-muted-foreground/30" />
+										)}
+									</div>
+									<div className="flex flex-col pt-1">
+										<span
+											className={`text-sm font-semibold ${isDone || isPending ? "text-foreground" : "text-muted-foreground"}`}
+										>
+											{step.label}
+										</span>
+										{isPending && (
+											<span className="text-[10px] text-blue-500 font-bold tracking-wide uppercase mt-0.5">
+												{t.profile.underReviewLabel}
+											</span>
+										)}
+										{isDone && (
+											<span className="text-[10px] text-green-500 font-bold tracking-wide uppercase mt-0.5">
+												{t.profile.completed}
+											</span>
+										)}
+									</div>
+								</div>
+							);
+						})}
+					</div>
 				</div>
 
 				{rejectionReason && (
@@ -243,7 +299,9 @@ function VerificationProgress({
 						className="mt-3 border-destructive/30 bg-destructive/5"
 					>
 						<AlertCircle className="h-4 w-4" />
-						<AlertTitle className="text-xs font-semibold">Rejected</AlertTitle>
+						<AlertTitle className="text-xs font-semibold">
+							{t.profile.rejected}
+						</AlertTitle>
 						<AlertDescription className="text-xs">
 							{rejectionReason}
 						</AlertDescription>
@@ -257,16 +315,17 @@ function VerificationProgress({
 // ─── Main Profile Page ───
 function EntrepreneurProfilePageInner() {
 	const { user, userProfile, refreshUserProfile } = useAuth();
+	const { t } = useLanguage();
 	const [profileData, setProfileData] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const [activeTab, setActiveTab] = useState("personal");
+	const [activeTab, setActiveTab] = useState("overview");
 	const searchParams = useSearchParams();
 
 	useEffect(() => {
 		const tab = searchParams.get("tab");
-		if (tab === "verification" || tab === "personal") {
+		if (tab === "verification" || tab === "personal" || tab === "overview") {
 			setActiveTab(tab);
 		}
 	}, [searchParams]);
@@ -482,353 +541,474 @@ function EntrepreneurProfilePageInner() {
 				<div className="admin-greeting-card bg-card mb-8 p-6 sm:p-8 admin-content-fade">
 					<div>
 						<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient">
-							Profile Settings
+							{t.profile.profileSettings}
 						</h1>
 						<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
-							Manage your personal information and verification documents
+							{t.profile.managePersonalAndDocs}
 						</p>
 					</div>
 				</div>
 
-				<div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-					{/* Main Content */}
-					<div>
-						<Tabs value={activeTab} onValueChange={setActiveTab}>
-							<TabsList className="w-full justify-start h-10 mb-6">
-								<TabsTrigger value="personal" className="gap-1.5 text-xs">
-									<UserIcon className="h-3.5 w-3.5" />
-									Personal Info
-								</TabsTrigger>
-								<TabsTrigger value="verification" className="gap-1.5 text-xs">
-									<ShieldCheck className="h-3.5 w-3.5" />
-									Verification
-									{userProfile?.status !== "verified" && (
-										<span className="ml-1 h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
-									)}
-									{userProfile?.status === "verified" && (
-										<CheckCircle2 className="ml-1 h-3 w-3 text-green-500" />
-									)}
-								</TabsTrigger>
-							</TabsList>
+				<div>
+					<Tabs value={activeTab} onValueChange={setActiveTab}>
+						<TabsList className="w-full justify-start h-auto flex-wrap sm:h-10 mb-6">
+							<TabsTrigger value="overview" className="gap-1.5 text-xs">
+								<Building2 className="h-3.5 w-3.5" />
+								{t.pitchNew.overview}
+							</TabsTrigger>
+							<TabsTrigger value="personal" className="gap-1.5 text-xs">
+								<UserIcon className="h-3.5 w-3.5" />
+								{t.investorProfile.personalInfoTab}
+							</TabsTrigger>
+							<TabsTrigger value="verification" className="gap-1.5 text-xs">
+								<ShieldCheck className="h-3.5 w-3.5" />
+								{t.profile.verification}
+								{userProfile?.status !== "verified" && (
+									<span className="ml-1 h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+								)}
+								{userProfile?.status === "verified" && (
+									<CheckCircle2 className="ml-1 h-3 w-3 text-green-500" />
+								)}
+							</TabsTrigger>
+						</TabsList>
 
-							{/* ─── Verification Tab ─── */}
-							<TabsContent value="verification" className="space-y-6 mt-0">
-								{isVerified && (
-									<div className="rounded-xl border border-green-500/20 bg-green-500/5 p-4 flex items-center gap-3">
-										<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-500/10">
-											<CheckCircle2 className="h-5 w-5 text-green-500" />
-										</div>
-										<div>
-											<p className="text-sm font-semibold text-green-700 dark:text-green-400">
-												Verification Complete
+						{/* ─── Overview Tab ─── */}
+						<TabsContent value="overview" className="space-y-6 mt-0">
+							<Card>
+								<CardHeader className="pb-3">
+									<CardTitle className="text-base flex items-center gap-2">
+										<Building2 className="h-4 w-4 text-primary" />
+										{t.profile.businessOverview}
+									</CardTitle>
+									<CardDescription>
+										{t.profile.publicProfileAndStats}
+									</CardDescription>
+								</CardHeader>
+								<CardContent className="space-y-6">
+									<div className="grid gap-4 sm:grid-cols-2">
+										<div className="space-y-2">
+											<Label className="text-sm text-muted-foreground">
+												{t.profile.companyName}
+											</Label>
+											<p className="font-medium">
+												{profileData?.companyName || t.profile.notProvided}
 											</p>
-											<p className="text-xs text-muted-foreground">
-												Your identity and business documents have been verified
-												by an administrator.
+										</div>
+										<div className="space-y-2">
+											<Label className="text-sm text-muted-foreground">
+												{t.profile.businessSector}
+											</Label>
+											<p className="font-medium capitalize">
+												{profileData?.businessSector || "Other"}
+											</p>
+										</div>
+										<div className="space-y-2">
+											<Label className="text-sm text-muted-foreground">
+												{t.profile.businessStage}
+											</Label>
+											<p className="font-medium capitalize">
+												{profileData?.businessStage || t.profile.notSpecified}
+											</p>
+										</div>
+										<div className="space-y-2">
+											<Label className="text-sm text-muted-foreground">
+												{t.profile.foundedYear}
+											</Label>
+											<p className="font-medium">
+												{profileData?.foundedYear || t.profile.notSpecified}
 											</p>
 										</div>
 									</div>
-								)}
+									{profileData?.description && (
+										<div className="space-y-2">
+											<Label className="text-sm text-muted-foreground">
+												{t.profile.companyDescriptionLabel}
+											</Label>
+											<p className="text-sm">{profileData.description}</p>
+										</div>
+									)}
+								</CardContent>
+							</Card>
 
-								{error && (
-									<Alert variant="destructive">
-										<AlertCircle className="h-4 w-4" />
-										<AlertDescription>{error}</AlertDescription>
-									</Alert>
-								)}
-
-								{/* Identity Verification */}
-								<Card>
-									<CardHeader className="pb-3">
-										<CardTitle className="text-base flex items-center gap-2">
-											<IdCard className="h-4 w-4 text-primary" />
-											Identity Verification
+							<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+								<Card className="bg-primary/5 border-primary/10">
+									<CardHeader className="pb-2">
+										<CardTitle className="text-sm text-muted-foreground">
+											{t.dashboard.totalPitches}
 										</CardTitle>
-										<CardDescription>
-											Upload a valid government-issued ID. Accepted: National ID
-											(Fayda / Kebele ID) or Driving License.
-										</CardDescription>
 									</CardHeader>
 									<CardContent>
-										<FileUploadCard
-											id="gov-id"
-											label="Government-Issued ID"
-											description="PDF or Image · Max 10MB"
-											file={files.governmentId}
-											existingUrl={profileData?.nationalIdUrl}
-											onChange={(e) => handleFileChange(e, "governmentId")}
-											onRemove={() => removeFile("governmentId")}
-											required
-										/>
-									</CardContent>
-								</Card>
-
-								{/* Business Documents */}
-								<Card>
-									<CardHeader className="pb-3">
-										<CardTitle className="text-base flex items-center gap-2">
-											<Building2 className="h-4 w-4 text-primary" />
-											Business Documents
-										</CardTitle>
-										<CardDescription>
-											Upload your business registration certificate and TIN
-											certificate from the Ethiopian Revenue Authority.
-										</CardDescription>
-									</CardHeader>
-									<CardContent className="space-y-3">
-										<FileUploadCard
-											id="biz-license"
-											label="Business Registration Certificate"
-											description="PDF or Image · Certificate of Incorporation"
-											file={files.businessLicense}
-											existingUrl={profileData?.businessLicenseUrl}
-											onChange={(e) => handleFileChange(e, "businessLicense")}
-											onRemove={() => removeFile("businessLicense")}
-											required
-										/>
-										<FileUploadCard
-											id="tin-cert"
-											label="TIN Certificate"
-											description="PDF or Image · Tax Identification Number"
-											file={files.tinCertificate}
-											existingUrl={profileData?.tinNumber}
-											onChange={(e) => handleFileChange(e, "tinCertificate")}
-											onRemove={() => removeFile("tinCertificate")}
-											required
-										/>
-									</CardContent>
-								</Card>
-
-								{/* Company Details */}
-								<Card>
-									<CardHeader className="pb-3">
-										<CardTitle className="text-base flex items-center gap-2">
-											<Building2 className="h-4 w-4 text-primary" />
-											Company Details
-										</CardTitle>
-									</CardHeader>
-									<CardContent className="space-y-4">
-										<div className="space-y-2">
-											<Label htmlFor="company-name" className="text-sm">
-												Company Name <span className="text-destructive">*</span>
-											</Label>
-											<Input
-												id="company-name"
-												placeholder="e.g. Ethio Tech Solutions PLC"
-												value={companyName}
-												onChange={(e) => setCompanyName(e.target.value)}
-												className="h-10"
-												disabled={isVerified}
-											/>
-										</div>
-										<div className="space-y-2">
-											<Label htmlFor="company-desc" className="text-sm">
-												Brief Description
-											</Label>
-											<Input
-												id="company-desc"
-												placeholder="What does your company do?"
-												value={companyDescription}
-												onChange={(e) => setCompanyDescription(e.target.value)}
-												className="h-10"
-												disabled={isVerified}
-											/>
+										<div className="text-2xl font-bold">
+											{profileData?.totalPitches || 0}
 										</div>
 									</CardContent>
-									{!isVerified && (
-										<CardFooter className="flex justify-end border-t pt-4">
-											<Button
-												onClick={handleSaveDocuments}
-												disabled={saving}
-												className="gap-2"
-											>
-												{saving ? (
-													<>
-														<Loader2 className="h-4 w-4 animate-spin" />
-														Saving...
-													</>
-												) : (
-													<>
-														<UploadCloud className="h-4 w-4" />
-														{userProfile?.status === "unverified"
-															? "Save & Submit for Review"
-															: "Save Changes"}
-													</>
-												)}
-											</Button>
-										</CardFooter>
+								</Card>
+								<Card className="bg-blue-500/5 border-blue-500/10">
+									<CardHeader className="pb-2">
+										<CardTitle className="text-sm text-muted-foreground">
+											{t.dashboard.activePitches}
+										</CardTitle>
+									</CardHeader>
+									<CardContent>
+										<div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+											{profileData?.activePitches || 0}
+										</div>
+									</CardContent>
+								</Card>
+								<Card className="bg-amber-500/5 border-amber-500/10">
+									<CardHeader className="pb-2">
+										<CardTitle className="text-sm text-muted-foreground">
+											{t.profile.interestedInvestors}
+										</CardTitle>
+									</CardHeader>
+									<CardContent>
+										<div className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+											{profileData?.interestedInvestors || 0}
+										</div>
+									</CardContent>
+								</Card>
+								<Card className="bg-green-500/5 border-green-500/10">
+									<CardHeader className="pb-2">
+										<CardTitle className="text-sm text-muted-foreground">
+											{t.profile.totalViews}
+										</CardTitle>
+									</CardHeader>
+									<CardContent>
+										<div className="text-2xl font-bold text-green-600 dark:text-green-400">
+											{profileData?.totalViews || 0}
+										</div>
+									</CardContent>
+								</Card>
+							</div>
+						</TabsContent>
+
+						{/* ─── Verification Tab ─── */}
+						<TabsContent value="verification" className="mt-0">
+							<div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+								<div className="space-y-6">
+									{isVerified && (
+										<div className="rounded-xl border border-green-500/20 bg-green-500/5 p-4 flex items-center gap-3">
+											<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-500/10">
+												<CheckCircle2 className="h-5 w-5 text-green-500" />
+											</div>
+											<div>
+												<p className="text-sm font-semibold text-green-700 dark:text-green-400">
+													{t.investorProfile.verificationComplete}
+												</p>
+												<p className="text-xs text-muted-foreground">
+													{t.profile.identityAndBusinessVerified}
+												</p>
+											</div>
+										</div>
 									)}
-								</Card>
-							</TabsContent>
 
-							{/* ─── Personal Info Tab ─── */}
-							<TabsContent value="personal" className="space-y-6 mt-0">
+									{error && (
+										<Alert variant="destructive">
+											<AlertCircle className="h-4 w-4" />
+											<AlertDescription>{error}</AlertDescription>
+										</Alert>
+									)}
+
+									{/* Identity Verification */}
+									<Card>
+										<CardHeader className="pb-3">
+											<CardTitle className="text-base flex items-center gap-2">
+												<IdCard className="h-4 w-4 text-primary" />
+												{t.investorProfile.identityVerification}
+											</CardTitle>
+											<CardDescription>{t.profile.uploadGovId}</CardDescription>
+										</CardHeader>
+										<CardContent>
+											<FileUploadCard
+												id="gov-id"
+												label={t.profile.governmentIssuedIdLabel}
+												description={t.profile.pdfOrImageMax10}
+												file={files.governmentId}
+												existingUrl={profileData?.nationalIdUrl}
+												onChange={(e) => handleFileChange(e, "governmentId")}
+												onRemove={() => removeFile("governmentId")}
+												required
+											/>
+										</CardContent>
+									</Card>
+
+									{/* Business Documents */}
+									<Card>
+										<CardHeader className="pb-3">
+											<CardTitle className="text-base flex items-center gap-2">
+												<Building2 className="h-4 w-4 text-primary" />
+												{t.profile.businessDocuments}
+											</CardTitle>
+											<CardDescription>
+												{t.profile.uploadBusinessDocs}
+											</CardDescription>
+										</CardHeader>
+										<CardContent className="space-y-3">
+											<FileUploadCard
+												id="biz-license"
+												label={t.profile.businessRegCertificate}
+												description={t.profile.pdfOrImageCertificate}
+												file={files.businessLicense}
+												existingUrl={profileData?.businessLicenseUrl}
+												onChange={(e) => handleFileChange(e, "businessLicense")}
+												onRemove={() => removeFile("businessLicense")}
+												required
+											/>
+											<FileUploadCard
+												id="tin-cert"
+												label={t.profile.tinCertificate}
+												description={t.profile.pdfOrImageTin}
+												file={files.tinCertificate}
+												existingUrl={profileData?.tinNumber}
+												onChange={(e) => handleFileChange(e, "tinCertificate")}
+												onRemove={() => removeFile("tinCertificate")}
+												required
+											/>
+										</CardContent>
+									</Card>
+
+									{/* Company Details */}
+									<Card>
+										<CardHeader className="pb-3">
+											<CardTitle className="text-base flex items-center gap-2">
+												<Building2 className="h-4 w-4 text-primary" />
+												{t.profile.companyDetails}
+											</CardTitle>
+										</CardHeader>
+										<CardContent className="space-y-4">
+											<div className="space-y-2">
+												<Label htmlFor="company-name" className="text-sm">
+													{t.profile.companyNameRequired}{" "}
+													<span className="text-destructive">*</span>
+												</Label>
+												<Input
+													id="company-name"
+													placeholder="e.g. Ethio Tech Solutions PLC"
+													value={companyName}
+													onChange={(e) => setCompanyName(e.target.value)}
+													className="h-10"
+													disabled={isVerified}
+												/>
+											</div>
+											<div className="space-y-2">
+												<Label htmlFor="company-desc" className="text-sm">
+													{t.profile.briefDescription}
+												</Label>
+												<Input
+													id="company-desc"
+													placeholder={t.profile.whatDoesCompanyDoPlaceholder}
+													value={companyDescription}
+													onChange={(e) =>
+														setCompanyDescription(e.target.value)
+													}
+													className="h-10"
+													disabled={isVerified}
+												/>
+											</div>
+										</CardContent>
+										{!isVerified && (
+											<CardFooter className="flex justify-end border-t pt-4">
+												<Button
+													onClick={handleSaveDocuments}
+													disabled={saving}
+													className="gap-2"
+												>
+													{saving ? (
+														<>
+															<Loader2 className="h-4 w-4 animate-spin" />
+															{t.investorProfile.saving}
+														</>
+													) : (
+														<>
+															<UploadCloud className="h-4 w-4" />
+															{userProfile?.status === "unverified"
+																? t.profile.saveSubmitReview
+																: t.profile.saveChanges}
+														</>
+													)}
+												</Button>
+											</CardFooter>
+										)}
+									</Card>
+								</div>
+
+								{/* Right Column: Verification Progress */}
+								<div className="space-y-6">
+									<VerificationProgress
+										status={userProfile?.status || "unverified"}
+										hasGovId={!!profileData?.nationalIdUrl}
+										hasBusinessDocs={
+											!!(
+												profileData?.businessLicenseUrl &&
+												profileData?.tinNumber
+											)
+										}
+										emailVerified={!!userProfile?.emailVerified}
+										rejectionReason={
+											userProfile?.kycRejectionReason ?? undefined
+										}
+									/>
+
+									{userProfile?.status === "pending" && (
+										<Card className="border-blue-500/20 bg-blue-500/5">
+											<CardContent className="p-4 text-center space-y-3">
+												<Clock className="h-8 w-8 text-blue-500 mx-auto" />
+												<p className="text-sm font-medium">
+													{t.investorProfile.underReview}
+												</p>
+												<p className="text-xs text-muted-foreground">
+													{t.profile.docsBeingReviewedNotified}
+												</p>
+												<Button
+													variant="outline"
+													size="sm"
+													className="w-full text-xs"
+													onClick={refreshUserProfile}
+												>
+													{t.profile.checkStatus}
+												</Button>
+											</CardContent>
+										</Card>
+									)}
+								</div>
+							</div>
+						</TabsContent>
+
+						{/* ─── Personal Info Tab ─── */}
+						<TabsContent value="personal" className="space-y-6 mt-0">
+							<Card>
+								<CardHeader className="pb-3">
+									<CardTitle className="text-base">
+										{t.investorProfile.personalInformation}
+									</CardTitle>
+									<CardDescription>
+										{t.profile.updateAccountDetailsBelow}
+									</CardDescription>
+								</CardHeader>
+								<CardContent className="space-y-6">
+									<div className="flex flex-col sm:flex-row items-start gap-6 pb-2">
+										<div className="shrink-0">
+											<Label className="text-sm text-muted-foreground block mb-3">
+												{t.investorProfile.profilePicture}
+											</Label>
+											<ProfilePictureUpload size="h-20 w-20" />
+										</div>
+										<Separator
+											orientation="vertical"
+											className="hidden sm:block h-28"
+										/>
+										<Separator className="sm:hidden" />
+										<div className="flex-1 grid gap-4 sm:grid-cols-2 w-full">
+											<div className="space-y-2">
+												<Label htmlFor="ent-edit-name" className="text-sm">
+													{t.investorProfile.fullName}
+												</Label>
+												<Input
+													id="ent-edit-name"
+													value={editName}
+													onChange={(e) => setEditName(e.target.value)}
+													placeholder="Your full name"
+												/>
+											</div>
+											<div className="space-y-2">
+												<Label className="text-sm text-muted-foreground">
+													{t.investorProfile.emailAddress}
+												</Label>
+												<p className="text-sm font-medium flex items-center gap-1.5 pt-2">
+													{userProfile?.email}
+													{userProfile?.emailVerified && (
+														<CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+													)}
+												</p>
+												<p className="text-xs text-muted-foreground">
+													{t.investorProfile.emailCannotChange}
+												</p>
+											</div>
+											<div className="space-y-2">
+												<Label className="text-sm text-muted-foreground">
+													{t.investorProfile.role}
+												</Label>
+												<p className="text-sm font-medium capitalize pt-2">
+													{userProfile?.role}
+												</p>
+											</div>
+											<div className="space-y-2">
+												<Label className="text-sm text-muted-foreground">
+													{t.investorProfile.accountStatus}
+												</Label>
+												<div className="pt-2">
+													<Badge
+														variant="outline"
+														className={`capitalize text-xs ${
+															userProfile?.status === "verified"
+																? "bg-green-500/10 text-green-600 border-green-500/20"
+																: userProfile?.status === "pending"
+																	? "bg-blue-500/10 text-blue-600 border-blue-500/20"
+																	: ""
+														}`}
+													>
+														{userProfile?.status}
+													</Badge>
+												</div>
+											</div>
+										</div>
+									</div>
+								</CardContent>
+								<CardFooter className="flex justify-end border-t pt-4">
+									<Button
+										onClick={handleUpdateProfile}
+										disabled={
+											savingProfile ||
+											editName.trim() === (userProfile?.displayName || "")
+										}
+										className="gap-2"
+									>
+										{savingProfile ? (
+											<>
+												<Loader2 className="h-4 w-4 animate-spin" />{" "}
+												{t.investorProfile.saving}
+											</>
+										) : (
+											<>
+												<Save className="h-4 w-4" />{" "}
+												{t.investorProfile.saveChanges}
+											</>
+										)}
+									</Button>
+								</CardFooter>
+							</Card>
+
+							{companyName && (
 								<Card>
 									<CardHeader className="pb-3">
 										<CardTitle className="text-base">
-											Personal Information
+											{t.profile.businessInformation}
 										</CardTitle>
-										<CardDescription>
-											Update your account details below.
-										</CardDescription>
 									</CardHeader>
-									<CardContent className="space-y-6">
-										<div className="flex flex-col sm:flex-row items-start gap-6 pb-2">
-											<div className="shrink-0">
-												<Label className="text-sm text-muted-foreground block mb-3">
-													Profile Picture
+									<CardContent>
+										<div className="grid gap-4 sm:grid-cols-2">
+											<div className="space-y-2">
+												<Label className="text-sm text-muted-foreground">
+													{t.profile.company}
 												</Label>
-												<ProfilePictureUpload size="h-20 w-20" />
+												<p className="text-sm font-medium">{companyName}</p>
 											</div>
-											<Separator
-												orientation="vertical"
-												className="hidden sm:block h-28"
-											/>
-											<Separator className="sm:hidden" />
-											<div className="flex-1 grid gap-4 sm:grid-cols-2 w-full">
-												<div className="space-y-2">
-													<Label htmlFor="ent-edit-name" className="text-sm">
-														Full Name
-													</Label>
-													<Input
-														id="ent-edit-name"
-														value={editName}
-														onChange={(e) => setEditName(e.target.value)}
-														placeholder="Your full name"
-													/>
-												</div>
+											{companyDescription && (
 												<div className="space-y-2">
 													<Label className="text-sm text-muted-foreground">
-														Email Address
+														{t.portfolio.description}
 													</Label>
-													<p className="text-sm font-medium flex items-center gap-1.5 pt-2">
-														{userProfile?.email}
-														{userProfile?.emailVerified && (
-															<CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-														)}
-													</p>
-													<p className="text-xs text-muted-foreground">
-														Email cannot be changed
+													<p className="text-sm text-muted-foreground">
+														{companyDescription}
 													</p>
 												</div>
-												<div className="space-y-2">
-													<Label className="text-sm text-muted-foreground">
-														Role
-													</Label>
-													<p className="text-sm font-medium capitalize pt-2">
-														{userProfile?.role}
-													</p>
-												</div>
-												<div className="space-y-2">
-													<Label className="text-sm text-muted-foreground">
-														Account Status
-													</Label>
-													<div className="pt-2">
-														<Badge
-															variant="outline"
-															className={`capitalize text-xs ${
-																userProfile?.status === "verified"
-																	? "bg-green-500/10 text-green-600 border-green-500/20"
-																	: userProfile?.status === "pending"
-																		? "bg-blue-500/10 text-blue-600 border-blue-500/20"
-																		: ""
-															}`}
-														>
-															{userProfile?.status}
-														</Badge>
-													</div>
-												</div>
-											</div>
+											)}
 										</div>
 									</CardContent>
-									<CardFooter className="flex justify-end border-t pt-4">
-										<Button
-											onClick={handleUpdateProfile}
-											disabled={
-												savingProfile ||
-												editName.trim() === (userProfile?.displayName || "")
-											}
-											className="gap-2"
-										>
-											{savingProfile ? (
-												<>
-													<Loader2 className="h-4 w-4 animate-spin" /> Saving...
-												</>
-											) : (
-												<>
-													<Save className="h-4 w-4" /> Save Changes
-												</>
-											)}
-										</Button>
-									</CardFooter>
 								</Card>
-
-								{companyName && (
-									<Card>
-										<CardHeader className="pb-3">
-											<CardTitle className="text-base">
-												Business Information
-											</CardTitle>
-										</CardHeader>
-										<CardContent>
-											<div className="grid gap-4 sm:grid-cols-2">
-												<div className="space-y-2">
-													<Label className="text-sm text-muted-foreground">
-														Company
-													</Label>
-													<p className="text-sm font-medium">{companyName}</p>
-												</div>
-												{companyDescription && (
-													<div className="space-y-2">
-														<Label className="text-sm text-muted-foreground">
-															Description
-														</Label>
-														<p className="text-sm text-muted-foreground">
-															{companyDescription}
-														</p>
-													</div>
-												)}
-											</div>
-										</CardContent>
-									</Card>
-								)}
-							</TabsContent>
-						</Tabs>
-					</div>
-
-					{/* Sidebar */}
-					<div className="space-y-6">
-						<VerificationProgress
-							status={userProfile?.status || "unverified"}
-							hasGovId={!!profileData?.nationalIdUrl}
-							hasBusinessDocs={
-								!!(profileData?.businessLicenseUrl && profileData?.tinNumber)
-							}
-							emailVerified={!!userProfile?.emailVerified}
-							rejectionReason={userProfile?.kycRejectionReason ?? undefined}
-						/>
-
-						{userProfile?.status === "pending" && (
-							<Card className="border-blue-500/20 bg-blue-500/5">
-								<CardContent className="p-4 text-center space-y-3">
-									<Clock className="h-8 w-8 text-blue-500 mx-auto" />
-									<p className="text-sm font-medium">Under Review</p>
-									<p className="text-xs text-muted-foreground">
-										Your documents are being reviewed. You'll be notified once
-										your account is approved.
-									</p>
-									<Button
-										variant="outline"
-										size="sm"
-										className="w-full text-xs"
-										onClick={refreshUserProfile}
-									>
-										Check Status
-									</Button>
-								</CardContent>
-							</Card>
-						)}
-					</div>
+							)}
+						</TabsContent>
+					</Tabs>
 				</div>
 			</DashboardLayout>
 		</ProtectedRoute>

@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/table";
 import { ADMIN_NAV } from "@/constants/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 interface Submission {
 	_id: string;
@@ -52,31 +53,7 @@ interface Submission {
 	createdAt: string;
 }
 
-const STATUS_OPTIONS = [
-	{ value: "all", label: "All Statuses" },
-	{ value: "draft", label: "Draft" },
-	{ value: "submitted", label: "Submitted" },
-	{ value: "under_review", label: "Under Review" },
-	{ value: "approved", label: "Approved" },
-	{ value: "rejected", label: "Rejected" },
-	{ value: "suspended", label: "Suspended" },
-	{ value: "matched", label: "Matched" },
-	{ value: "closed", label: "Closed" },
-];
 
-const SECTOR_OPTIONS = [
-	{ value: "all", label: "All Sectors" },
-	{ value: "technology", label: "Technology" },
-	{ value: "healthcare", label: "Healthcare" },
-	{ value: "fintech", label: "Fintech" },
-	{ value: "education", label: "Education" },
-	{ value: "agriculture", label: "Agriculture" },
-	{ value: "energy", label: "Energy" },
-	{ value: "real_estate", label: "Real Estate" },
-	{ value: "manufacturing", label: "Manufacturing" },
-	{ value: "retail", label: "Retail" },
-	{ value: "other", label: "Other" },
-];
 
 function statusBadge(status: string) {
 	switch (status) {
@@ -110,13 +87,54 @@ function statusIcon(status: string) {
 	}
 }
 
-function sectorLabel(value: string) {
+function sectorLabel(value: string, t: any) {
+	const SECTOR_OPTIONS = [
+		{ value: "all", label: t.adminSubmissions.allSectors },
+		{ value: "technology", label: t.adminSubmissions.technology },
+		{ value: "healthcare", label: t.adminSubmissions.healthcare },
+		{ value: "fintech", label: t.adminSubmissions.fintech },
+		{ value: "education", label: t.adminSubmissions.education },
+		{ value: "agriculture", label: t.adminSubmissions.agriculture },
+		{ value: "energy", label: t.adminSubmissions.energy },
+		{ value: "real_estate", label: t.adminSubmissions.realEstate },
+		{ value: "manufacturing", label: t.adminSubmissions.manufacturing },
+		{ value: "retail", label: t.adminSubmissions.retail },
+		{ value: "other", label: t.adminSubmissions.other },
+	];
 	return SECTOR_OPTIONS.find((s) => s.value === value)?.label || value;
 }
 
 export default function AdminSubmissionsPage() {
 	const { user } = useAuth();
 	const router = useRouter();
+	const { t } = useLanguage();
+
+	const STATUS_OPTIONS = [
+		{ value: "all", label: t.adminSubmissions.allStatuses },
+		{ value: "draft", label: t.adminSubmissions.draft },
+		{ value: "submitted", label: t.adminSubmissions.submitted },
+		{ value: "under_review", label: t.adminSubmissions.underReview },
+		{ value: "approved", label: t.adminSubmissions.approved },
+		{ value: "rejected", label: t.adminSubmissions.rejected },
+		{ value: "suspended", label: t.adminSubmissions.suspended },
+		{ value: "matched", label: t.adminSubmissions.matched },
+		{ value: "closed", label: t.adminSubmissions.closed },
+	];
+
+	const SECTOR_OPTIONS = [
+		{ value: "all", label: t.adminSubmissions.allSectors },
+		{ value: "technology", label: t.adminSubmissions.technology },
+		{ value: "healthcare", label: t.adminSubmissions.healthcare },
+		{ value: "fintech", label: t.adminSubmissions.fintech },
+		{ value: "education", label: t.adminSubmissions.education },
+		{ value: "agriculture", label: t.adminSubmissions.agriculture },
+		{ value: "energy", label: t.adminSubmissions.energy },
+		{ value: "real_estate", label: t.adminSubmissions.realEstate },
+		{ value: "manufacturing", label: t.adminSubmissions.manufacturing },
+		{ value: "retail", label: t.adminSubmissions.retail },
+		{ value: "other", label: t.adminSubmissions.other },
+	];
+
 	const [submissions, setSubmissions] = useState<Submission[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [statusFilter, setStatusFilter] = useState("all");
@@ -151,7 +169,7 @@ export default function AdminSubmissionsPage() {
 				if (data.stats) setStats(data.stats);
 			}
 		} catch (err) {
-			console.error("Failed to fetch submissions:", err);
+			console.error(t.adminSubmissions.failedToFetchSubmissions, err);
 		} finally {
 			setLoading(false);
 		}
@@ -180,10 +198,10 @@ export default function AdminSubmissionsPage() {
 					<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 						<div>
 							<h1 className="text-2xl font-bold tracking-tight sm:text-3xl admin-header-gradient">
-								Pitch Submissions
+								{t.adminSubmissions.pitchSubmissions}
 							</h1>
 							<p className="mt-1.5 text-muted-foreground text-sm sm:text-base">
-								Review and manage all entrepreneur pitch submissions
+								{t.adminSubmissions.pitchSubmissionsDesc}
 							</p>
 						</div>
 						<Badge
@@ -191,7 +209,7 @@ export default function AdminSubmissionsPage() {
 							className="text-xs font-medium gap-1.5 py-1 px-3 w-fit"
 						>
 							<FileText className="h-3.5 w-3.5" />
-							{total} Total
+							{total} {t.adminSubmissions.total}
 						</Badge>
 					</div>
 				</div>
@@ -206,7 +224,7 @@ export default function AdminSubmissionsPage() {
 								</div>
 								<div className="min-w-0 flex-1">
 									<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-										Total
+										{t.adminSubmissions.total}
 									</p>
 									<p className="text-2xl font-bold tracking-tight">{total}</p>
 								</div>
@@ -221,7 +239,7 @@ export default function AdminSubmissionsPage() {
 								</div>
 								<div className="min-w-0 flex-1">
 									<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-										Pending Review
+										{t.adminSubmissions.pendingReview}
 									</p>
 									<div className="flex items-baseline gap-2">
 										<p className="text-2xl font-bold tracking-tight">
@@ -229,7 +247,7 @@ export default function AdminSubmissionsPage() {
 										</p>
 										{(stats.submitted || 0) + (stats.under_review || 0) > 0 && (
 											<span className="text-[10px] font-semibold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded-full">
-												Needs review
+												{t.adminSubmissions.needsReview}
 											</span>
 										)}
 									</div>
@@ -245,7 +263,7 @@ export default function AdminSubmissionsPage() {
 								</div>
 								<div className="min-w-0 flex-1">
 									<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-										Approved
+										{t.adminSubmissions.approved}
 									</p>
 									<p className="text-2xl font-bold tracking-tight">
 										{stats.approved || 0}
@@ -262,7 +280,7 @@ export default function AdminSubmissionsPage() {
 								</div>
 								<div className="min-w-0 flex-1">
 									<p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70">
-										Rejected
+										{t.adminSubmissions.rejected}
 									</p>
 									<p className="text-2xl font-bold tracking-tight">
 										{(stats.rejected || 0) + (stats.suspended || 0)}
@@ -278,7 +296,7 @@ export default function AdminSubmissionsPage() {
 					<div className="relative flex-1 max-w-sm">
 						<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
 						<Input
-							placeholder="Search by title, founder..."
+							placeholder={t.adminSubmissions.searchPlaceholder}
 							value={searchQuery}
 							onChange={(e) => setSearchQuery(e.target.value)}
 							className="pl-9"
@@ -292,7 +310,7 @@ export default function AdminSubmissionsPage() {
 						}}
 					>
 						<SelectTrigger className="w-full sm:w-44">
-							<SelectValue placeholder="Status" />
+							<SelectValue placeholder={t.adminSubmissions.status} />
 						</SelectTrigger>
 						<SelectContent>
 							{STATUS_OPTIONS.map((o) => (
@@ -310,7 +328,7 @@ export default function AdminSubmissionsPage() {
 						}}
 					>
 						<SelectTrigger className="w-full sm:w-44">
-							<SelectValue placeholder="Sector" />
+							<SelectValue placeholder={t.adminSubmissions.sector} />
 						</SelectTrigger>
 						<SelectContent>
 							{SECTOR_OPTIONS.map((o) => (
@@ -334,12 +352,12 @@ export default function AdminSubmissionsPage() {
 						<CardContent className="flex flex-col items-center justify-center py-16">
 							<ClipboardList className="h-10 w-10 text-muted-foreground mb-4" />
 							<h3 className="text-lg font-semibold mb-2">
-								No submissions found
+								{t.adminSubmissions.noSubmissionsFound}
 							</h3>
 							<p className="text-muted-foreground text-center max-w-md text-sm">
 								{searchQuery || statusFilter !== "all" || sectorFilter !== "all"
-									? "Try adjusting your filters to find what you're looking for."
-									: "No pitches have been submitted yet."}
+									? t.adminSubmissions.tryAdjustingFilters
+									: t.adminSubmissions.noPitchesSubmittedYet}
 							</p>
 						</CardContent>
 					</Card>
@@ -349,26 +367,26 @@ export default function AdminSubmissionsPage() {
 							<Table>
 								<TableHeader>
 									<TableRow className="bg-muted/30">
-										<TableHead className="font-semibold">Pitch</TableHead>
+										<TableHead className="font-semibold">{t.adminSubmissions.pitch}</TableHead>
 										<TableHead className="font-semibold hidden md:table-cell">
-											Founder
+											{t.adminSubmissions.founder}
 										</TableHead>
 										<TableHead className="font-semibold hidden lg:table-cell">
-											Sector
+											{t.adminSubmissions.sector}
 										</TableHead>
 										<TableHead className="font-semibold">
 											<div className="flex items-center gap-1">
-												Status <ArrowUpDown className="h-3 w-3" />
+												{t.adminSubmissions.status} <ArrowUpDown className="h-3 w-3" />
 											</div>
 										</TableHead>
 										<TableHead className="font-semibold hidden sm:table-cell text-right">
-											Amount
+											{t.adminSubmissions.amount}
 										</TableHead>
 										<TableHead className="font-semibold hidden lg:table-cell">
-											AI Score
+											{t.adminSubmissions.aiScore}
 										</TableHead>
 										<TableHead className="font-semibold text-right">
-											Action
+											{t.adminSubmissions.action}
 										</TableHead>
 									</TableRow>
 								</TableHeader>
@@ -402,7 +420,7 @@ export default function AdminSubmissionsPage() {
 											</TableCell>
 											<TableCell className="hidden lg:table-cell">
 												<Badge variant="outline" className="text-xs capitalize">
-													{sectorLabel(sub.sector)}
+													{sectorLabel(sub.sector, t)}
 												</Badge>
 											</TableCell>
 											<TableCell>
@@ -411,7 +429,7 @@ export default function AdminSubmissionsPage() {
 													className="text-xs gap-1 capitalize"
 												>
 													{statusIcon(sub.status)}
-													{sub.status.replace("_", " ")}
+													{(t.adminSubmissions as Record<string, string>)[sub.status.replace("_", "")] || sub.status.replace("_", " ")}
 												</Badge>
 											</TableCell>
 											<TableCell className="hidden sm:table-cell text-right">
@@ -438,7 +456,7 @@ export default function AdminSubmissionsPage() {
 													onClick={() => router.push(`/admin/pitch/${sub._id}`)}
 												>
 													<Eye className="h-3.5 w-3.5" />
-													Review
+													{t.adminSubmissions.review}
 												</Button>
 											</TableCell>
 										</TableRow>
@@ -451,7 +469,7 @@ export default function AdminSubmissionsPage() {
 						{totalPages > 1 && (
 							<div className="flex items-center justify-between mt-6">
 								<p className="text-sm text-muted-foreground">
-									Page {page} of {totalPages} · {total} total
+									{t.adminSubmissions.page} {page} {t.adminSubmissions.of} {totalPages} · {total} {t.adminSubmissions.total.toLowerCase()}
 								</p>
 								<div className="flex items-center gap-1">
 									<Button
@@ -461,7 +479,7 @@ export default function AdminSubmissionsPage() {
 										onClick={() => setPage((p) => Math.max(1, p - 1))}
 										className="h-8 px-3"
 									>
-										Previous
+										{t.adminSubmissions.previous}
 									</Button>
 									{Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
 										let pg: number;
@@ -493,7 +511,7 @@ export default function AdminSubmissionsPage() {
 										onClick={() => setPage((p) => p + 1)}
 										className="h-8 px-3"
 									>
-										Next
+										{t.adminSubmissions.next}
 									</Button>
 								</div>
 							</div>

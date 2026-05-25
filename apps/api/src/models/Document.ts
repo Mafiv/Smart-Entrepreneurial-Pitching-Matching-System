@@ -10,6 +10,9 @@ export type DocumentType =
 	| "financial_model"
 	| "product_demo"
 	| "customer_testimonials"
+	| "tin_certificate"
+	| "business_license"
+	| "moa_aoa"
 	| "other";
 export type DocumentProcessingStatus =
 	| "uploaded"
@@ -69,6 +72,9 @@ const DocumentSchema = new Schema<IDocument>(
 				"financial_model",
 				"product_demo",
 				"customer_testimonials",
+				"tin_certificate",
+				"business_license",
+				"moa_aoa",
 				"other",
 			] satisfies DocumentType[],
 			required: true,
