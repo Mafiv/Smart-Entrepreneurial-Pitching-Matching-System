@@ -586,38 +586,42 @@ function EntrepreneurProfilePageInner() {
 								</CardHeader>
 								<CardContent className="space-y-6">
 									<div className="grid gap-4 sm:grid-cols-2">
-										<div className="space-y-2">
-											<Label className="text-sm text-muted-foreground">
-												{t.profile.companyName}
-											</Label>
-											<p className="font-medium">
-												{profileData?.companyName || t.profile.notProvided}
-											</p>
-										</div>
-										<div className="space-y-2">
-											<Label className="text-sm text-muted-foreground">
-												{t.profile.businessSector}
-											</Label>
-											<p className="font-medium capitalize">
-												{profileData?.businessSector || "Other"}
-											</p>
-										</div>
-										<div className="space-y-2">
-											<Label className="text-sm text-muted-foreground">
-												{t.profile.businessStage}
-											</Label>
-											<p className="font-medium capitalize">
-												{profileData?.businessStage || t.profile.notSpecified}
-											</p>
-										</div>
-										<div className="space-y-2">
-											<Label className="text-sm text-muted-foreground">
-												{t.profile.foundedYear}
-											</Label>
-											<p className="font-medium">
-												{profileData?.foundedYear || t.profile.notSpecified}
-											</p>
-										</div>
+										{profileData?.companyName && (
+											<div className="space-y-2">
+												<Label className="text-sm text-muted-foreground">
+													{t.profile.companyName}
+												</Label>
+												<p className="font-medium">{profileData.companyName}</p>
+											</div>
+										)}
+										{profileData?.businessSector && (
+											<div className="space-y-2">
+												<Label className="text-sm text-muted-foreground">
+													{t.profile.businessSector}
+												</Label>
+												<p className="font-medium capitalize">
+													{profileData.businessSector}
+												</p>
+											</div>
+										)}
+										{profileData?.businessStage && (
+											<div className="space-y-2">
+												<Label className="text-sm text-muted-foreground">
+													{t.profile.businessStage}
+												</Label>
+												<p className="font-medium capitalize">
+													{profileData.businessStage}
+												</p>
+											</div>
+										)}
+										{profileData?.foundedYear && (
+											<div className="space-y-2">
+												<Label className="text-sm text-muted-foreground">
+													{t.profile.foundedYear}
+												</Label>
+												<p className="font-medium">{profileData.foundedYear}</p>
+											</div>
+										)}
 									</div>
 									{profileData?.description && (
 										<div className="space-y-2">
