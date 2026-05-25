@@ -404,55 +404,60 @@ function InvestorProfilePageInner() {
 									</CardHeader>
 									<CardContent className="space-y-6">
 										<div className="grid gap-4 sm:grid-cols-2">
-											<div className="space-y-2">
-												<Label className="text-sm text-muted-foreground">
-													{t.investorProfile.investmentFirm}
-												</Label>
-												<p className="font-medium">
-													{profileData?.investmentFirm || t.profile.notProvided}
-												</p>
-											</div>
-											<div className="space-y-2">
-												<Label className="text-sm text-muted-foreground">
-													{t.investorOnboarding.position}
-												</Label>
-												<p className="font-medium">
-													{profileData?.position || t.profile.notProvided}
-												</p>
-											</div>
-											<div className="space-y-2">
-												<Label className="text-sm text-muted-foreground">
-													{t.investorProfile.yearsOfExperience}
-												</Label>
-												<p className="font-medium">
-													{profileData?.yearsExperience
-														? `${profileData.yearsExperience} years`
-														: t.profile.notProvided}
-												</p>
-											</div>
-											<div className="space-y-2">
-												<Label className="text-sm text-muted-foreground">
-													{t.invitations.investmentRange}
-												</Label>
-												<p className="font-medium">
-													$
-													{profileData?.investmentRange?.min?.toLocaleString() ||
-														0}{" "}
-													- $
-													{profileData?.investmentRange?.max?.toLocaleString() ||
-														"1,000,000"}
-												</p>
-											</div>
+											{profileData?.investmentFirm && (
+												<div className="space-y-2">
+													<Label className="text-sm text-muted-foreground">
+														{t.investorProfile.investmentFirm}
+													</Label>
+													<p className="font-medium">
+														{profileData.investmentFirm}
+													</p>
+												</div>
+											)}
+											{profileData?.position && (
+												<div className="space-y-2">
+													<Label className="text-sm text-muted-foreground">
+														{t.investorOnboarding.position}
+													</Label>
+													<p className="font-medium">{profileData.position}</p>
+												</div>
+											)}
+											{profileData?.yearsExperience && (
+												<div className="space-y-2">
+													<Label className="text-sm text-muted-foreground">
+														{t.investorProfile.yearsOfExperience}
+													</Label>
+													<p className="font-medium">
+														{profileData.yearsExperience} years
+													</p>
+												</div>
+											)}
+											{(profileData?.investmentRange?.min ||
+												profileData?.investmentRange?.max) && (
+												<div className="space-y-2">
+													<Label className="text-sm text-muted-foreground">
+														{t.invitations.investmentRange}
+													</Label>
+													<p className="font-medium">
+														$
+														{profileData?.investmentRange?.min?.toLocaleString() ||
+															0}{" "}
+														- $
+														{profileData?.investmentRange?.max?.toLocaleString() ||
+															"1,000,000"}
+													</p>
+												</div>
+											)}
 										</div>
 
 										<div className="space-y-4">
-											<div className="space-y-2">
-												<Label className="text-sm text-muted-foreground">
-													{t.investorOnboarding.preferredSectors}
-												</Label>
-												<div className="flex flex-wrap gap-2">
-													{profileData?.preferredSectors?.length > 0 ? (
-														profileData.preferredSectors.map(
+											{profileData?.preferredSectors?.length > 0 && (
+												<div className="space-y-2">
+													<Label className="text-sm text-muted-foreground">
+														{t.investorOnboarding.preferredSectors}
+													</Label>
+													<div className="flex flex-wrap gap-2">
+														{profileData.preferredSectors.map(
 															(sector: string) => (
 																<Badge
 																	key={sector}
@@ -462,36 +467,30 @@ function InvestorProfilePageInner() {
 																	{sector}
 																</Badge>
 															),
-														)
-													) : (
-														<p className="text-sm text-muted-foreground">
-															{t.investorProfile.noneSpecified}
-														</p>
-													)}
+														)}
+													</div>
 												</div>
-											</div>
-											<div className="space-y-2">
-												<Label className="text-sm text-muted-foreground">
-													{t.investorOnboarding.preferredStages}
-												</Label>
-												<div className="flex flex-wrap gap-2">
-													{profileData?.preferredStages?.length > 0 ? (
-														profileData.preferredStages.map((stage: string) => (
-															<Badge
-																key={stage}
-																variant="secondary"
-																className="capitalize"
-															>
-																{stage}
-															</Badge>
-														))
-													) : (
-														<p className="text-sm text-muted-foreground">
-															{t.investorProfile.noneSpecified}
-														</p>
-													)}
+											)}
+											{profileData?.preferredStages?.length > 0 && (
+												<div className="space-y-2">
+													<Label className="text-sm text-muted-foreground">
+														{t.investorOnboarding.preferredStages}
+													</Label>
+													<div className="flex flex-wrap gap-2">
+														{profileData.preferredStages.map(
+															(stage: string) => (
+																<Badge
+																	key={stage}
+																	variant="secondary"
+																	className="capitalize"
+																>
+																	{stage}
+																</Badge>
+															),
+														)}
+													</div>
 												</div>
-											</div>
+											)}
 										</div>
 									</CardContent>
 								</Card>
